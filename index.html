@@ -3,39 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد المستودع - عبد الرحمن فوزي</title>
+    <title>نظام جرد مخزن الكراس - إدارة علي عبداللطيف</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #27ae60;
-            --accent-color: #e67e22;
-            --light-bg: #f4f7f6;
+            --primary-color: #2c3e50; /* كحلي غامق */
+            --secondary-color: #27ae60; /* أخضر ناعم */
+            --accent-color: #e67e22; /* برتقالي */
+            --bg-color: #e0eafc; /* خلفية سماوية فاتحة جداً */
+            --bg-gradient: linear-gradient(to right, #e0eafc, #cfdef3);
             --white: #ffffff;
+            --shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-bg);
+            background: var(--bg-gradient);
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             color: var(--primary-color);
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--white);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            margin: 20px auto;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.3);
         }
 
+        /* تنسيق الهيدر واللوجو */
         header {
             text-align: center;
-            border-bottom: 2px solid var(--light-bg);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .logo-img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 50%;
+            border: 3px solid var(--secondary-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 28px;
+        }
+
+        .manager-name {
+            font-size: 18px;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        /* أقسام التحكم */
+        .controls-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
         }
 
         .date-section {
@@ -43,48 +86,91 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            background: #f9f9f9;
-            padding: 10px 15px;
-            border-radius: 8px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
 
-        input, button {
-            padding: 10px;
-            border-radius: 5px;
+        input[type="date"], input[type="text"], input[type="number"], input[type="color"] {
+            padding: 12px;
+            border-radius: 8px;
             border: 1px solid #ddd;
             font-size: 16px;
-        }
-
-        .input-group {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        button.add-btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            cursor: pointer;
             transition: 0.3s;
         }
 
-        button.copy-btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(230, 126, 34, 0.3);
+        }
+
+        /* مجموعة الإدخال الجديدة */
+        .input-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 0.5fr 1.5fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        #itemColor {
+            width: 100%;
+            height: 45px;
+            padding: 2px;
             cursor: pointer;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .add-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .share-btn {
+            background-color: #3498db; /* أزرق */
+            color: white;
+            margin: 20px auto 0 auto;
+            width: fit-content;
+        }
+
+        /* تنسيق الجدول */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            background-color: var(--white);
+            min-width: 600px;
         }
 
         th, td {
-            padding: 12px;
+            padding: 15px;
             text-align: center;
             border-bottom: 1px solid #eee;
         }
@@ -92,93 +178,171 @@
         th {
             background-color: var(--primary-color);
             color: white;
+            font-size: 17px;
         }
 
-        .total-row {
-            font-weight: bold;
-            background-color: #eee;
+        /* تنسيق الأسطر الملونة */
+        .colored-row {
+            /* سيتم إضافة خلفية شفافة من الجافاسكريبت */
+            font-weight: 600;
         }
 
+        .delete-btn {
+            color: #e74c3c;
+            background: none;
+            padding: 5px;
+            font-size: 18px;
+        }
+
+        /* تنسيق الفوتر */
         footer {
-            margin-top: 40px;
+            margin-top: 50px;
             text-align: center;
-            padding-top: 20px;
-            border-top: 2px solid var(--light-bg);
+            padding-top: 25px;
+            border-top: 2px solid #eee;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 15px;
+            padding-bottom: 20px;
         }
 
         .designer-info {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: bold;
             color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .manager-info-footer {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
         }
 
         .whatsapp-btn {
-            display: inline-block;
-            margin-top: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
             background-color: #25D366;
             color: white;
-            padding: 12px 25px;
+            padding: 15px 30px;
             text-decoration: none;
             border-radius: 50px;
             font-weight: bold;
+            font-size: 18px;
             transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
         }
 
         .whatsapp-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.5);
         }
 
-        @media (max-width: 600px) {
-            .input-group {
-                grid-template-columns: 1fr;
+        /* شاشة التحميل (تظهر عند إنشاء الصورة) */
+        #loadingOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-size: 20px;
+        }
+
+        /* إخفاء عناصر التحكم عند الطباعة */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; margin: 0; width: 100%; max-width: 100%; }
+            .controls-section, .add-btn, .copy-btn, .share-btn, .delete-btn, th:last-child, td:last-child {
+                display: none !important;
             }
+            .colored-row {
+                -webkit-print-color-adjust: exact; /* لضمان طباعة الألوان */
+                print-color-adjust: exact;
+            }
+        }
+
+        /* للموبايل */
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr 1fr;
+            }
+            #itemName { grid-column: span 2; }
+            #itemColor { grid-column: span 2; }
+            .add-btn { grid-column: span 2; }
+            .logo-container { flex-direction: column; gap: 10px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="loadingOverlay">
+    <i class="fas fa-spinner fa-spin fa-3x"></i>
+    <p>جاري تجهيز الصورة للتحميل والمشاركة...</p>
+</div>
+
+<div class="container" id="printableArea">
     <header>
-        <h1><i class="fas fa-boxes"></i> نظام جرد المخزن الذكي</h1>
+        <div class="logo-container">
+            <img src="https://files.catbox.moe/648uuj.jpg" alt="لوجو مخزن الكراس" class="logo-img">
+            <div>
+                <h1>نظام جرد مخزن الكراس</h1>
+                <div class="manager-name">إدارة الأستاذ: علي عبداللطيف</div>
+            </div>
+        </div>
     </header>
 
-    <div class="date-section">
-        <div>
-            <strong>تاريخ الجرد: </strong>
-            <input type="date" id="inventoryDate">
+    <div class="controls-section">
+        <div class="date-section">
+            <div>
+                <strong>التاريخ: </strong>
+                <input type="date" id="inventoryDate">
+            </div>
+            <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-copy"></i> نسخ كشف أمس</button>
         </div>
-        <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-copy"></i> نسخ بيانات اليوم السابق</button>
+
+        <div class="input-group">
+            <input type="text" id="itemName" placeholder="اسم الصنف الجديد">
+            <input type="number" id="cartons" placeholder="الكراتين">
+            <input type="number" id="perCarton" placeholder="القطعة/كرتونة">
+            <input type="color" id="itemColor" value="#e0f7fa" title="اختر لون السطر">
+            <button class="add-btn" onclick="addItem()">إضافة للصنف <i class="fas fa-plus"></i></button>
+        </div>
     </div>
 
-    <div class="input-group">
-        <input type="text" id="itemName" placeholder="اسم الصنف">
-        <input type="number" id="cartons" placeholder="عدد الكراتين">
-        <input type="number" id="perCarton" placeholder="داخل الكرتونة">
-        <button class="add-btn" onclick="addItem()">إضافة للصنف <i class="fas fa-plus"></i></button>
+    <div class="table-container">
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>اسم الصنف</th>
+                    <th>عدد الكراتين</th>
+                    <th>داخل الكرتونة</th>
+                    <th>الإجمالي (قطعة)</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
     </div>
 
-    <table id="inventoryTable">
-        <thead>
-            <tr>
-                <th>اسم الصنف</th>
-                <th>الكراتين</th>
-                <th>داخل الكرتونة</th>
-                <th>الإجمالي</th>
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            </tbody>
-    </table>
+    <div style="text-align:center;">
+        <button class="share-btn" onclick="shareOrPrintReport()"><i class="fas fa-camera"></i> طباعة / تحميل تقرير اليوم لصورة</button>
+    </div>
 
     <footer>
         <div class="designer-info">
             المصمم: عبدالرحمن محمد فوزي
         </div>
-        <p>لطلب عمل المواقع والأنظمة البرمجية، يرجى التواصل:</p>
+        <div class="manager-info-footer">
+            تحت إدارة: الأستاذ علي عبداللطيف (مخزن الكراس)
+        </div>
+        <p style="margin-bottom: 20px; color: #555;">لطلب عمل المواقع والأنظمة الاحترافية، يرجى التواصل:</p>
         <a href="https://wa.me/201285577074" class="whatsapp-btn">
-            <i class="fab fa-whatsapp"></i> تواصل عبر واتساب 01285577074
+            <i class="fab fa-whatsapp"></i> تواصل معي عبر واتساب 01285577074
         </a>
     </footer>
 </div>
@@ -189,8 +353,10 @@
     const today = new Date().toISOString().split('T')[0];
     dateInput.value = today;
 
-    let inventoryData = JSON.parse(localStorage.getItem('warehouse_data')) || {};
+    // تحميل البيانات من LocalStorage
+    let inventoryData = JSON.parse(localStorage.getItem('karras_warehouse_data')) || {};
 
+    // دالة لعرض الجدول
     function renderTable() {
         const selectedDate = dateInput.value;
         const tbody = document.getElementById('tableBody');
@@ -198,26 +364,31 @@
 
         const items = inventoryData[selectedDate] || [];
         items.forEach((item, index) => {
-            const row = `<tr>
-                <td>${item.name}</td>
+            // إضافة شفافية للون الخلفية ليكون خفيفاً والقراءة سهلة
+            const lightColor = item.color + "22"; // إضافة 22 بالهيكسا تعني حوالي 13% شفافية
+            
+            const row = `<tr class="colored-row" style="background-color: ${lightColor}; border-right: 5px solid ${item.color};">
+                <td style="color: ${item.color}; font-weight:bold;">${item.name}</td>
                 <td>${item.cartons}</td>
                 <td>${item.perCarton}</td>
                 <td>${item.cartons * item.perCarton}</td>
-                <td><button onclick="deleteItem(${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+                <td><button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button></td>
             </tr>`;
             tbody.innerHTML += row;
         });
         saveData();
     }
 
+    // دالة إضافة صنف جديد
     function addItem() {
         const name = document.getElementById('itemName').value;
         const cartons = document.getElementById('cartons').value;
         const perCarton = document.getElementById('perCarton').value;
+        const color = document.getElementById('itemColor').value;
         const selectedDate = dateInput.value;
 
         if(!name || !cartons || !perCarton) {
-            alert("برجاء ملء كافة الحقول");
+            alert("برجاء ملء كافة البيانات (الاسم، الكراتين، العدد)");
             return;
         }
 
@@ -226,44 +397,98 @@
         inventoryData[selectedDate].push({
             name: name,
             cartons: parseInt(cartons),
-            perCarton: parseInt(perCarton)
+            perCarton: parseInt(perCarton),
+            color: color
         });
 
+        // مسح الحقول بعد الإضافة
         document.getElementById('itemName').value = '';
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
+        document.getElementById('itemColor').value = '#e0f7fa'; // إعادة لون افتراضي
         
         renderTable();
     }
 
     function deleteItem(index) {
-        const selectedDate = dateInput.value;
-        inventoryData[selectedDate].splice(index, 1);
-        renderTable();
+        if(confirm("هل أنت متأكد من حذف هذا الصنف من كشف اليوم؟")) {
+            const selectedDate = dateInput.value;
+            inventoryData[selectedDate].splice(index, 1);
+            renderTable();
+        }
     }
 
+    // ميزة نسخ بيانات اليوم السابق
     function copyFromYesterday() {
         const selectedDate = dateInput.value;
         const d = new Date(selectedDate);
         d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
 
-        if(inventoryData[yesterday]) {
-            // ننسخ الأسامي فقط ونصفر الكميات أو ننسخها كلها كما تحب
-            // هنا سننسخ البيانات كاملة
+        if(inventoryData[yesterday] && inventoryData[yesterday].length > 0) {
+            // نسخ عميق للبيانات
             inventoryData[selectedDate] = JSON.parse(JSON.stringify(inventoryData[yesterday]));
             renderTable();
-            alert("تم نسخ بيانات يوم " + yesterday);
+            alert("تم نسخ أصناف يوم " + yesterday + " بنجاح.");
         } else {
-            alert("لا توجد بيانات مسجلة لليوم السابق.");
+            alert("لا توجد بيانات مسجلة ليوم أمس (" + yesterday + ").");
         }
     }
 
+    // حفظ البيانات
     function saveData() {
-        localStorage.setItem('warehouse_data', JSON.stringify(inventoryData));
+        localStorage.setItem('karras_warehouse_data', JSON.stringify(inventoryData));
     }
 
+    // ميزة الطباعة والمشاركة كصورة
+    function shareOrPrintReport() {
+        const overlay = document.getElementById('loadingOverlay');
+        const selectedDate = dateInput.value;
+        
+        // 1. فتح نافذة الطباعة (لسهولة الحفظ كـ PDF)
+        window.print();
+
+        // 2. إنشاء صورة وتحميلها
+        overlay.style.display = 'flex'; // إظهار شاشة التحميل
+
+        // تحديد الجزء المراد تصويره (الكونتينر بالكامل)
+        const areaToCapture = document.getElementById('printableArea');
+
+        // خيارات التقاط الصورة (لتحسين الجودة ومعالجة الألوان)
+        const options = {
+            scale: 2, // جودة أعلى
+            useCORS: true, // للسماح بتحميل اللوجو الخارجى
+            backgroundColor: "#f4f7f6", // لون الخلفية خلف الكارت
+            ignoreElements: (element) => {
+                // إخفاء الأزرار وأجزاء الإدخال من الصورة
+                return element.classList.contains('controls-section') || 
+                       element.classList.contains('share-btn') || 
+                       element.classList.contains('delete-btn') ||
+                       element.tagName === 'TH' && element.innerText === 'إجراء' ||
+                       element.tagName === 'TD' && element.querySelector('.delete-btn');
+            }
+        };
+
+        // استخدام المكتبة لتحويل HTML لصورة canvas
+        html2canvas(areaToCapture, options).then(canvas => {
+            // تحويل الـ canvas لرابط صورة PNG
+            const image = canvas.toDataURL("image/png");
+            
+            // إنشاء عنصر لينك "وهمي" لتحميل الصورة تلقائياً
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = `جرد_مخزن_الكراس_${selectedDate}.png`;
+            link.click();
+
+            overlay.style.display = 'none'; // إخفاء شاشة التحميل
+            alert("تم تحميل التقرير كصورة على جهازك. يمكنك الآن فتح واتساب ومشاركتها.");
+        });
+    }
+
+    // تغيير الجدول عند تغيير التاريخ
     dateInput.addEventListener('change', renderTable);
+    
+    // التشغيل الأولي
     renderTable();
 </script>
 
