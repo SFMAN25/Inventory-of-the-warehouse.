@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام جرد المستودع - عبد الرحمن فوزي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #27ae60;
+            --accent-color: #e67e22;
+            --light-bg: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--primary-color);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid var(--light-bg);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .date-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 8px;
+        }
+
+        input, button {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.add-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button.copy-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #eee;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 2px solid var(--light-bg);
+        }
+
+        .designer-info {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .whatsapp-btn {
+            display: inline-block;
+            margin-top: 15px;
+            background-color: #25D366;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .whatsapp-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fas fa-boxes"></i> نظام جرد المخزن الذكي</h1>
+    </header>
+
+    <div class="date-section">
+        <div>
+            <strong>تاريخ الجرد: </strong>
+            <input type="date" id="inventoryDate">
+        </div>
+        <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-copy"></i> نسخ بيانات اليوم السابق</button>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="itemName" placeholder="اسم الصنف">
+        <input type="number" id="cartons" placeholder="عدد الكراتين">
+        <input type="number" id="perCarton" placeholder="داخل الكرتونة">
+        <button class="add-btn" onclick="addItem()">إضافة للصنف <i class="fas fa-plus"></i></button>
+    </div>
+
+    <table id="inventoryTable">
+        <thead>
+            <tr>
+                <th>اسم الصنف</th>
+                <th>الكراتين</th>
+                <th>داخل الكرتونة</th>
+                <th>الإجمالي</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            </tbody>
+    </table>
+
+    <footer>
+        <div class="designer-info">
+            المصمم: عبدالرحمن محمد فوزي
+        </div>
+        <p>لطلب عمل المواقع والأنظمة البرمجية، يرجى التواصل:</p>
+        <a href="https://wa.me/201285577074" class="whatsapp-btn">
+            <i class="fab fa-whatsapp"></i> تواصل عبر واتساب 01285577074
+        </a>
+    </footer>
+</div>
+
+<script>
+    // تحديد تاريخ اليوم تلقائياً
+    const dateInput = document.getElementById('inventoryDate');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+
+    let inventoryData = JSON.parse(localStorage.getItem('warehouse_data')) || {};
+
+    function renderTable() {
+        const selectedDate = dateInput.value;
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        const items = inventoryData[selectedDate] || [];
+        items.forEach((item, index) => {
+            const row = `<tr>
+                <td>${item.name}</td>
+                <td>${item.cartons}</td>
+                <td>${item.perCarton}</td>
+                <td>${item.cartons * item.perCarton}</td>
+                <td><button onclick="deleteItem(${index})" style="color:red; border:none; background:none; cursor:pointer;"><i class="fas fa-trash"></i></button></td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+        saveData();
+    }
+
+    function addItem() {
+        const name = document.getElementById('itemName').value;
+        const cartons = document.getElementById('cartons').value;
+        const perCarton = document.getElementById('perCarton').value;
+        const selectedDate = dateInput.value;
+
+        if(!name || !cartons || !perCarton) {
+            alert("برجاء ملء كافة الحقول");
+            return;
+        }
+
+        if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
+        
+        inventoryData[selectedDate].push({
+            name: name,
+            cartons: parseInt(cartons),
+            perCarton: parseInt(perCarton)
+        });
+
+        document.getElementById('itemName').value = '';
+        document.getElementById('cartons').value = '';
+        document.getElementById('perCarton').value = '';
+        
+        renderTable();
+    }
+
+    function deleteItem(index) {
+        const selectedDate = dateInput.value;
+        inventoryData[selectedDate].splice(index, 1);
+        renderTable();
+    }
+
+    function copyFromYesterday() {
+        const selectedDate = dateInput.value;
+        const d = new Date(selectedDate);
+        d.setDate(d.getDate() - 1);
+        const yesterday = d.toISOString().split('T')[0];
+
+        if(inventoryData[yesterday]) {
+            // ننسخ الأسامي فقط ونصفر الكميات أو ننسخها كلها كما تحب
+            // هنا سننسخ البيانات كاملة
+            inventoryData[selectedDate] = JSON.parse(JSON.stringify(inventoryData[yesterday]));
+            renderTable();
+            alert("تم نسخ بيانات يوم " + yesterday);
+        } else {
+            alert("لا توجد بيانات مسجلة لليوم السابق.");
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem('warehouse_data', JSON.stringify(inventoryData));
+    }
+
+    dateInput.addEventListener('change', renderTable);
+    renderTable();
+</script>
+
+</body>
+</html>
