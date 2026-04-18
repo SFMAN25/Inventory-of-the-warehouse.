@@ -10,6 +10,7 @@
         :root {
             --primary-color: #1a252f;
             --secondary-color: #27ae60;
+            --edit-color: #f39c12; /* لون برتقالي للتعديل */
             --accent-color: #d35400;
             --text-color: #2c3e50;
             --white: #ffffff;
@@ -17,7 +18,6 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* إضافة صورة الخلفية */
             background-image: linear-gradient(rgba(224, 234, 252, 0.8), rgba(224, 234, 252, 0.8)), url('https://files.catbox.moe/pe6wie.jpg');
             background-size: cover;
             background-position: center;
@@ -31,7 +31,7 @@
         .container {
             max-width: 1050px;
             margin: 20px auto;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.94);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
@@ -64,7 +64,6 @@
             margin: 0;
             font-size: 32px;
             color: var(--primary-color);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .roles-header {
@@ -87,7 +86,7 @@
 
         .input-group {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr 0.6fr 1.2fr;
+            grid-template-columns: 2fr 1fr 1fr 0.6fr 1.5fr;
             gap: 12px;
             margin-top: 15px;
         }
@@ -99,14 +98,9 @@
             font-size: 16px;
         }
 
-        #itemColor {
-            height: 48px;
-            padding: 2px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .edit-mode-btn { background: var(--edit-color) !important; } /* شكل الزرار وقت التعديل */
+        
         .copy-btn { background: var(--primary-color); color: white; border: none; cursor: pointer; }
         .share-btn { background: #2980b9; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; }
 
@@ -117,41 +111,17 @@
             margin-top: 10px;
         }
 
-        th {
-            background: var(--primary-color);
-            color: white;
-            padding: 15px;
-        }
+        th { background: var(--primary-color); color: white; padding: 15px; }
+        td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-weight: 600; }
 
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            color: #333; /* لون الخط ثابت للأصناف والأرقام */
-            font-weight: 600;
-        }
-
+        .action-btns { display: flex; justify-content: center; gap: 10px; }
         .delete-btn { color: #c0392b; background: none; border: none; cursor: pointer; font-size: 18px; }
+        .edit-row-btn { color: #f39c12; background: none; border: none; cursor: pointer; font-size: 18px; }
 
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            padding: 20px;
-            background: rgba(255,255,255,0.8);
-            border-radius: 12px;
-        }
-
+        footer { margin-top: 40px; text-align: center; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px; }
         .whatsapp-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: #25D366;
-            color: white;
-            padding: 15px 25px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: bold;
-            margin-top: 15px;
+            display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white;
+            padding: 15px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 15px;
         }
 
         #loadingOverlay {
@@ -161,15 +131,8 @@
         }
 
         @media print {
-            .controls-section, .share-btn, .delete-btn, th:last-child, td:last-child { display: none !important; }
+            .controls-section, .share-btn, .action-btns, th:last-child, td:last-child { display: none !important; }
             body { background: white !important; }
-            .container { box-shadow: none; border: none; width: 100%; }
-        }
-
-        @media (max-width: 768px) {
-            .input-group { grid-template-columns: 1fr 1fr; }
-            #itemName { grid-column: span 2; }
-            .add-btn { grid-column: span 2; }
         }
     </style>
 </head>
@@ -203,8 +166,8 @@
             <input type="text" id="itemName" placeholder="أدخل اسم الصنف">
             <input type="number" id="cartons" placeholder="الكراتين">
             <input type="number" id="perCarton" placeholder="داخل الكرتونة">
-            <input type="color" id="itemColor" value="#ffffff" title="اختر لون تمييز السطر">
-            <button class="add-btn" onclick="addItem()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
+            <input type="color" id="itemColor" value="#ffffff">
+            <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
         </div>
     </div>
 
@@ -215,7 +178,7 @@
                 <th>الكراتين</th>
                 <th>داخل الكرتونة</th>
                 <th>الإجمالي</th>
-                <th>حذف</th>
+                <th>تعديل / حذف</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -227,7 +190,6 @@
 
     <footer>
         <p><b>تصميم وتطوير:</b> عبدالرحمن محمد فوزي (مساعد أمين مخزن)</p>
-        <p>لطلب أنظمة برمجية خاصة بالمخازن، تواصل معي:</p>
         <a href="https://wa.me/201285577074" class="whatsapp-btn">
             <i class="fab fa-whatsapp"></i> واتساب: 01285577074
         </a>
@@ -236,9 +198,11 @@
 
 <script>
     const dateInput = document.getElementById('inventoryDate');
+    const mainBtn = document.getElementById('mainActionBtn');
     dateInput.value = new Date().toISOString().split('T')[0];
 
     let inventoryData = JSON.parse(localStorage.getItem('boda_inventory_pro')) || {};
+    let editIndex = null; // متغير لمتابعة هل نحن في حالة تعديل أم لا
 
     function renderTable() {
         const selectedDate = dateInput.value;
@@ -248,7 +212,6 @@
 
         items.forEach((item, index) => {
             const row = document.createElement('tr');
-            // تلوين خلفية السطر بالكامل بلون شفاف خفيف
             row.style.backgroundColor = item.color + "33"; 
             row.style.borderRight = `6px solid ${item.color}`;
 
@@ -257,14 +220,18 @@
                 <td>${item.cartons}</td>
                 <td>${item.perCarton}</td>
                 <td>${item.cartons * item.perCarton}</td>
-                <td><button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button></td>
+                <td class="action-btns">
+                    <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
+                </td>
             `;
             tbody.appendChild(row);
         });
         localStorage.setItem('boda_inventory_pro', JSON.stringify(inventoryData));
     }
 
-    function addItem() {
+    // دالة للتعامل مع الزرار (إما إضافة أو حفظ تعديل)
+    function handleMainAction() {
         const name = document.getElementById('itemName').value;
         const cartons = document.getElementById('cartons').value;
         const perCarton = document.getElementById('perCarton').value;
@@ -274,17 +241,50 @@
         if(!name || !cartons || !perCarton) return alert("اكمل البيانات أولاً");
 
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
-        inventoryData[selectedDate].push({ name, cartons, perCarton, color });
 
-        document.getElementById('itemName').value = '';
-        document.getElementById('cartons').value = '';
-        document.getElementById('perCarton').value = '';
+        if(editIndex === null) {
+            // حالة إضافة جديدة
+            inventoryData[selectedDate].push({ name, cartons, perCarton, color });
+        } else {
+            // حالة حفظ تعديل
+            inventoryData[selectedDate][editIndex] = { name, cartons, perCarton, color };
+            editIndex = null;
+            mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
+            mainBtn.classList.remove('edit-mode-btn');
+        }
+
+        resetInputs();
         renderTable();
     }
 
+    // دالة تجهيز البيانات للتعديل
+    function prepareEdit(index) {
+        const selectedDate = dateInput.value;
+        const item = inventoryData[selectedDate][index];
+
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('cartons').value = item.cartons;
+        document.getElementById('perCarton').value = item.perCarton;
+        document.getElementById('itemColor').value = item.color;
+
+        editIndex = index;
+        mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
+        mainBtn.classList.add('edit-mode-btn');
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // الصعود لأعلى لرؤية الخانات
+    }
+
+    function resetInputs() {
+        document.getElementById('itemName').value = '';
+        document.getElementById('cartons').value = '';
+        document.getElementById('perCarton').value = '';
+        document.getElementById('itemColor').value = '#ffffff';
+    }
+
     function deleteItem(index) {
-        inventoryData[dateInput.value].splice(index, 1);
-        renderTable();
+        if(confirm("هل تريد حذف هذا البند؟")) {
+            inventoryData[dateInput.value].splice(index, 1);
+            renderTable();
+        }
     }
 
     function copyFromYesterday() {
@@ -300,13 +300,10 @@
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
-        
         const canvas = await html2canvas(document.getElementById('printableArea'), {
-            useCORS: true,
-            scale: 2,
-            ignoreElements: (el) => el.classList.contains('controls-section') || el.classList.contains('delete-btn') || el.classList.contains('share-btn')
+            useCORS: true, scale: 2,
+            ignoreElements: (el) => el.classList.contains('controls-section') || el.classList.contains('action-btns') || el.classList.contains('share-btn')
         });
-
         const link = document.createElement('a');
         link.download = `جرد_مخزن_الكراس_${dateInput.value}.png`;
         link.href = canvas.toDataURL();
