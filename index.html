@@ -123,6 +123,13 @@
             border: 1px solid #ddd;
         }
 
+        .history-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
         .input-group {
             display: grid;
             grid-template-columns: 2fr 1fr 1fr 0.6fr 1.5fr;
@@ -140,7 +147,9 @@
         .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
         .edit-mode-btn { background: var(--edit-color) !important; }
         
-        .copy-btn { background: var(--primary-color); color: white; border: none; cursor: pointer; }
+        .copy-btn-names { background: var(--primary-color); color: white; border: none; cursor: pointer; font-size: 14px; }
+        .copy-btn-full { background: #34495e; color: white; border: none; cursor: pointer; font-size: 14px; }
+        
         .share-btn { background: #2980b9; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; }
 
         table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
@@ -218,9 +227,12 @@
     </header>
 
     <div class="controls-section">
-        <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
+        <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
-            <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-history"></i> نسخ أسماء أصناف أمس</button>
+            <div class="history-btns">
+                <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس (بدون أعداد)</button>
+                <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل (بالأعداد)</button>
+            </div>
         </div>
         <div class="input-group">
             <input type="text" id="itemName" placeholder="أدخل اسم الصنف">
@@ -300,9 +312,9 @@
                         </button>
                     </div>
                 </td>
-                <td>${item.cartons}</td>
-                <td>${item.perCarton}</td>
-                <td>${item.cartons * item.perCarton}</td>
+                <td>${item.cartons || 0}</td>
+                <td>${item.perCarton || 0}</td>
+                <td>${(item.cartons || 0) * (item.perCarton || 0)}</td>
                 <td class="action-btns">
                     <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
                     <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
@@ -370,24 +382,25 @@
         }
     }
 
-    // الدالة المعدلة: نسخ الأسماء فقط وتصفير الأعداد
-    function copyFromYesterday() {
+    // دالة النسخ المطورة: تدعم النسخ بالأعداد أو بدونها
+    function copyFromYesterday(includeNumbers) {
         const d = new Date(dateInput.value);
         d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         
         if(inventoryData[yesterday] && inventoryData[yesterday].length > 0) {
-            // نأخذ أصناف أمس وننشئ منها نسخة جديدة ببيانات أعداد فارغة
-            const namesOnly = inventoryData[yesterday].map(item => ({
+            const yesterdayItems = inventoryData[yesterday];
+            
+            const newItems = yesterdayItems.map(item => ({
                 name: item.name,
-                cartons: "", // تصفير الكراتين
-                perCarton: "", // تصفير العدد
+                cartons: includeNumbers ? item.cartons : "",
+                perCarton: includeNumbers ? item.perCarton : "",
                 color: item.color
             }));
             
-            inventoryData[dateInput.value] = namesOnly;
+            inventoryData[dateInput.value] = newItems;
             renderTable();
-            alert("تم نسخ أسماء أصناف أمس بنجاح. ابدأ بإدخال الأعداد الجديدة.");
+            alert(includeNumbers ? "تم نسخ جرد أمس بالكامل." : "تم نسخ أسماء الأصناف فقط.");
         } else { 
             alert("لا توجد بيانات مسجلة لتاريخ أمس (" + yesterday + ")"); 
         }
