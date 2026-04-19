@@ -220,7 +220,7 @@
     <div class="controls-section">
         <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom:15px;">
             <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
-            <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-history"></i> نسخ أصناف أمس</button>
+            <button class="copy-btn" onclick="copyFromYesterday()"><i class="fas fa-history"></i> نسخ أسماء أصناف أمس</button>
         </div>
         <div class="input-group">
             <input type="text" id="itemName" placeholder="أدخل اسم الصنف">
@@ -269,7 +269,6 @@
         }
     }
 
-    // السماح بالدخول عند الضغط على Enter في الباسورد
     document.getElementById('passInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') { checkLogin(); }
     });
@@ -314,7 +313,6 @@
         localStorage.setItem('boda_inventory_pro', JSON.stringify(inventoryData));
     }
 
-    // دالة نسخ النص
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
             alert("تم نسخ: " + text);
@@ -328,7 +326,7 @@
         const color = document.getElementById('itemColor').value;
         const selectedDate = dateInput.value;
 
-        if(!name || !cartons || !perCarton) return alert("اكمل البيانات أولاً");
+        if(!name) return alert("أدخل اسم الصنف على الأقل");
 
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
@@ -372,14 +370,27 @@
         }
     }
 
+    // الدالة المعدلة: نسخ الأسماء فقط وتصفير الأعداد
     function copyFromYesterday() {
         const d = new Date(dateInput.value);
         d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
-        if(inventoryData[yesterday]) {
-            inventoryData[dateInput.value] = JSON.parse(JSON.stringify(inventoryData[yesterday]));
+        
+        if(inventoryData[yesterday] && inventoryData[yesterday].length > 0) {
+            // نأخذ أصناف أمس وننشئ منها نسخة جديدة ببيانات أعداد فارغة
+            const namesOnly = inventoryData[yesterday].map(item => ({
+                name: item.name,
+                cartons: "", // تصفير الكراتين
+                perCarton: "", // تصفير العدد
+                color: item.color
+            }));
+            
+            inventoryData[dateInput.value] = namesOnly;
             renderTable();
-        } else { alert("لا توجد بيانات لأمس"); }
+            alert("تم نسخ أسماء أصناف أمس بنجاح. ابدأ بإدخال الأعداد الجديدة.");
+        } else { 
+            alert("لا توجد بيانات مسجلة لتاريخ أمس (" + yesterday + ")"); 
+        }
     }
 
     async function captureReport() {
