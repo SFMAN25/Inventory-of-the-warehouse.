@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد مخزن الكراس - حماية 1404</title>
+    <title>نظام جرد مخزن الكراس - تطوير بودا</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -14,6 +14,7 @@
             --accent-color: #d35400;
             --text-color: #2c3e50;
             --white: #ffffff;
+            --review-color: #7f8c8d;
         }
 
         /* تنسيق شاشة الباسورد */
@@ -75,7 +76,7 @@
         }
 
         .container {
-            max-width: 1050px;
+            max-width: 1100px;
             margin: 20px auto;
             background: rgba(255, 255, 255, 0.94);
             padding: 30px;
@@ -156,6 +157,13 @@
         th { background: var(--primary-color); color: white; padding: 15px; }
         td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-weight: 600; }
 
+        /* ستايل المراجعة */
+        .reviewed {
+            text-decoration: line-through;
+            color: #7f8c8d;
+            opacity: 0.7;
+        }
+
         .item-name-cell {
             display: flex;
             align-items: center;
@@ -172,9 +180,11 @@
         }
         .copy-text-btn:hover { color: var(--primary-color); }
 
-        .action-btns { display: flex; justify-content: center; gap: 10px; }
+        .action-btns { display: flex; justify-content: center; gap: 8px; align-items: center; }
         .delete-btn { color: #c0392b; background: none; border: none; cursor: pointer; font-size: 18px; }
         .edit-row-btn { color: #f39c12; background: none; border: none; cursor: pointer; font-size: 18px; }
+        .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
+        .move-btn { color: #34495e; background: none; border: none; cursor: pointer; font-size: 16px; }
 
         footer { margin-top: 40px; text-align: center; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px; }
         .whatsapp-btn {
@@ -238,7 +248,7 @@
             <input type="text" id="itemName" placeholder="أدخل اسم الصنف">
             <input type="number" id="cartons" placeholder="الكراتين">
             <input type="number" id="perCarton" placeholder="داخل الكرتونة">
-            <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
+            <input type="color" id="itemColor" value="#ffffff" title="لون السطر (سيظل ثابتاً)">
             <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
         </div>
     </div>
@@ -250,7 +260,7 @@
                 <th>الكراتين</th>
                 <th>داخل الكرتونة</th>
                 <th>الإجمالي</th>
-                <th>تعديل / حذف</th>
+                <th>تعديل / حذف / مراجعة</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -302,6 +312,11 @@
             const row = document.createElement('tr');
             row.style.backgroundColor = item.color + "33"; 
             row.style.borderRight = `6px solid ${item.color}`;
+            
+            // تطبيق ستايل المراجعة
+            if (item.isReviewed) {
+                row.classList.add('reviewed');
+            }
 
             row.innerHTML = `
                 <td>
@@ -316,6 +331,9 @@
                 <td>${item.perCarton || 0}</td>
                 <td>${(item.cartons || 0) * (item.perCarton || 0)}</td>
                 <td class="action-btns">
+                    <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                    <button class="move-btn" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
+                    <button class="move-btn" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
                     <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
                     <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
                 </td>
@@ -323,6 +341,24 @@
             tbody.appendChild(row);
         });
         localStorage.setItem('boda_inventory_pro', JSON.stringify(inventoryData));
+    }
+
+    function moveItem(index, direction) {
+        const selectedDate = dateInput.value;
+        const items = inventoryData[selectedDate];
+        const newIndex = index + direction;
+        if (newIndex >= 0 && newIndex < items.length) {
+            const temp = items[index];
+            items[index] = items[newIndex];
+            items[newIndex] = temp;
+            renderTable();
+        }
+    }
+
+    function toggleReview(index) {
+        const selectedDate = dateInput.value;
+        inventoryData[selectedDate][index].isReviewed = !inventoryData[selectedDate][index].isReviewed;
+        renderTable();
     }
 
     function copyToClipboard(text) {
@@ -343,9 +379,14 @@
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
         if(editIndex === null) {
-            inventoryData[selectedDate].push({ name, cartons, perCarton, color });
+            inventoryData[selectedDate].push({ 
+                name, cartons, perCarton, color, isReviewed: false 
+            });
         } else {
-            inventoryData[selectedDate][editIndex] = { name, cartons, perCarton, color };
+            inventoryData[selectedDate][editIndex] = { 
+                ...inventoryData[selectedDate][editIndex],
+                name, cartons, perCarton, color 
+            };
             editIndex = null;
             mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
             mainBtn.classList.remove('edit-mode-btn');
@@ -372,7 +413,7 @@
         document.getElementById('itemName').value = '';
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
-        document.getElementById('itemColor').value = '#ffffff';
+        // لاحظ: لم نقم بتصفير اللون (itemColor) ليظل ثابتاً كما طلبت
     }
 
     function deleteItem(index) {
@@ -382,7 +423,6 @@
         }
     }
 
-    // دالة النسخ المطورة: تدعم النسخ بالأعداد أو بدونها
     function copyFromYesterday(includeNumbers) {
         const d = new Date(dateInput.value);
         d.setDate(d.getDate() - 1);
@@ -395,7 +435,8 @@
                 name: item.name,
                 cartons: includeNumbers ? item.cartons : "",
                 perCarton: includeNumbers ? item.perCarton : "",
-                color: item.color
+                color: item.color,
+                isReviewed: false // نسخ البيانات دائماً يبدأ كغير مراجع
             }));
             
             inventoryData[dateInput.value] = newItems;
