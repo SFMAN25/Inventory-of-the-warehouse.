@@ -6,6 +6,10 @@
     <title>نظام جرد مخزن الكراس - تطوير بودا</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         :root {
             --primary-color: #1a252f;
@@ -198,6 +202,21 @@
             justify-content: center; align-items: center; flex-direction: column;
         }
 
+        /* مؤشر الحفظ السحابي */
+        #syncStatus {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
         @media print {
             .controls-section, .share-btn, .action-btns, th:last-child, td:last-child, .copy-text-btn { display: none !important; }
             body { background: white !important; }
@@ -221,6 +240,8 @@
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
     <p>جاري استخراج صورة الجرد...</p>
 </div>
+
+<div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
 
 <div class="container" id="printableArea">
     <header>
@@ -279,7 +300,31 @@
 </div>
 
 <script>
-    // نظام الباسورد
+    // --- إعدادات Firebase ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgwdBexMXQepqc7HVGL5tUDXU2JHOcuFg",
+      authDomain: "kmskoras.firebaseapp.com",
+      projectId: "kmskoras",
+      storageBucket: "kmskoras.firebasestorage.app",
+      messagingSenderId: "486048926991",
+      appId: "1:486048926991:web:e1dbadf4fca54a9eef827a",
+      measurementId: "G-1KBYWCJ4V3",
+      databaseURL: "https://kmskoras-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- المتغيرات الأساسية ---
+    const dateInput = document.getElementById('inventoryDate');
+    const mainBtn = document.getElementById('mainActionBtn');
+    dateInput.value = new Date().toISOString().split('T')[0];
+
+    let inventoryData = {}; 
+    let editIndex = null;
+    let currentListenerRef = null;
+
+    // --- نظام الباسورد ---
     function checkLogin() {
         const pass = document.getElementById('passInput').value;
         const error = document.getElementById('errorMsg');
@@ -290,18 +335,38 @@
             document.getElementById('passInput').value = '';
         }
     }
-
     document.getElementById('passInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') { checkLogin(); }
     });
 
-    const dateInput = document.getElementById('inventoryDate');
-    const mainBtn = document.getElementById('mainActionBtn');
-    dateInput.value = new Date().toISOString().split('T')[0];
+    // --- الاستماع لقاعدة البيانات (Live Sync) ---
+    function attachFirebaseListener(date) {
+        if (currentListenerRef) {
+            currentListenerRef.off(); // إيقاف الاستماع للتاريخ القديم
+        }
+        currentListenerRef = db.ref('inventory/' + date);
+        currentListenerRef.on('value', (snapshot) => {
+            inventoryData[date] = snapshot.val() || [];
+            renderTable(); // تحديث الجدول تلقائياً لما البيانات تتغير
+        });
+    }
 
-    let inventoryData = JSON.parse(localStorage.getItem('boda_inventory_pro')) || {};
-    let editIndex = null;
+    // --- الحفظ في قاعدة البيانات ---
+    function saveToFirebase() {
+        const selectedDate = dateInput.value;
+        db.ref('inventory/' + selectedDate).set(inventoryData[selectedDate]).then(() => {
+            showSyncStatus();
+        });
+    }
 
+    // إظهار رسالة الحفظ السحابي
+    function showSyncStatus() {
+        const syncMsg = document.getElementById('syncStatus');
+        syncMsg.style.display = 'block';
+        setTimeout(() => { syncMsg.style.display = 'none'; }, 2000);
+    }
+
+    // --- رسم الجدول ---
     function renderTable() {
         const selectedDate = dateInput.value;
         const tbody = document.getElementById('tableBody');
@@ -310,10 +375,9 @@
 
         items.forEach((item, index) => {
             const row = document.createElement('tr');
-            row.style.backgroundColor = item.color + "33"; 
-            row.style.borderRight = `6px solid ${item.color}`;
+            row.style.backgroundColor = (item.color || "#ffffff") + "33"; 
+            row.style.borderRight = `6px solid ${item.color || "#ffffff"}`;
             
-            // تطبيق ستايل المراجعة
             if (item.isReviewed) {
                 row.classList.add('reviewed');
             }
@@ -340,9 +404,9 @@
             `;
             tbody.appendChild(row);
         });
-        localStorage.setItem('boda_inventory_pro', JSON.stringify(inventoryData));
     }
 
+    // --- وظائف التحكم في الأصناف ---
     function moveItem(index, direction) {
         const selectedDate = dateInput.value;
         const items = inventoryData[selectedDate];
@@ -351,14 +415,14 @@
             const temp = items[index];
             items[index] = items[newIndex];
             items[newIndex] = temp;
-            renderTable();
+            saveToFirebase(); // حفظ التغيير في الكلاود
         }
     }
 
     function toggleReview(index) {
         const selectedDate = dateInput.value;
         inventoryData[selectedDate][index].isReviewed = !inventoryData[selectedDate][index].isReviewed;
-        renderTable();
+        saveToFirebase();
     }
 
     function copyToClipboard(text) {
@@ -393,7 +457,7 @@
         }
 
         resetInputs();
-        renderTable();
+        saveToFirebase();
     }
 
     function prepareEdit(index) {
@@ -402,7 +466,7 @@
         document.getElementById('itemName').value = item.name;
         document.getElementById('cartons').value = item.cartons;
         document.getElementById('perCarton').value = item.perCarton;
-        document.getElementById('itemColor').value = item.color;
+        document.getElementById('itemColor').value = item.color || "#ffffff";
         editIndex = index;
         mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
         mainBtn.classList.add('edit-mode-btn');
@@ -413,40 +477,42 @@
         document.getElementById('itemName').value = '';
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
-        // لاحظ: لم نقم بتصفير اللون (itemColor) ليظل ثابتاً كما طلبت
     }
 
     function deleteItem(index) {
         if(confirm("هل تريد حذف هذا البند؟")) {
             inventoryData[dateInput.value].splice(index, 1);
-            renderTable();
+            saveToFirebase();
         }
     }
 
+    // --- جلب بيانات أمس من الكلاود ---
     function copyFromYesterday(includeNumbers) {
         const d = new Date(dateInput.value);
         d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         
-        if(inventoryData[yesterday] && inventoryData[yesterday].length > 0) {
-            const yesterdayItems = inventoryData[yesterday];
-            
-            const newItems = yesterdayItems.map(item => ({
-                name: item.name,
-                cartons: includeNumbers ? item.cartons : "",
-                perCarton: includeNumbers ? item.perCarton : "",
-                color: item.color,
-                isReviewed: false // نسخ البيانات دائماً يبدأ كغير مراجع
-            }));
-            
-            inventoryData[dateInput.value] = newItems;
-            renderTable();
-            alert(includeNumbers ? "تم نسخ جرد أمس بالكامل." : "تم نسخ أسماء الأصناف فقط.");
-        } else { 
-            alert("لا توجد بيانات مسجلة لتاريخ أمس (" + yesterday + ")"); 
-        }
+        db.ref('inventory/' + yesterday).once('value').then((snapshot) => {
+            const yesterdayItems = snapshot.val();
+            if(yesterdayItems && yesterdayItems.length > 0) {
+                const newItems = yesterdayItems.map(item => ({
+                    name: item.name,
+                    cartons: includeNumbers ? item.cartons : "",
+                    perCarton: includeNumbers ? item.perCarton : "",
+                    color: item.color || "#ffffff",
+                    isReviewed: false 
+                }));
+                
+                inventoryData[dateInput.value] = newItems;
+                saveToFirebase();
+                alert(includeNumbers ? "تم نسخ جرد أمس بالكامل." : "تم نسخ أسماء الأصناف فقط.");
+            } else { 
+                alert("لا توجد بيانات مسجلة لتاريخ أمس (" + yesterday + ")"); 
+            }
+        });
     }
 
+    // --- استخراج كصورة ---
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
@@ -461,8 +527,10 @@
         overlay.style.display = 'none';
     }
 
-    dateInput.addEventListener('change', renderTable);
-    renderTable();
+    // --- بدء التشغيل ---
+    dateInput.addEventListener('change', () => attachFirebaseListener(dateInput.value));
+    attachFirebaseListener(dateInput.value);
+
 </script>
 </body>
 </html>
