@@ -1,0 +1,21 @@
+name: TrackerPro RealTime Runner
+on:
+  schedule:
+    - cron: '0 * * * *' # هيشغل السكريبت كل ساعة أوتوماتيك عشان يضمن إنه صاحي
+  workflow_dispatch: # زرار للتشغيل اليدوي
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Libs
+        run: pip install firebase-admin selenium webdriver-manager
+      - name: Start RealTime
+        env:
+          FIREBASE_JSON: ${{ secrets.FIREBASE_JSON }} # السكرت اللي أنت ضفته
+        run: python "trck pro.py"
