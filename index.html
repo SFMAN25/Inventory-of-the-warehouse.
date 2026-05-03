@@ -116,7 +116,7 @@
         .slot:hover { border-color: var(--secondary-color); transform: translateY(-2px); }
         .slot-title { font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; text-align: center; }
         .slot-items { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #111; }
-        .slot-items li { margin-bottom: 4px; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 2px; }
+        .slot-items li { margin-bottom: 4px; border-bottom: 1px dashed rgba(0,0,0,0.1); padding: 4px; border-radius: 4px; }
         .slot-items li:last-child { border-bottom: none; }
         .empty-slot { color: rgba(0,0,0,0.5); text-align: center; font-size: 12px; font-style: italic; }
 
@@ -135,7 +135,7 @@
         /* تلوين الخانة */
         .color-picker-wrapper { display: flex; align-items: center; gap: 10px; background: #eef2f3; padding: 5px 15px; border-radius: 50px; }
         .color-picker-wrapper label { font-size: 14px; font-weight: bold; color: #444; }
-        #slotColorPicker { border: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; cursor: pointer; background: none; }
+        #slotColorPicker, #slotItemColor { border: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; cursor: pointer; background: none; }
 
         .modal-form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
         .modal-form-group input, .modal-form-group select { width: 100%; box-sizing: border-box; }
@@ -150,6 +150,7 @@
         .map-action-btns .check-btn { color: var(--secondary-color); }
         .map-action-btns .move-btn { color: #34495e; }
         .map-action-btns .delete-btn { color: #e74c3c; }
+        .map-action-btns .edit-row-btn { color: #f39c12; }
         
         .reviewed-map-item { text-decoration: line-through; color: #7f8c8d; opacity: 0.7; }
 
@@ -160,7 +161,7 @@
         #syncStatus { position: fixed; bottom: 20px; left: 20px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 50px; font-size: 14px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
         @media print {
-            .controls-section, .share-btn, .action-btns, th:last-child, td:last-child, .tabs, .copy-text-btn { display: none !important; }
+            .controls-section, .share-btn, .action-btns, th:last-child, td:last-child, .tabs, .copy-text-btn, .map-action-btns { display: none !important; }
             body { background: white !important; }
             .container { box-shadow: none; margin: 0; padding: 0; }
             .slot { break-inside: avoid; }
@@ -285,9 +286,9 @@
         </div>
         
         <div class="modal-form-group">
-            <label>إضافة صنف جديد للخانة:</label>
+            <label>إضافة / تعديل صنف في الخانة:</label>
             <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;">
                 <select id="slotItemUnit" style="flex: 1;">
                     <option value="بالتة">بالتة كاملة</option>
@@ -296,12 +297,13 @@
                     <option value="كرتونة">كرتونة</option>
                     <option value="رصة">رصة</option>
                 </select>
+                <input type="color" id="slotItemColor" value="#ffffff" title="لون الصنف (اختياري)" style="width: 40px; height: 40px;">
             </div>
-            <button class="add-to-slot-btn" onclick="addItemToSlot()"><i class="fas fa-plus"></i> إضافة للخانة</button>
+            <button class="add-to-slot-btn" id="slotMainBtn" onclick="handleAddOrEditSlotItem()"><i class="fas fa-plus"></i> إضافة للخانة</button>
         </div>
 
         <div class="slot-current-items">
-            <h4>الأصناف الموجودة حالياً (رتب أو راجع):</h4>
+            <h4>الأصناف الموجودة حالياً (رتب، عدل أو راجع):</h4>
             <ul id="slotItemsListUI"></ul>
         </div>
     </div>
@@ -333,6 +335,7 @@
     let inventoryData = {}; 
     let mapData = {}; 
     let editIndex = null;
+    let slotEditIndex = null; // متغير جديد لتعديل أصناف الخريطة
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
     let currentActiveSlotId = null; 
@@ -369,7 +372,6 @@
 
     // --- الاستماع لقاعدة البيانات ---
     function attachFirebaseListeners(date) {
-        // 1. بيانات الجرد
         if (currentInventoryListenerRef) currentInventoryListenerRef.off();
         currentInventoryListenerRef = db.ref('inventory/' + date);
         currentInventoryListenerRef.on('value', (snapshot) => {
@@ -377,19 +379,15 @@
             renderInventoryTable();
         });
 
-        // 2. بيانات الخريطة
         if (currentMapListenerRef) currentMapListenerRef.off();
         currentMapListenerRef = db.ref('warehouseMap/' + date);
         currentMapListenerRef.on('value', (snapshot) => {
             let rawMap = snapshot.val() || initializeEmptyMap();
-            
-            // تحويل البنية القديمة (أداة حماية لبياناتك السابقة عشان متتمسحش)
             for(let key in rawMap) {
                 if(Array.isArray(rawMap[key])) {
                     rawMap[key] = { items: rawMap[key], color: '#fdfdfd' };
                 }
             }
-            
             mapData[date] = rawMap;
             renderMapUI();
             if (document.getElementById('slotModal').style.display === 'flex' && currentActiveSlotId) {
@@ -410,7 +408,6 @@
         return emptyMap;
     }
 
-    // --- الحفظ السحابي ---
     function saveInventoryToFirebase() {
         const selectedDate = dateInput.value;
         db.ref('inventory/' + selectedDate).set(inventoryData[selectedDate]).then(showSyncStatus);
@@ -438,8 +435,8 @@
 
         items.forEach((item, index) => {
             const row = document.createElement('tr');
-            row.style.backgroundColor = (item.color || "#ffffff") + "33"; 
-            row.style.borderRight = `6px solid ${item.color || "#ffffff"}`;
+            row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
+            row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
             if (item.isReviewed) row.classList.add('reviewed');
 
             row.innerHTML = `
@@ -526,7 +523,6 @@
     function copyFromYesterday(includeNumbers) {
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
-        
         db.ref('inventory/' + yesterday).once('value').then((snapshot) => {
             const yesterdayItems = snapshot.val();
             if(yesterdayItems && yesterdayItems.length > 0) {
@@ -540,18 +536,14 @@
     }
 
     // ==========================================
-    // قسم خريطة المخزن (بالميزات الجديدة)
+    // قسم خريطة المخزن
     // ==========================================
-
-    // ميزة نسخ خريطة أمس
     function copyMapFromYesterday() {
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
-        
         db.ref('warehouseMap/' + yesterday).once('value').then((snapshot) => {
             let yesterdayMap = snapshot.val();
             if(yesterdayMap) {
-                // توافق مع البنية الجديدة في النسخ برضه
                 for(let key in yesterdayMap) {
                     if(Array.isArray(yesterdayMap[key])) {
                         yesterdayMap[key] = { items: yesterdayMap[key], color: '#fdfdfd' };
@@ -559,9 +551,9 @@
                 }
                 mapData[dateInput.value] = yesterdayMap;
                 saveMapToFirebase();
-                alert("عاش يا بطل! تم نسخ خريطة المخزن بتاعت امبارح بنجاح.");
+                alert("تم نسخ خريطة أمس بنجاح.");
             } else { 
-                alert("مفيش خريطة متسجلة لتاريخ امبارح!"); 
+                alert("لا توجد خريطة مسجلة لتاريخ أمس!"); 
             }
         });
     }
@@ -585,7 +577,6 @@
                 
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'slot';
-                // تطبيق لون الخانة
                 slotDiv.style.backgroundColor = slotData.color || '#fdfdfd';
                 
                 slotDiv.onclick = () => openSlotModal(slotId, globalSlotCounter - 1); 
@@ -597,7 +588,11 @@
                     itemsHTML = '<ul class="slot-items">';
                     itemsInSlot.forEach(item => {
                         const reviewedClass = item.isReviewed ? 'reviewed-map-item' : '';
-                        itemsHTML += `<li class="${reviewedClass}"><b>${item.qty} ${item.unit}</b> - ${item.name}</li>`;
+                        // تلوين الصنف داخل الخريطة
+                        const bgColor = (item.color && item.color !== '#ffffff') ? item.color + '33' : 'transparent';
+                        const borderColor = (item.color && item.color !== '#ffffff') ? item.color : 'transparent';
+                        
+                        itemsHTML += `<li class="${reviewedClass}" style="background-color: ${bgColor}; border-right: 3px solid ${borderColor};"><b>${item.qty} ${item.unit}</b> - ${item.name}</li>`;
                     });
                     itemsHTML += '</ul>';
                 }
@@ -616,14 +611,21 @@
 
     function openSlotModal(slotId, displayNum) {
         currentActiveSlotId = slotId;
+        slotEditIndex = null; // تصفير التعديل
+        
         document.getElementById('modalSlotTitle').innerText = 'تعديل الخانة رقم ' + (displayNum + 1);
         
-        // جلب لون الخانة للـ Color Picker
         const currentColor = mapData[dateInput.value][slotId].color || '#fdfdfd';
         document.getElementById('slotColorPicker').value = currentColor === '#fdfdfd' ? '#ffffff' : currentColor;
         
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
+        document.getElementById('slotItemColor').value = '#ffffff';
+        
+        const btn = document.getElementById('slotMainBtn');
+        btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
+        btn.classList.remove('edit-mode-btn');
+
         renderModalCurrentItems();
         document.getElementById('slotModal').style.display = 'flex';
     }
@@ -631,9 +633,9 @@
     function closeSlotModal() {
         document.getElementById('slotModal').style.display = 'none';
         currentActiveSlotId = null;
+        slotEditIndex = null;
     }
 
-    // دالة تغيير لون الخانة من النافذة
     function changeSlotColor() {
         if(!currentActiveSlotId) return;
         const color = document.getElementById('slotColorPicker').value;
@@ -655,12 +657,19 @@
             const li = document.createElement('li');
             if (item.isReviewed) li.classList.add('reviewed-map-item');
             
+            // تلوين الصنف في النافذة
+            const bgColor = (item.color && item.color !== '#ffffff') ? item.color + '33' : '#eee';
+            const borderColor = (item.color && item.color !== '#ffffff') ? item.color : 'transparent';
+            li.style.backgroundColor = bgColor;
+            li.style.borderRight = `5px solid ${borderColor}`;
+
             li.innerHTML = `
                 <span><b>${item.qty} ${item.unit}</b> - ${item.name}</span>
                 <div class="map-action-btns">
                     <button class="check-btn" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
                     <button class="move-btn" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
                     <button class="move-btn" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
+                    <button class="edit-row-btn" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="delete-btn" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
                 </div>
             `;
@@ -668,10 +677,11 @@
         });
     }
 
-    function addItemToSlot() {
+    function handleAddOrEditSlotItem() {
         const name = document.getElementById('slotItemName').value;
         const qty = document.getElementById('slotItemQty').value;
         const unit = document.getElementById('slotItemUnit').value;
+        const color = document.getElementById('slotItemColor').value;
 
         if(!name || !qty) return alert("يرجى إدخال اسم الصنف والعدد!");
 
@@ -682,11 +692,42 @@
              mapData[dateInput.value][currentActiveSlotId].items = [];
         }
         
-        mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, isReviewed: false });
+        if(slotEditIndex === null) {
+            // إضافة صنف جديد
+            mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false });
+        } else {
+            // تعديل صنف موجود
+            mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex] = {
+                ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex],
+                name, qty, unit, color
+            };
+            slotEditIndex = null;
+            const btn = document.getElementById('slotMainBtn');
+            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
+            btn.classList.remove('edit-mode-btn');
+        }
+        
         saveMapToFirebase();
         
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
+        document.getElementById('slotItemColor').value = '#ffffff';
+    }
+
+    function prepareSlotItemEdit(event, index) {
+        event.stopPropagation();
+        const item = mapData[dateInput.value][currentActiveSlotId].items[index];
+        
+        document.getElementById('slotItemName').value = item.name;
+        document.getElementById('slotItemQty').value = item.qty;
+        document.getElementById('slotItemUnit').value = item.unit || 'بالتة';
+        document.getElementById('slotItemColor').value = item.color || '#ffffff';
+        
+        slotEditIndex = index;
+        
+        const btn = document.getElementById('slotMainBtn');
+        btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
+        btn.classList.add('edit-mode-btn');
     }
 
     function toggleMapItemReview(event, index) {
