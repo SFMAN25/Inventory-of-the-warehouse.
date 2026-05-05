@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد مخزن الكراس - تطوير بودا</title>
+    <title>نظام جرد مخزن الكراس - نسخة مؤمنة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
         :root {
@@ -21,10 +22,10 @@
             --review-color: #7f8c8d;
         }
 
-        /* تنسيق شاشة الباسورد */
+        /* تنسيق شاشة تسجيل الدخول المؤمنة */
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(26, 37, 47, 0.9), rgba(26, 37, 47, 0.9)), url('https://files.catbox.moe/pe6wie.jpg');
+            background: linear-gradient(rgba(26, 37, 47, 0.95), rgba(26, 37, 47, 0.95)), url('https://files.catbox.moe/pe6wie.jpg');
             background-size: cover; z-index: 9999; display: flex;
             justify-content: center; align-items: center; flex-direction: column; color: white;
         }
@@ -32,21 +33,23 @@
         .login-box {
             background: rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 20px;
             backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 350px;
         }
 
         .login-box input {
-            padding: 15px; width: 200px; border-radius: 10px; border: none;
-            text-align: center; font-size: 24px; letter-spacing: 5px;
-            margin-bottom: 20px; display: block;
+            padding: 15px; width: 100%; border-radius: 10px; border: none;
+            text-align: center; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; display: block;
         }
 
         .login-box button {
-            padding: 10px 30px; background: var(--secondary-color); color: white;
-            border: none; border-radius: 8px; cursor: pointer; font-weight: bold;
+            padding: 12px 30px; background: var(--secondary-color); color: white; width: 100%;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 18px;
         }
 
-        /* تنسيق الموقع الأساسي */
+        /* المصيدة (Honeypot) - مخفية تماماً */
+        .hp-field { display: none !important; visibility: hidden; }
+
+        /* تنسيق الموقع الأساسي (كما هو في تصميمك الأصلي) */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-image: linear-gradient(rgba(224, 234, 252, 0.8), rgba(224, 234, 252, 0.8)), url('https://files.catbox.moe/pe6wie.jpg');
@@ -57,12 +60,17 @@
         .container {
             max-width: 1200px; margin: 20px auto; background: rgba(255, 255, 255, 0.94);
             padding: 30px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px); display: none; /* مخفي لحين تسجيل الدخول */
         }
 
         header {
             text-align: center; margin-bottom: 25px; padding-bottom: 20px;
-            border-bottom: 3px solid var(--secondary-color);
+            border-bottom: 3px solid var(--secondary-color); position: relative;
+        }
+        
+        .logout-btn {
+            position: absolute; left: 0; top: 0; background: #e74c3c; color: white;
+            border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;
         }
 
         .header-content { display: flex; align-items: center; justify-content: center; gap: 25px; flex-wrap: wrap; }
@@ -71,11 +79,7 @@
 
         /* التبويبات Tabs */
         .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .tab-btn {
-            padding: 12px 25px; font-size: 18px; font-weight: bold; border: none;
-            background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer;
-            transition: 0.3s;
-        }
+        .tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--secondary-color); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.5s ease-in-out; }
@@ -106,13 +110,10 @@
         .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
         .move-btn { color: #34495e; background: none; border: none; cursor: pointer; font-size: 16px; }
 
-        /* --- تنسيق خريطة المخزن --- */
+        /* خريطة المخزن */
         .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
         .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; }
-        .slot {
-            border: 2px solid #34495e; border-radius: 8px; min-height: 80px; padding: 10px;
-            background: #fdfdfd; cursor: pointer; transition: 0.2s; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-        }
+        .slot { border: 2px solid #34495e; border-radius: 8px; min-height: 80px; padding: 10px; background: #fdfdfd; cursor: pointer; transition: 0.2s; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
         .slot:hover { border-color: var(--secondary-color); transform: translateY(-2px); }
         .slot-title { font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; text-align: center; }
         .slot-items { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #111; }
@@ -120,38 +121,23 @@
         .slot-items li:last-child { border-bottom: none; }
         .empty-slot { color: rgba(0,0,0,0.5); text-align: center; font-size: 12px; font-style: italic; }
 
-        /* تنسيق الأزرار داخل خريطة المخزن (Modal) */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center;
-        }
-        .modal-box {
-            background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 550px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
-        }
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 550px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .close-modal { background: none; border: none; font-size: 24px; color: #e74c3c; cursor: pointer; }
         
-        /* تلوين الخانة */
         .color-picker-wrapper { display: flex; align-items: center; gap: 10px; background: #eef2f3; padding: 5px 15px; border-radius: 50px; }
-        .color-picker-wrapper label { font-size: 14px; font-weight: bold; color: #444; }
         #slotColorPicker, #slotItemColor { border: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; cursor: pointer; background: none; }
 
         .modal-form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
-        .modal-form-group input, .modal-form-group select { width: 100%; box-sizing: border-box; }
         .add-to-slot-btn { background: var(--secondary-color); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
         .slot-current-items { margin-top: 20px; }
         .slot-current-items ul { list-style: none; padding: 0; }
         .slot-current-items li { display: flex; justify-content: space-between; align-items: center; background: #eee; padding: 10px; margin-bottom: 5px; border-radius: 5px; flex-wrap: wrap; gap: 10px;}
-        
         .map-action-btns { display: flex; gap: 8px; align-items: center; }
         .map-action-btns button { background: none; border: none; cursor: pointer; font-size: 16px; padding: 5px; }
-        .map-action-btns .check-btn { color: var(--secondary-color); }
-        .map-action-btns .move-btn { color: #34495e; }
-        .map-action-btns .delete-btn { color: #e74c3c; }
-        .map-action-btns .edit-row-btn { color: #f39c12; }
-        
         .reviewed-map-item { text-decoration: line-through; color: #7f8c8d; opacity: 0.7; }
 
         footer { margin-top: 40px; text-align: center; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px; }
@@ -161,7 +147,7 @@
         #syncStatus { position: fixed; bottom: 20px; left: 20px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 50px; font-size: 14px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
         @media print {
-            .controls-section, .share-btn, .action-btns, th:last-child, td:last-child, .tabs, .copy-text-btn, .map-action-btns { display: none !important; }
+            .controls-section, .share-btn, .action-btns, th:last-child, td:last-child, .tabs, .copy-text-btn, .map-action-btns, .logout-btn { display: none !important; }
             body { background: white !important; }
             .container { box-shadow: none; margin: 0; padding: 0; }
             .slot { break-inside: avoid; }
@@ -172,12 +158,18 @@
 
 <div id="loginScreen">
     <div class="login-box">
-        <i class="fas fa-lock fa-3x" style="margin-bottom: 20px;"></i>
-        <h2>مخزن الكراس</h2>
-        <p>برجاء إدخال كلمة المرور</p>
-        <input type="password" id="passInput" placeholder="****">
-        <button onclick="checkLogin()">دخول</button>
-        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none;">الباسورد غلط يا بطل!</p>
+        <i class="fas fa-shield-alt fa-3x" style="margin-bottom: 20px; color: var(--secondary-color);"></i>
+        <h2>نظام إدارة المخزن</h2>
+        <p>بوابة الدخول الآمنة</p>
+        
+        <div class="hp-field">
+            <input type="text" id="hp_user_check" tabindex="-1" autocomplete="off">
+        </div>
+
+        <input type="email" id="userEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="userPass" placeholder="كلمة المرور">
+        <button onclick="handleLogin()">دخول آمن <i class="fas fa-sign-in-alt"></i></button>
+        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none;"></p>
     </div>
 </div>
 
@@ -205,8 +197,9 @@
     <option value="رسم 40">
 </datalist>
 
-<div class="container" id="printableArea">
+<div class="container" id="mainContainer">
     <header>
+        <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
         <div class="header-content">
             <img src="https://files.catbox.moe/648uuj.jpg" alt="Logo" class="logo-img">
             <div>
@@ -235,8 +228,8 @@
             </div>
             <div class="input-group">
                 <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف">
-                <input type="number" id="cartons" placeholder="الكراتين">
-                <input type="number" id="perCarton" placeholder="داخل الكرتونة">
+                <input type="number" id="cartons" placeholder="الكراتين" min="0">
+                <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
@@ -258,8 +251,7 @@
             <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
         </div>
         
-        <div class="map-wrapper" id="warehouseMapUI">
-            </div>
+        <div class="map-wrapper" id="warehouseMapUI"></div>
     </div>
 
     <button class="share-btn" onclick="captureReport()">
@@ -289,7 +281,7 @@
             <label>إضافة / تعديل صنف في الخانة:</label>
             <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;">
+                <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0">
                 <select id="slotItemUnit" style="flex: 1;">
                     <option value="بالتة">بالتة كاملة</option>
                     <option value="نص بالتة">نص بالتة</option>
@@ -326,6 +318,7 @@
         firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.database();
+    const auth = firebase.auth();
 
     // --- المتغيرات الأساسية ---
     const dateInput = document.getElementById('inventoryDate');
@@ -335,7 +328,7 @@
     let inventoryData = {}; 
     let mapData = {}; 
     let editIndex = null;
-    let slotEditIndex = null; // متغير جديد لتعديل أصناف الخريطة
+    let slotEditIndex = null;
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
     let currentActiveSlotId = null; 
@@ -346,31 +339,81 @@
         { id: "col_left", count: 8 }
     ];
 
-    // --- التبويبات ---
+    // ==========================================
+    // قسم الحماية: Firebase Auth & Honeypot
+    // ==========================================
+    async function handleLogin() {
+        const email = document.getElementById('userEmail').value;
+        const pass = document.getElementById('userPass').value;
+        const hpValue = document.getElementById('hp_user_check').value;
+        const errorElement = document.getElementById('errorMsg');
+
+        // 1. Honeypot Check (Active Defense)
+        if (hpValue.length > 0) {
+            console.warn("تنبيه: محاولة اختراق آلية محبطة.");
+            return; 
+        }
+
+        if (!email || !pass) {
+            errorElement.innerText = "اكتب الإيميل والباسورد يا بطل!";
+            errorElement.style.display = 'block';
+            return;
+        }
+
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+            // لن نقوم بتحميل البيانات هنا، سيتم تحميلها عبر onAuthStateChanged
+        } catch (error) {
+            errorElement.innerText = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
+            errorElement.style.display = 'block';
+            console.error("Login Error:", error.message);
+        }
+    }
+
+    function handleLogout() {
+        auth.signOut().then(() => {
+            if (currentInventoryListenerRef) currentInventoryListenerRef.off();
+            if (currentMapListenerRef) currentMapListenerRef.off();
+            document.getElementById('mainContainer').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('userPass').value = '';
+        });
+    }
+
+    // مراقبة حالة الجلسة المشفرة
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            // الآن فقط وبعد التأكد من الصلاحية، نقوم بسحب البيانات
+            attachFirebaseListeners(dateInput.value);
+        } else {
+            document.getElementById('mainContainer').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+        }
+    });
+
+    // ==========================================
+    // كشف التلاعب (Integrity Check)
+    // ==========================================
+    function sanitizeInput(str) {
+        if (!str) return '';
+        // منع إدخال أي أكواد HTML أو JavaScript
+        return str.replace(/[&<>'"]/g, tag => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+        }[tag]));
+    }
+
+    // ==========================================
+    // دوال النظام الأساسية (الجرد والخريطة)
+    // ==========================================
     function switchTab(tabId) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
         event.target.classList.add('active');
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
-    // --- نظام الباسورد ---
-    function checkLogin() {
-        const pass = document.getElementById('passInput').value;
-        const error = document.getElementById('errorMsg');
-        if(pass === "1404") {
-            document.getElementById('loginScreen').style.display = 'none';
-        } else {
-            error.style.display = 'block';
-            document.getElementById('passInput').value = '';
-        }
-    }
-    document.getElementById('passInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') { checkLogin(); }
-    });
-
-    // --- الاستماع لقاعدة البيانات ---
     function attachFirebaseListeners(date) {
         if (currentInventoryListenerRef) currentInventoryListenerRef.off();
         currentInventoryListenerRef = db.ref('inventory/' + date);
@@ -424,9 +467,6 @@
         setTimeout(() => { syncMsg.style.display = 'none'; }, 2000);
     }
 
-    // ==========================================
-    // قسم الجرد اليومي
-    // ==========================================
     function renderInventoryTable() {
         const selectedDate = dateInput.value;
         const tbody = document.getElementById('tableBody');
@@ -462,19 +502,22 @@
     }
 
     function handleMainAction() {
-        const name = document.getElementById('itemName').value;
-        const cartons = document.getElementById('cartons').value;
-        const perCarton = document.getElementById('perCarton').value;
-        const color = document.getElementById('itemColor').value;
+        // حماية البيانات قبل إرسالها (Integrity Check)
+        const name = sanitizeInput(document.getElementById('itemName').value);
+        const cartons = parseInt(document.getElementById('cartons').value);
+        const perCarton = parseInt(document.getElementById('perCarton').value);
+        const color = sanitizeInput(document.getElementById('itemColor').value);
         const selectedDate = dateInput.value;
 
         if(!name) return alert("أدخل اسم الصنف على الأقل");
+        if(isNaN(cartons) && document.getElementById('cartons').value !== '') return alert("عدد الكراتين يجب أن يكون أرقام فقط");
+
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
         if(editIndex === null) {
-            inventoryData[selectedDate].push({ name, cartons, perCarton, color, isReviewed: false });
+            inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
         } else {
-            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons, perCarton, color };
+            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons: cartons || 0, perCarton: perCarton || 0, color };
             editIndex = null;
             mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
             mainBtn.classList.remove('edit-mode-btn');
@@ -535,9 +578,6 @@
         });
     }
 
-    // ==========================================
-    // قسم خريطة المخزن
-    // ==========================================
     function copyMapFromYesterday() {
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
@@ -552,9 +592,7 @@
                 mapData[dateInput.value] = yesterdayMap;
                 saveMapToFirebase();
                 alert("تم نسخ خريطة أمس بنجاح.");
-            } else { 
-                alert("لا توجد خريطة مسجلة لتاريخ أمس!"); 
-            }
+            } else { alert("لا توجد خريطة مسجلة لتاريخ أمس!"); }
         });
     }
 
@@ -578,7 +616,6 @@
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'slot';
                 slotDiv.style.backgroundColor = slotData.color || '#fdfdfd';
-                
                 slotDiv.onclick = () => openSlotModal(slotId, globalSlotCounter - 1); 
                 
                 let itemsHTML = '';
@@ -588,20 +625,14 @@
                     itemsHTML = '<ul class="slot-items">';
                     itemsInSlot.forEach(item => {
                         const reviewedClass = item.isReviewed ? 'reviewed-map-item' : '';
-                        // تلوين الصنف داخل الخريطة
                         const bgColor = (item.color && item.color !== '#ffffff') ? item.color + '33' : 'transparent';
                         const borderColor = (item.color && item.color !== '#ffffff') ? item.color : 'transparent';
-                        
                         itemsHTML += `<li class="${reviewedClass}" style="background-color: ${bgColor}; border-right: 3px solid ${borderColor};"><b>${item.qty} ${item.unit}</b> - ${item.name}</li>`;
                     });
                     itemsHTML += '</ul>';
                 }
 
-                slotDiv.innerHTML = `
-                    <div class="slot-title">خانة رقم ${globalSlotCounter}</div>
-                    ${itemsHTML}
-                `;
-                
+                slotDiv.innerHTML = `<div class="slot-title">خانة رقم ${globalSlotCounter}</div>${itemsHTML}`;
                 colDiv.appendChild(slotDiv);
                 globalSlotCounter++;
             }
@@ -611,10 +642,9 @@
 
     function openSlotModal(slotId, displayNum) {
         currentActiveSlotId = slotId;
-        slotEditIndex = null; // تصفير التعديل
+        slotEditIndex = null; 
         
         document.getElementById('modalSlotTitle').innerText = 'تعديل الخانة رقم ' + (displayNum + 1);
-        
         const currentColor = mapData[dateInput.value][slotId].color || '#fdfdfd';
         document.getElementById('slotColorPicker').value = currentColor === '#fdfdfd' ? '#ffffff' : currentColor;
         
@@ -657,7 +687,6 @@
             const li = document.createElement('li');
             if (item.isReviewed) li.classList.add('reviewed-map-item');
             
-            // تلوين الصنف في النافذة
             const bgColor = (item.color && item.color !== '#ffffff') ? item.color + '33' : '#eee';
             const borderColor = (item.color && item.color !== '#ffffff') ? item.color : 'transparent';
             li.style.backgroundColor = bgColor;
@@ -678,12 +707,13 @@
     }
 
     function handleAddOrEditSlotItem() {
-        const name = document.getElementById('slotItemName').value;
-        const qty = document.getElementById('slotItemQty').value;
-        const unit = document.getElementById('slotItemUnit').value;
-        const color = document.getElementById('slotItemColor').value;
+        // حماية البيانات (Integrity Check) للخانة
+        const name = sanitizeInput(document.getElementById('slotItemName').value);
+        const qty = parseInt(document.getElementById('slotItemQty').value);
+        const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
+        const color = sanitizeInput(document.getElementById('slotItemColor').value);
 
-        if(!name || !qty) return alert("يرجى إدخال اسم الصنف والعدد!");
+        if(!name || isNaN(qty)) return alert("يرجى إدخال اسم الصنف والعدد بأرقام صحيحة!");
 
         if(!mapData[dateInput.value][currentActiveSlotId]) {
             mapData[dateInput.value][currentActiveSlotId] = { items: [], color: '#fdfdfd' };
@@ -693,10 +723,8 @@
         }
         
         if(slotEditIndex === null) {
-            // إضافة صنف جديد
             mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false });
         } else {
-            // تعديل صنف موجود
             mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex] = {
                 ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex],
                 name, qty, unit, color
@@ -717,14 +745,11 @@
     function prepareSlotItemEdit(event, index) {
         event.stopPropagation();
         const item = mapData[dateInput.value][currentActiveSlotId].items[index];
-        
         document.getElementById('slotItemName').value = item.name;
         document.getElementById('slotItemQty').value = item.qty;
         document.getElementById('slotItemUnit').value = item.unit || 'بالتة';
         document.getElementById('slotItemColor').value = item.color || '#ffffff';
-        
         slotEditIndex = index;
-        
         const btn = document.getElementById('slotMainBtn');
         btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
         btn.classList.add('edit-mode-btn');
@@ -757,17 +782,16 @@
         }
     }
 
-    // --- أدوات مساعدة ---
     function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => alert("تم نسخ: " + text)); }
 
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
         
-        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns');
+        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn');
         hideElements.forEach(el => el.style.display = 'none');
 
-        const canvas = await html2canvas(document.getElementById('printableArea'), { useCORS: true, scale: 2 });
+        const canvas = await html2canvas(document.getElementById('printableArea') || document.getElementById('mainContainer'), { useCORS: true, scale: 2 });
         
         hideElements.forEach(el => el.style.display = '');
 
@@ -778,9 +802,12 @@
         overlay.style.display = 'none';
     }
 
-    // --- بدء التشغيل ---
-    dateInput.addEventListener('change', () => attachFirebaseListeners(dateInput.value));
-    attachFirebaseListeners(dateInput.value);
+    dateInput.addEventListener('change', () => {
+        // تحديث البيانات فقط إذا كان المستخدم مسجل دخول بالفعل
+        if (auth.currentUser) {
+            attachFirebaseListeners(dateInput.value);
+        }
+    });
 
 </script>
 </body>
