@@ -74,6 +74,7 @@
         .logo-img { max-width: 120px; height: auto; border-radius: 15px; }
         .roles-header { margin-top: 10px; font-size: 18px; color: #444; background: #eef2f3; padding: 10px; border-radius: 50px; display: inline-block; }
 
+        /* التبويبات Tabs */
         .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
         .tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--secondary-color); color: white; }
@@ -105,7 +106,6 @@
         .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
         .move-btn { color: #34495e; background: none; border: none; cursor: pointer; font-size: 16px; }
 
-        /* شريط إجمالي المحدد */
         #selectionTotalsContainer {
             display: none; background: #27ae60; color: white; padding: 15px; 
             border-radius: 8px; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold;
@@ -162,7 +162,8 @@
         .transaction-section h3 { margin-top: 0; color: #117864; }
         .search-container { margin-bottom: 15px; }
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .low-stock { background-color: #fadbd8 !important; border-right: 6px solid #e74c3c !important; }
+        
+        .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 2fr 1fr; gap: 12px; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -186,7 +187,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p>جاري استخراج صورة الجرد...</p>
+    <p>جاري استخراج صورة التقرير...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -208,6 +209,13 @@
     <option value="رسم 40">
 </datalist>
 
+<datalist id="destinationsList">
+    <option value="محل فنون">
+    <option value="محل الكراس">
+    <option value="الاون لاين">
+    <option value="محل الكروت">
+</datalist>
+
 <div class="container" id="mainContainer">
     <header>
         <button class="logout-btn" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
@@ -225,24 +233,11 @@
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('daily')"><i class="fas fa-list"></i> الجرد اليومي</button>
-        <button class="tab-btn" onclick="switchTab('map')"><i class="fas fa-th"></i> خريطة المخزن (الرصات)</button>
+        <button class="tab-btn" onclick="switchTab('map')"><i class="fas fa-th"></i> خريطة المخزن</button>
+        <button class="tab-btn" onclick="switchTab('transactions')"><i class="fas fa-exchange-alt"></i> سجل الصرف</button>
     </div>
 
     <div id="tab-daily" class="tab-content active">
-        <div class="transaction-section no-print">
-            <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سحب من الرصيد)</h3>
-            <div class="input-group" style="grid-template-columns: 2fr 1fr 1.5fr 1fr;">
-                <input type="text" id="transItemName" list="itemNamesList" placeholder="أدخل اسم الصنف المنصرف">
-                <input type="number" id="transQty" placeholder="الكمية بالكرتونة" min="1">
-                <select id="transDestination">
-                    <option value="محل الكراس">محل الكراس</option>
-                    <option value="محل فنون">محل فنون</option>
-                    <option value="فرع آخر">فرع آخر</option>
-                </select>
-                <button class="add-btn" onclick="processTransaction()">تأكيد الصرف <i class="fas fa-check"></i></button>
-            </div>
-        </div>
-
         <div class="controls-section">
             <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
@@ -253,8 +248,8 @@
             </div>
             
             <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للضافة">
-                <input type="number" id="cartons" placeholder="الكراتين" min="0">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
+                <input type="number" id="cartons" placeholder="الكراتين" min="0" step="any">
                 <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
@@ -280,6 +275,37 @@
             <strong><span id="selectedCartonsTotal">0</span> كرتونة</strong> | 
             الإجمالي الكلي بالقطع: <strong><span id="selectedItemsTotal">0</span></strong>
         </div>
+    </div>
+
+    <div id="tab-transactions" class="tab-content">
+        <div class="transaction-section no-print">
+            <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف جديد</h3>
+            <p style="font-size: 14px; margin-top: 0; color: #555;">اختر الصنف، حدد الكمية ونوع الوحدة (كرتونة/قطعة)، ثم اكتب أو اختر جهة الصرف ليتم الخصم تلقائياً من الجرد.</p>
+            <div class="trans-input-group">
+                <input type="text" id="transItemName" list="itemNamesList" placeholder="اسم الصنف المنصرف">
+                <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
+                <select id="transUnit">
+                    <option value="كرتونة">كرتونة</option>
+                    <option value="قطعة">قطعة</option>
+                </select>
+                <input type="text" id="transDestination" list="destinationsList" placeholder="جهة الصرف (اختر أو اكتب)">
+                <button class="add-btn" onclick="processTransaction()">تأكيد الصرف <i class="fas fa-check"></i></button>
+            </div>
+        </div>
+
+        <h3><i class="fas fa-clipboard-list"></i> العمليات التي تمت في هذا اليوم</h3>
+        <table id="transactionsTable">
+            <thead>
+                <tr>
+                    <th>الوقت</th>
+                    <th>الصنف</th>
+                    <th>الكمية المنصرفة</th>
+                    <th>الجهة</th>
+                </tr>
+            </thead>
+            <tbody id="transactionsBody">
+                </tbody>
+        </table>
     </div>
 
     <div id="tab-map" class="tab-content">
@@ -318,7 +344,7 @@
             <label>إضافة / تعديل صنف في الخانة:</label>
             <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0">
+                <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0" step="any">
                 <select id="slotItemUnit" style="flex: 1;">
                     <option value="بالتة">بالتة كاملة</option>
                     <option value="نص بالتة">نص بالتة</option>
@@ -369,10 +395,13 @@
 
     let inventoryData = {}; 
     let mapData = {}; 
+    let transactionsData = {}; // سجل أوامر الصرف
     let editIndex = null;
     let slotEditIndex = null;
+    
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
+    let currentTransListenerRef = null;
     let currentActiveSlotId = null; 
 
     const mapStructure = [
@@ -380,8 +409,6 @@
         { id: "col_center", count: 5 },
         { id: "col_left", count: 8 }
     ];
-
-    const LOW_STOCK_THRESHOLD = 5; // حد الأمان: 5 كراتين
 
     async function notifyTelegram(message) {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -436,6 +463,7 @@
         auth.signOut().then(() => {
             if (currentInventoryListenerRef) currentInventoryListenerRef.off();
             if (currentMapListenerRef) currentMapListenerRef.off();
+            if (currentTransListenerRef) currentTransListenerRef.off();
             document.getElementById('mainContainer').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('userPass').value = '';
@@ -508,6 +536,14 @@
                 renderModalCurrentItems();
             }
         });
+        
+        // استدعاء سجل الصرف
+        if (currentTransListenerRef) currentTransListenerRef.off();
+        currentTransListenerRef = db.ref('transactions/' + date);
+        currentTransListenerRef.on('value', (snapshot) => {
+            transactionsData[date] = snapshot.val() || [];
+            renderTransactionsTable();
+        });
     }
 
     function saveInventoryToFirebase() {
@@ -536,9 +572,8 @@
         const table = document.getElementById("inventoryTable");
         const tr = table.getElementsByTagName("tr");
 
-        // نبدأ من 1 لتخطي صف العناوين
         for (let i = 1; i < tr.length; i++) {
-            const td = tr[i].getElementsByTagName("td")[1]; // البحث في عمود اسم الصنف
+            const td = tr[i].getElementsByTagName("td")[1];
             if (td) {
                 const txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(input) > -1) {
@@ -550,15 +585,16 @@
         }
     }
 
-    // --- معالجة أوامر الصرف (تحديث الكمية وتنبيه اللون) ---
+    // --- معالجة أوامر الصرف ---
     function processTransaction() {
         const transName = sanitizeInput(document.getElementById('transItemName').value);
-        const transQty = parseInt(document.getElementById('transQty').value);
+        const transQty = parseFloat(document.getElementById('transQty').value);
+        const transUnit = document.getElementById('transUnit').value;
         const destination = sanitizeInput(document.getElementById('transDestination').value);
         const selectedDate = dateInput.value;
 
-        if (!transName || isNaN(transQty) || transQty <= 0) {
-            return alert("الرجاء إدخال اسم الصنف وكمية صحيحة للصرف.");
+        if (!transName || isNaN(transQty) || transQty <= 0 || !destination) {
+            return alert("الرجاء إدخال اسم الصنف، كمية صحيحة، وتحديد جهة الصرف.");
         }
 
         let items = inventoryData[selectedDate] || [];
@@ -567,35 +603,78 @@
         for (let i = 0; i < items.length; i++) {
             if (items[i].name === transName) {
                 itemFound = true;
-                if (items[i].cartons < transQty) {
+                
+                let withdrawCartons = 0;
+                
+                // حساب الكمية المخصومة بناء على الوحدة (كرتونة أم قطعة)
+                if (transUnit === 'قطعة') {
+                    if (!items[i].perCarton || items[i].perCarton <= 0) {
+                        return alert("لا يمكن الخصم بالقطعة لأن 'عدد القطع داخل الكرتونة' غير مسجل لهذا الصنف!");
+                    }
+                    withdrawCartons = transQty / items[i].perCarton;
+                } else {
+                    withdrawCartons = transQty;
+                }
+
+                if (items[i].cartons < withdrawCartons) {
                     return alert("الكمية المطلوبة أكبر من الرصيد المتاح في الجرد!");
                 }
                 
-                // خصم الكمية
-                items[i].cartons -= transQty;
+                // خصم الكمية (مع تقريب لرقمين عشريين في حالة القطع لتجنب الأرقام الطويلة)
+                items[i].cartons = parseFloat((items[i].cartons - withdrawCartons).toFixed(2));
                 saveInventoryToFirebase();
                 
-                // إرسال تنبيه للصرف
-                notifyTelegram(`📦 *أمر صرف جديد*\n الصنف: ${transName}\n الكمية: ${transQty} كرتونة\n الجهة: ${destination}\n الرصيد المتبقي: ${items[i].cartons}`);
-                
-                // تنبيه رصيد منخفض إذا لزم الأمر
-                if (items[i].cartons <= LOW_STOCK_THRESHOLD) {
-                    notifyTelegram(`⚠️ *تنبيه رصيد منخفض!*\n الصنف: ${transName} وصل لـ ${items[i].cartons} كراتين فقط!`);
-                }
+                // تسجيل العملية في السجل
+                if (!transactionsData[selectedDate]) transactionsData[selectedDate] = [];
+                transactionsData[selectedDate].push({
+                    time: new Date().toLocaleTimeString('ar-EG'),
+                    itemName: transName,
+                    qty: transQty,
+                    unit: transUnit,
+                    destination: destination
+                });
+                db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
 
-                break; // نكتفي بتعديل أول صنف مطابق
+                // إرسال تنبيه للصرف
+                notifyTelegram(`📦 *أمر صرف جديد*\nالصنف: ${transName}\nالكمية: ${transQty} ${transUnit}\nالجهة: ${destination}\nالرصيد المتبقي: ${items[i].cartons} كرتونة`);
+
+                break; 
             }
         }
 
         if (!itemFound) {
             alert("الصنف غير موجود في جرد اليوم!");
         } else {
-            // تفريغ حقول أمر الصرف بعد النجاح
             document.getElementById('transItemName').value = '';
             document.getElementById('transQty').value = '';
+            document.getElementById('transDestination').value = '';
+            alert("تم الصرف والخصم من الجرد بنجاح!");
         }
     }
 
+    // --- عرض سجل الصرف ---
+    function renderTransactionsTable() {
+        const selectedDate = dateInput.value;
+        const tbody = document.getElementById('transactionsBody');
+        tbody.innerHTML = '';
+        const tData = transactionsData[selectedDate] || [];
+
+        if (tData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">لا توجد عمليات صرف مسجلة في هذا اليوم.</td></tr>`;
+            return;
+        }
+
+        tData.forEach(trans => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${trans.time}</td>
+                <td style="font-weight: bold; color: var(--primary-color);">${trans.itemName}</td>
+                <td><span style="color: #e74c3c; font-weight: bold;">- ${trans.qty}</span> ${trans.unit}</td>
+                <td><i class="fas fa-map-marker-alt" style="color: #3498db;"></i> ${trans.destination}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
 
     function calculateSelectedTotals() {
         const checkboxes = document.querySelectorAll('.row-checkbox');
@@ -608,7 +687,7 @@
                 selectedCount++;
                 const idx = parseInt(cb.value);
                 const item = inventoryData[dateInput.value][idx];
-                const c = parseInt(item.cartons) || 0;
+                const c = parseFloat(item.cartons) || 0;
                 const p = parseInt(item.perCarton) || 0;
                 totalCartons += c;
                 totalItems += (c * p);
@@ -618,8 +697,8 @@
         const container = document.getElementById('selectionTotalsContainer');
         if (selectedCount > 0) {
             container.style.display = 'block';
-            document.getElementById('selectedCartonsTotal').innerText = totalCartons;
-            document.getElementById('selectedItemsTotal').innerText = totalItems;
+            document.getElementById('selectedCartonsTotal').innerText = totalCartons.toFixed(2);
+            document.getElementById('selectedItemsTotal').innerText = Math.round(totalItems);
         } else {
             container.style.display = 'none';
         }
@@ -634,13 +713,9 @@
         items.forEach((item, index) => {
             const row = document.createElement('tr');
             
-            // تحديد اللون: أحمر إذا كان الرصيد منخفض، وإلا نستخدم لون الصنف المخصص
-            if (item.cartons <= LOW_STOCK_THRESHOLD) {
-                row.className = "low-stock"; // إضافة الفئة لتغيير اللون للأحمر
-            } else {
-                row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
-                row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
-            }
+            // تم إلغاء تأثير اللون الأحمر للرصيد المنخفض
+            row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
+            row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
             
             if (item.isReviewed) row.classList.add('reviewed');
 
@@ -654,7 +729,7 @@
                 </td>
                 <td>${item.cartons || 0}</td>
                 <td>${item.perCarton || 0}</td>
-                <td>${(item.cartons || 0) * (item.perCarton || 0)}</td>
+                <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
                 <td class="action-btns no-print">
                     <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
                     <button class="move-btn" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
@@ -668,7 +743,6 @@
         
         calculateSelectedTotals();
         
-        // إعادة تطبيق الفلتر إذا كان مربع البحث ممتلئًا (مفيد عند تحديث البيانات)
         if(document.getElementById("searchInput").value) {
             filterTable();
         }
@@ -676,7 +750,7 @@
 
     function handleMainAction() {
         const name = sanitizeInput(document.getElementById('itemName').value);
-        const cartons = parseInt(document.getElementById('cartons').value);
+        const cartons = parseFloat(document.getElementById('cartons').value);
         const perCarton = parseInt(document.getElementById('perCarton').value);
         const color = sanitizeInput(document.getElementById('itemColor').value);
         const selectedDate = dateInput.value;
@@ -891,7 +965,7 @@
 
     function handleAddOrEditSlotItem() {
         const name = sanitizeInput(document.getElementById('slotItemName').value);
-        const qty = parseInt(document.getElementById('slotItemQty').value);
+        const qty = parseFloat(document.getElementById('slotItemQty').value);
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
         const color = sanitizeInput(document.getElementById('slotItemColor').value);
 
