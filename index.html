@@ -7,8 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -117,14 +115,8 @@
 
         .row-checkbox { transform: scale(1.5); cursor: pointer; }
 
-        /* قسم الإحصائيات */
-        #dashboardContainer {
-            display: none; background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd;
-            animation: fadeIn 0.5s ease-in-out;
-        }
-
-        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; flex-wrap: wrap; }
-        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 250px; }
+        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
+        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; }
         .slot { border: 2px solid #34495e; border-radius: 8px; min-height: 80px; padding: 10px; background: #fdfdfd; cursor: pointer; transition: 0.2s; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
         .slot:hover { border-color: var(--secondary-color); transform: translateY(-2px); }
         .slot-title { font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; text-align: center; }
@@ -163,8 +155,14 @@
             .container { box-shadow: none; margin: 0; padding: 0; }
             .slot { break-inside: avoid; }
             .no-print { display: none !important; }
-            #dashboardContainer { display: block !important; page-break-inside: avoid; }
         }
+
+        /* تنسيقات أوامر الصرف والبحث */
+        .transaction-section { background: #e8f8f5; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #a3e4d7; }
+        .transaction-section h3 { margin-top: 0; color: #117864; }
+        .search-container { margin-bottom: 15px; }
+        .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .low-stock { background-color: #fadbd8 !important; border-right: 6px solid #e74c3c !important; }
     </style>
 </head>
 <body>
@@ -188,40 +186,26 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p>جاري استخراج التقرير...</p>
+    <p>جاري استخراج صورة الجرد...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
 
 <datalist id="itemNamesList">
     <option value="كراس 28 مسطر (___)">
+    <option value="كراس 28 صماء">
     <option value="كراس 28 انجليزي (E)">
     <option value="كراس 28 مربعات (#)">
-    <option value="كراس 28 9 سطر (9___)">
-    <option value="كراس 28 صماء">
-    <option value="كراس 40 صفحة وصفحة (ص,ص)">
-    <option value="كراس 40 مسطر (___)">
-    <option value="كراس 40 انجليزي (E)">
-    <option value="كراس 40 مربعات (#)">
-    <option value="كراس 40 9 سطر (9___)">
-    <option value="كراس 40 صماء">
-    <option value="كراس 60 مسطر (___)">
-    <option value="كراس 60 انجليزي (E)">
-    <option value="كراس 60 صماء">
-    <option value="كراس 60 مربعات (#)">
-    <option value="كراس 60 9 سطر (9___)">
-    <option value="كراس 80 مسطر (___)">
-    <option value="كراس 80 انجليزي (E)">
-    <option value="كراس 80 9سطر (9___)">
-    <option value="كراس 80 مربعات (#)">
-    <option value="كراس 100 مسطر (___)">
-    <option value="كراس100 9سطر (9___) ">
-    <option value="كراس 100 انجليزي (E)">
-    <option value="كراس 100 مربعات (#)">
+    <option value="كراس 24 9 سطر (9___)">
+    <option value="كراس 24 بياني">
+    <option value="كراس 24 صفحة وصفحة (ص,ص)">
+    <option value="كراس 40 مسطر">
+    <option value="كراس 60 مسطر">
+    <option value="كراس 80 مسطر">
+    <option value="كراس 100 مسطر">
     <option value="رسم 16">
     <option value="رسم حضانة">
     <option value="رسم 40">
-    <option value="مدرس خاصة">
 </datalist>
 
 <div class="container" id="mainContainer">
@@ -245,19 +229,31 @@
     </div>
 
     <div id="tab-daily" class="tab-content active">
+        <div class="transaction-section no-print">
+            <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سحب من الرصيد)</h3>
+            <div class="input-group" style="grid-template-columns: 2fr 1fr 1.5fr 1fr;">
+                <input type="text" id="transItemName" list="itemNamesList" placeholder="أدخل اسم الصنف المنصرف">
+                <input type="number" id="transQty" placeholder="الكمية بالكرتونة" min="1">
+                <select id="transDestination">
+                    <option value="محل الكراس">محل الكراس</option>
+                    <option value="محل فنون">محل فنون</option>
+                    <option value="فرع آخر">فرع آخر</option>
+                </select>
+                <button class="add-btn" onclick="processTransaction()">تأكيد الصرف <i class="fas fa-check"></i></button>
+            </div>
+        </div>
+
         <div class="controls-section">
             <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
                 <div class="history-btns">
-                    <button class="add-btn" style="background-color: #8e44ad;" onclick="toggleDashboard()">
-                        <i class="fas fa-chart-pie"></i> إحصائيات السحب
-                    </button>
                     <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
                     <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
             </div>
+            
             <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف أو اختر الرمز">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للضافة">
                 <input type="number" id="cartons" placeholder="الكراتين" min="0">
                 <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
@@ -265,17 +261,15 @@
             </div>
         </div>
 
-        <div id="dashboardContainer">
-            <h3 style="text-align: center; color: #2c3e50;"><i class="fas fa-chart-line"></i> تقرير حركة المخزن (مقارنة بجرد أمس)</h3>
-            <canvas id="movementChart" width="400" height="150"></canvas>
-            <p style="text-align: center; font-size: 13px; color: #7f8c8d; margin-top: 10px;">* يوضح هذا الرسم الأصناف التي تم سحبها اليوم والأصناف الراكدة مقارنة برصيد أمس.</p>
+        <div class="search-container no-print">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن صنف في الجرد الحالي..." onkeyup="filterTable()">
         </div>
 
         <table id="inventoryTable">
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي</th><th class="no-print">تعديل / حذف / مراجعة</th>
+                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / حذف / مراجعة</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -291,7 +285,7 @@
     <div id="tab-map" class="tab-content">
         <div class="controls-section" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
-            <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس (خريطة نظيفة للمراجعة)</button>
+            <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
         </div>
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
@@ -322,7 +316,7 @@
         
         <div class="modal-form-group">
             <label>إضافة / تعديل صنف في الخانة:</label>
-            <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (استخدم القائمة للرموز)">
+            <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0">
                 <select id="slotItemUnit" style="flex: 1;">
@@ -371,9 +365,6 @@
 
     dateInput.addEventListener('change', () => {
         attachFirebaseListeners(dateInput.value);
-        if(document.getElementById('dashboardContainer').style.display === 'block'){
-            renderDashboard(); // تحديث الرسم البياني لو مفتوح
-        }
     });
 
     let inventoryData = {}; 
@@ -383,13 +374,14 @@
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
     let currentActiveSlotId = null; 
-    let chartInstance = null; // متغير للرسم البياني
 
     const mapStructure = [
         { id: "col_right", count: 5 },
         { id: "col_center", count: 5 },
         { id: "col_left", count: 8 }
     ];
+
+    const LOW_STOCK_THRESHOLD = 5; // حد الأمان: 5 كراتين
 
     async function notifyTelegram(message) {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
@@ -493,10 +485,6 @@
         currentInventoryListenerRef.on('value', (snapshot) => {
             inventoryData[date] = snapshot.val() || [];
             renderInventoryTable();
-            // تحديث الرسم البياني إذا كان مفتوحاً
-            if(document.getElementById('dashboardContainer').style.display === 'block'){
-                renderDashboard();
-            }
         });
 
         if (currentMapListenerRef) currentMapListenerRef.off();
@@ -542,95 +530,73 @@
         navigator.clipboard.writeText(text).then(() => {});
     }
 
-    // --- وظائف الرسم البياني (Dashboard) ---
-    function toggleDashboard() {
-        const dash = document.getElementById('dashboardContainer');
-        if(dash.style.display === 'none' || dash.style.display === '') {
-            dash.style.display = 'block';
-            renderDashboard();
-        } else {
-            dash.style.display = 'none';
+    // --- فلترة الجدول (البحث الحي) ---
+    function filterTable() {
+        const input = document.getElementById("searchInput").value.toUpperCase();
+        const table = document.getElementById("inventoryTable");
+        const tr = table.getElementsByTagName("tr");
+
+        // نبدأ من 1 لتخطي صف العناوين
+        for (let i = 1; i < tr.length; i++) {
+            const td = tr[i].getElementsByTagName("td")[1]; // البحث في عمود اسم الصنف
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(input) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
         }
     }
 
-    function renderDashboard() {
-        const todayStr = dateInput.value;
-        const d = new Date(todayStr);
-        d.setDate(d.getDate() - 1);
-        const yesterdayStr = d.toISOString().split('T')[0];
+    // --- معالجة أوامر الصرف (تحديث الكمية وتنبيه اللون) ---
+    function processTransaction() {
+        const transName = sanitizeInput(document.getElementById('transItemName').value);
+        const transQty = parseInt(document.getElementById('transQty').value);
+        const destination = sanitizeInput(document.getElementById('transDestination').value);
+        const selectedDate = dateInput.value;
 
-        db.ref('inventory/' + yesterdayStr).once('value').then(snapshot => {
-            const yesterdayItems = snapshot.val() || [];
-            const todayItems = inventoryData[todayStr] || [];
+        if (!transName || isNaN(transQty) || transQty <= 0) {
+            return alert("الرجاء إدخال اسم الصنف وكمية صحيحة للصرف.");
+        }
 
-            // تجميع رصيد الأمس لكل صنف بالقطعة
-            let yMap = {};
-            yesterdayItems.forEach(i => {
-                let qty = (parseInt(i.cartons) || 0) * (parseInt(i.perCarton) || 0);
-                yMap[i.name] = (yMap[i.name] || 0) + qty;
-            });
+        let items = inventoryData[selectedDate] || [];
+        let itemFound = false;
 
-            // تجميع رصيد اليوم لكل صنف بالقطعة
-            let tMap = {};
-            todayItems.forEach(i => {
-                let qty = (parseInt(i.cartons) || 0) * (parseInt(i.perCarton) || 0);
-                tMap[i.name] = (tMap[i.name] || 0) + qty;
-            });
-
-            let labels = [];
-            let withdrawnData = [];
-            let currentData = [];
-
-            // حساب السحب لكل صنف موجود اليوم
-            for (let name in tMap) {
-                let yQty = yMap[name] || 0;
-                let tQty = tMap[name];
-                let diff = yQty - tQty; // إذا كان موجب، يعني تم سحب بضاعة
-                
-                labels.push(name);
-                // نظهر السحب لو كان في سحب، وإلا صفر
-                withdrawnData.push(diff > 0 ? diff : 0); 
-                currentData.push(tQty);
-            }
-
-            const ctx = document.getElementById('movementChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'كمية السحب (مباع/منصرف)',
-                            data: withdrawnData,
-                            backgroundColor: 'rgba(231, 76, 60, 0.8)',
-                            borderColor: '#c0392b',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'الرصيد الحالي بالمخزن',
-                            data: currentData,
-                            backgroundColor: 'rgba(41, 128, 185, 0.8)',
-                            borderColor: '#2980b9',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].name === transName) {
+                itemFound = true;
+                if (items[i].cartons < transQty) {
+                    return alert("الكمية المطلوبة أكبر من الرصيد المتاح في الجرد!");
                 }
-            });
-        });
+                
+                // خصم الكمية
+                items[i].cartons -= transQty;
+                saveInventoryToFirebase();
+                
+                // إرسال تنبيه للصرف
+                notifyTelegram(`📦 *أمر صرف جديد*\n الصنف: ${transName}\n الكمية: ${transQty} كرتونة\n الجهة: ${destination}\n الرصيد المتبقي: ${items[i].cartons}`);
+                
+                // تنبيه رصيد منخفض إذا لزم الأمر
+                if (items[i].cartons <= LOW_STOCK_THRESHOLD) {
+                    notifyTelegram(`⚠️ *تنبيه رصيد منخفض!*\n الصنف: ${transName} وصل لـ ${items[i].cartons} كراتين فقط!`);
+                }
+
+                break; // نكتفي بتعديل أول صنف مطابق
+            }
+        }
+
+        if (!itemFound) {
+            alert("الصنف غير موجود في جرد اليوم!");
+        } else {
+            // تفريغ حقول أمر الصرف بعد النجاح
+            document.getElementById('transItemName').value = '';
+            document.getElementById('transQty').value = '';
+        }
     }
 
-    // --- حساب الإجمالي للأصناف المحددة ---
+
     function calculateSelectedTotals() {
         const checkboxes = document.querySelectorAll('.row-checkbox');
         let totalCartons = 0;
@@ -667,8 +633,15 @@
 
         items.forEach((item, index) => {
             const row = document.createElement('tr');
-            row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
-            row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
+            
+            // تحديد اللون: أحمر إذا كان الرصيد منخفض، وإلا نستخدم لون الصنف المخصص
+            if (item.cartons <= LOW_STOCK_THRESHOLD) {
+                row.className = "low-stock"; // إضافة الفئة لتغيير اللون للأحمر
+            } else {
+                row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
+                row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
+            }
+            
             if (item.isReviewed) row.classList.add('reviewed');
 
             row.innerHTML = `
@@ -694,6 +667,11 @@
         });
         
         calculateSelectedTotals();
+        
+        // إعادة تطبيق الفلتر إذا كان مربع البحث ممتلئًا (مفيد عند تحديث البيانات)
+        if(document.getElementById("searchInput").value) {
+            filterTable();
+        }
     }
 
     function handleMainAction() {
@@ -794,7 +772,7 @@
                 }
                 mapData[dateInput.value] = fullMap;
                 saveMapToFirebase();
-                alert("تم نسخ خريطة أمس بنجاح (جاهزة للمراجعة).");
+                alert("تم نسخ خريطة أمس بنجاح (بدون علامات المراجعة السابقة).");
             } else { alert("لا توجد خريطة مسجلة لتاريخ أمس!"); }
         });
     }
@@ -913,11 +891,11 @@
 
     function handleAddOrEditSlotItem() {
         const name = sanitizeInput(document.getElementById('slotItemName').value);
-        const qty = document.getElementById('slotItemQty').value;
+        const qty = parseInt(document.getElementById('slotItemQty').value);
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
         const color = sanitizeInput(document.getElementById('slotItemColor').value);
 
-        if(!name || !qty) return alert("يرجى إدخال اسم الصنف والعدد.");
+        if(!name || isNaN(qty)) return alert("يرجى إدخال اسم الصنف والعدد بأرقام صحيحة!");
 
         if(!mapData[dateInput.value][currentActiveSlotId]) {
             mapData[dateInput.value][currentActiveSlotId] = { items: [], color: '#fdfdfd' };
@@ -990,7 +968,7 @@
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
         
-        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print');
+        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print, #selectionTotalsContainer, .transaction-section, .search-container');
         hideElements.forEach(el => el.style.display = 'none');
 
         const canvas = await html2canvas(document.getElementById('printableArea') || document.getElementById('mainContainer'), { useCORS: true, scale: 2 });
