@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -115,8 +117,14 @@
 
         .row-checkbox { transform: scale(1.5); cursor: pointer; }
 
-        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
-        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; }
+        /* قسم الإحصائيات */
+        #dashboardContainer {
+            display: none; background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; flex-wrap: wrap; }
+        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 250px; }
         .slot { border: 2px solid #34495e; border-radius: 8px; min-height: 80px; padding: 10px; background: #fdfdfd; cursor: pointer; transition: 0.2s; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
         .slot:hover { border-color: var(--secondary-color); transform: translateY(-2px); }
         .slot-title { font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; text-align: center; }
@@ -155,6 +163,7 @@
             .container { box-shadow: none; margin: 0; padding: 0; }
             .slot { break-inside: avoid; }
             .no-print { display: none !important; }
+            #dashboardContainer { display: block !important; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -179,26 +188,41 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p>جاري استخراج صورة الجرد...</p>
+    <p>جاري استخراج التقرير...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
 
 <datalist id="itemNamesList">
+    <option value="كراس 24 مسطر (___)">
+    <option value="كراس 24 انجليزي (E)">
+    <option value="كراس 24 مربعات (#)">
+    <option value="كراس 24 9 سطر (9___)">
+    <option value="كراس 24 صماء">
+    <option value="كراس 24 صفحة وصفحة (ص,ص)">
     <option value="كراس 28 مسطر (___)">
-    <option value="كراس 28 صماء">
     <option value="كراس 28 انجليزي (E)">
     <option value="كراس 28 مربعات (#)">
-    <option value="كراس 24 9 سطر (9___)">
-    <option value="كراس 24 بياني">
-    <option value="كراس 24 صفحة وصفحة (ص,ص)">
-    <option value="كراس 40 مسطر">
-    <option value="كراس 60 مسطر">
-    <option value="كراس 80 مسطر">
-    <option value="كراس 100 مسطر">
+    <option value="كراس 28 9 سطر (9___)">
+    <option value="كراس 28 صماء">
+    <option value="كراس 40 مسطر (___)">
+    <option value="كراس 40 انجليزي (E)">
+    <option value="كراس 40 مربعات (#)">
+    <option value="كراس 40 صماء">
+    <option value="كراس 60 مسطر (___)">
+    <option value="كراس 60 انجليزي (E)">
+    <option value="كراس 60 مربعات (#)">
+    <option value="كراس 80 مسطر (___)">
+    <option value="كراس 80 انجليزي (E)">
+    <option value="كراس 80 مربعات (#)">
+    <option value="كراس 100 مسطر (___)">
+    <option value="كراس 100 انجليزي (E)">
+    <option value="كراس 100 مربعات (#)">
     <option value="رسم 16">
     <option value="رسم حضانة">
     <option value="رسم 40">
+    <option value="رسم 60">
+    <option value="مدرس مساعد">
 </datalist>
 
 <div class="container" id="mainContainer">
@@ -226,17 +250,26 @@
             <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
                 <div class="history-btns">
+                    <button class="add-btn" style="background-color: #8e44ad;" onclick="toggleDashboard()">
+                        <i class="fas fa-chart-pie"></i> إحصائيات السحب
+                    </button>
                     <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
                     <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
             </div>
             <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف أو اختر الرمز">
                 <input type="number" id="cartons" placeholder="الكراتين" min="0">
                 <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
+        </div>
+
+        <div id="dashboardContainer">
+            <h3 style="text-align: center; color: #2c3e50;"><i class="fas fa-chart-line"></i> تقرير حركة المخزن (مقارنة بجرد أمس)</h3>
+            <canvas id="movementChart" width="400" height="150"></canvas>
+            <p style="text-align: center; font-size: 13px; color: #7f8c8d; margin-top: 10px;">* يوضح هذا الرسم الأصناف التي تم سحبها اليوم والأصناف الراكدة مقارنة برصيد أمس.</p>
         </div>
 
         <table id="inventoryTable">
@@ -259,7 +292,7 @@
     <div id="tab-map" class="tab-content">
         <div class="controls-section" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
-            <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
+            <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس (خريطة نظيفة للمراجعة)</button>
         </div>
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
@@ -290,7 +323,7 @@
         
         <div class="modal-form-group">
             <label>إضافة / تعديل صنف في الخانة:</label>
-            <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
+            <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (استخدم القائمة للرموز)">
             <div style="display: flex; gap: 10px; align-items: center;">
                 <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0">
                 <select id="slotItemUnit" style="flex: 1;">
@@ -339,6 +372,9 @@
 
     dateInput.addEventListener('change', () => {
         attachFirebaseListeners(dateInput.value);
+        if(document.getElementById('dashboardContainer').style.display === 'block'){
+            renderDashboard(); // تحديث الرسم البياني لو مفتوح
+        }
     });
 
     let inventoryData = {}; 
@@ -348,6 +384,7 @@
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
     let currentActiveSlotId = null; 
+    let chartInstance = null; // متغير للرسم البياني
 
     const mapStructure = [
         { id: "col_right", count: 5 },
@@ -457,6 +494,10 @@
         currentInventoryListenerRef.on('value', (snapshot) => {
             inventoryData[date] = snapshot.val() || [];
             renderInventoryTable();
+            // تحديث الرسم البياني إذا كان مفتوحاً
+            if(document.getElementById('dashboardContainer').style.display === 'block'){
+                renderDashboard();
+            }
         });
 
         if (currentMapListenerRef) currentMapListenerRef.off();
@@ -500,6 +541,94 @@
 
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {});
+    }
+
+    // --- وظائف الرسم البياني (Dashboard) ---
+    function toggleDashboard() {
+        const dash = document.getElementById('dashboardContainer');
+        if(dash.style.display === 'none' || dash.style.display === '') {
+            dash.style.display = 'block';
+            renderDashboard();
+        } else {
+            dash.style.display = 'none';
+        }
+    }
+
+    function renderDashboard() {
+        const todayStr = dateInput.value;
+        const d = new Date(todayStr);
+        d.setDate(d.getDate() - 1);
+        const yesterdayStr = d.toISOString().split('T')[0];
+
+        db.ref('inventory/' + yesterdayStr).once('value').then(snapshot => {
+            const yesterdayItems = snapshot.val() || [];
+            const todayItems = inventoryData[todayStr] || [];
+
+            // تجميع رصيد الأمس لكل صنف بالقطعة
+            let yMap = {};
+            yesterdayItems.forEach(i => {
+                let qty = (parseInt(i.cartons) || 0) * (parseInt(i.perCarton) || 0);
+                yMap[i.name] = (yMap[i.name] || 0) + qty;
+            });
+
+            // تجميع رصيد اليوم لكل صنف بالقطعة
+            let tMap = {};
+            todayItems.forEach(i => {
+                let qty = (parseInt(i.cartons) || 0) * (parseInt(i.perCarton) || 0);
+                tMap[i.name] = (tMap[i.name] || 0) + qty;
+            });
+
+            let labels = [];
+            let withdrawnData = [];
+            let currentData = [];
+
+            // حساب السحب لكل صنف موجود اليوم
+            for (let name in tMap) {
+                let yQty = yMap[name] || 0;
+                let tQty = tMap[name];
+                let diff = yQty - tQty; // إذا كان موجب، يعني تم سحب بضاعة
+                
+                labels.push(name);
+                // نظهر السحب لو كان في سحب، وإلا صفر
+                withdrawnData.push(diff > 0 ? diff : 0); 
+                currentData.push(tQty);
+            }
+
+            const ctx = document.getElementById('movementChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'كمية السحب (مباع/منصرف)',
+                            data: withdrawnData,
+                            backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                            borderColor: '#c0392b',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'الرصيد الحالي بالمخزن',
+                            data: currentData,
+                            backgroundColor: 'rgba(41, 128, 185, 0.8)',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        });
     }
 
     // --- حساب الإجمالي للأصناف المحددة ---
@@ -565,7 +694,6 @@
             tbody.appendChild(row);
         });
         
-        // إعادة حساب المحددات بعد التحديث
         calculateSelectedTotals();
     }
 
@@ -645,7 +773,6 @@
         });
     }
 
-    // --- التعديل: تصفير علامة الصح في الخريطة عند النسخ ---
     function copyMapFromYesterday() {
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
@@ -655,26 +782,20 @@
                 let fullMap = initializeEmptyMap();
                 for(let key in yesterdayMap) {
                     if (fullMap[key]) {
-                        // عمل نسخة عميقة لتجنب مشاكل الـ Reference
                         let slotData = JSON.parse(JSON.stringify(yesterdayMap[key]));
-                        
                         if(Array.isArray(slotData)) {
                             fullMap[key] = { items: slotData, color: '#fdfdfd' };
                         } else {
                             fullMap[key] = slotData;
                         }
-                        
-                        // تصفير المراجعة لليوم الجديد
                         if (fullMap[key].items && fullMap[key].items.length > 0) {
-                            fullMap[key].items.forEach(item => {
-                                item.isReviewed = false;
-                            });
+                            fullMap[key].items.forEach(item => { item.isReviewed = false; });
                         }
                     }
                 }
                 mapData[dateInput.value] = fullMap;
                 saveMapToFirebase();
-                alert("تم نسخ خريطة أمس بنجاح (بدون علامات المراجعة السابقة).");
+                alert("تم نسخ خريطة أمس بنجاح (جاهزة للمراجعة).");
             } else { alert("لا توجد خريطة مسجلة لتاريخ أمس!"); }
         });
     }
@@ -793,11 +914,11 @@
 
     function handleAddOrEditSlotItem() {
         const name = sanitizeInput(document.getElementById('slotItemName').value);
-        const qty = parseInt(document.getElementById('slotItemQty').value);
+        const qty = document.getElementById('slotItemQty').value;
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
         const color = sanitizeInput(document.getElementById('slotItemColor').value);
 
-        if(!name || isNaN(qty)) return alert("يرجى إدخال اسم الصنف والعدد بأرقام صحيحة!");
+        if(!name || !qty) return alert("يرجى إدخال اسم الصنف والعدد.");
 
         if(!mapData[dateInput.value][currentActiveSlotId]) {
             mapData[dateInput.value][currentActiveSlotId] = { items: [], color: '#fdfdfd' };
@@ -870,8 +991,7 @@
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
         
-        // إخفاء الأزرار المزعجة في الطباعة
-        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print, #selectionTotalsContainer');
+        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print');
         hideElements.forEach(el => el.style.display = 'none');
 
         const canvas = await html2canvas(document.getElementById('printableArea') || document.getElementById('mainContainer'), { useCORS: true, scale: 2 });
@@ -884,7 +1004,6 @@
         link.click();
         overlay.style.display = 'none';
         
-        // إعادة إظهار المجموع لو كان فيه حاجة متحددة
         calculateSelectedTotals();
     }
 </script>
