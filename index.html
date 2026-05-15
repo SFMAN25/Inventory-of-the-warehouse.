@@ -58,6 +58,7 @@
             max-width: 1200px; margin: 20px auto; background: rgba(255, 255, 255, 0.94);
             padding: 30px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             backdrop-filter: blur(5px); display: none; 
+            transition: background 0.3s ease;
         }
 
         header {
@@ -162,7 +163,6 @@
         .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: center; }
         .print-signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 50px; font-weight: bold;}
 
-        /* تنسيق الطباعة الفعلي (تخفي كل شيء وتظهر الإذن فقط) */
         @media print {
             body * { visibility: hidden; }
             #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
@@ -170,6 +170,75 @@
             .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
             body { background: white !important; }
         }
+
+        /* --------------------------------------------------- */
+        /* استايلات الأظرف الذكية (Cards) في سجل الصرف */
+        /* --------------------------------------------------- */
+        .log-card {
+            background: #ffffff;
+            border: 1px solid #dcdde1;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .log-card-header {
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid transparent;
+        }
+        .log-card-header:hover { background: #eef2f5; }
+        .log-card-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px; }
+        .log-card-time { font-size: 13px; color: #7f8c8d; }
+        .log-card-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            background: #ffffff;
+            padding: 0 15px;
+        }
+        .log-card-body.active {
+            max-height: 1000px; /* رقم كبير يسمح بفتح المحتوى بالكامل */
+            padding: 15px;
+            border-top: 1px solid #eee;
+        }
+        .log-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px dashed #eee; 
+            font-size: 15px; 
+            color: #2c3e50;
+        }
+        .log-item:last-child { border-bottom: none; }
+        .log-actions { 
+            display: flex; 
+            gap: 10px; 
+            margin-top: 15px; 
+            border-top: 1px solid #f1f2f6; 
+            padding-top: 15px;
+        }
+        .log-actions button { 
+            flex: 1;
+            padding: 10px 12px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: white; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            gap: 8px; 
+            font-weight: bold;
+        }
+        .btn-del-log { background: #e74c3c; }
+        .btn-edit-log { background: #f39c12; }
     </style>
 </head>
 <body>
@@ -339,18 +408,8 @@
             </div>
         </div>
 
-        <h3><i class="fas fa-clipboard-list"></i> سجل حركات اليوم</h3>
-        <table id="transactionsTable">
-            <thead>
-                <tr>
-                    <th>الوقت</th>
-                    <th>الجهة</th>
-                    <th>التفاصيل</th>
-                </tr>
-            </thead>
-            <tbody id="transactionsBody">
-                </tbody>
-        </table>
+        <h3><i class="fas fa-clipboard-list"></i> سجل حركات اليوم (أظرف)</h3>
+        <div id="transactionsCardsContainer"></div>
     </div>
 
     <div id="tab-map" class="tab-content">
@@ -440,8 +499,8 @@
 
     let inventoryData = {}; 
     let mapData = {}; 
-    let transactionsData = {}; // سجل أوامر الصرف
-    let transactionCart = []; // السلة المؤقتة للأصناف قبل الصرف
+    let transactionsData = {}; 
+    let transactionCart = []; 
     let editIndex = null;
     let slotEditIndex = null;
     
@@ -583,12 +642,11 @@
             }
         });
         
-        // استدعاء سجل الصرف
         if (currentTransListenerRef) currentTransListenerRef.off();
         currentTransListenerRef = db.ref('transactions/' + date);
         currentTransListenerRef.on('value', (snapshot) => {
             transactionsData[date] = snapshot.val() || [];
-            renderTransactionsTable();
+            renderTransactionsTable(); // تم تحويلها لرسم الأظرف
         });
     }
 
@@ -612,7 +670,6 @@
         navigator.clipboard.writeText(text).then(() => {});
     }
 
-    // --- فلترة الجدول (البحث الحي) ---
     function filterTable() {
         const input = document.getElementById("searchInput").value.toUpperCase();
         const table = document.getElementById("inventoryTable");
@@ -647,7 +704,6 @@
         transactionCart.push({ name, qty, unit });
         renderTransactionCart();
         
-        // تفريغ الخانات بعد الإضافة
         document.getElementById('transItemName').value = '';
         document.getElementById('transQty').value = '';
     }
@@ -684,7 +740,7 @@
         let items = inventoryData[selectedDate] || [];
         let logDetails = [];
 
-        // 1. التحقق من وجود أرصدة كافية لكل الأصناف قبل تنفيذ الخصم
+        // 1. التحقق من وجود أرصدة كافية
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
@@ -695,7 +751,7 @@
             }
         }
 
-        // 2. تنفيذ الخصم الفعلي
+        // 2. تنفيذ الخصم
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
             let withdrawCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
@@ -705,7 +761,7 @@
         
         saveInventoryToFirebase();
 
-        // 3. التسجيل في سجل اليوميات
+        // 3. التسجيل في سجل اليوميات (إضافة rawItems لتمكين الاسترجاع الذكي)
         if (!transactionsData[selectedDate]) transactionsData[selectedDate] = [];
         transactionsData[selectedDate].push({
             time: new Date().toLocaleTimeString('ar-EG'),
@@ -713,7 +769,8 @@
             qty: "-",
             unit: "-",
             destination: destination,
-            details: logDetails.join(' | ') // تخزين التفاصيل للسجل
+            details: logDetails.join(' | '), 
+            rawItems: JSON.parse(JSON.stringify(transactionCart)) // داتا صافية عشان نقدر نرجعها للمخزن بعدين
         });
         db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
 
@@ -733,38 +790,130 @@
             </tr>`;
         });
         
-        window.print(); // استدعاء نافذة الطباعة الخاصة بالمتصفح
+        window.print();
 
-        // 5. تصفير السلة بعد النجاح
+        // 5. تصفير السلة
         transactionCart = [];
         renderTransactionCart();
         document.getElementById('transDestination').value = '';
         alert("تم خصم الأصناف وطباعة الإذن بنجاح!");
     }
 
-    // --- عرض سجل الصرف ---
+    // ==========================================
+    // نظام الأظرف الذكية (سجل حركات اليوم) والتعديل والحذف
+    // ==========================================
     function renderTransactionsTable() {
         const selectedDate = dateInput.value;
-        const tbody = document.getElementById('transactionsBody');
-        tbody.innerHTML = '';
+        const container = document.getElementById('transactionsCardsContainer');
+        if(!container) return;
+        
+        container.innerHTML = '';
         const tData = transactionsData[selectedDate] || [];
 
         if (tData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #7f8c8d;">لا توجد عمليات مسجلة اليوم.</td></tr>`;
+            container.innerHTML = `<div style="text-align: center; color: #7f8c8d; padding: 20px; border:1px dashed #ccc; border-radius:8px;">لا توجد عمليات صرف مسجلة في هذا اليوم.</div>`;
             return;
         }
 
-        tData.forEach(trans => {
-            const row = document.createElement('tr');
-            // نعرض التفاصيل المجمعة بدلاً من اسم صنف واحد
-            const displayDetails = trans.details ? trans.details : `${trans.qty} ${trans.unit} (${trans.itemName})`;
-            row.innerHTML = `
-                <td>${trans.time}</td>
-                <td><i class="fas fa-map-marker-alt" style="color: #3498db;"></i> <strong>${trans.destination}</strong></td>
-                <td style="font-size: 14px;">${displayDetails}</td>
-            `;
-            tbody.appendChild(row);
-        });
+        // عرض السجلات من الأحدث للأقدم
+        let htmlContent = '';
+        for (let i = tData.length - 1; i >= 0; i--) {
+            const trans = tData[i];
+            
+            // تجهيز محتوى الأصناف (سواء كانت من النظام الجديد rawItems أو القديم details)
+            let itemsHtml = '';
+            if (trans.rawItems) {
+                itemsHtml = trans.rawItems.map(item => `
+                    <div class="log-item">
+                        <span>${item.name}</span>
+                        <strong><span style="color:#e74c3c">-</span> ${item.qty} ${item.unit}</strong>
+                    </div>
+                `).join('');
+            } else {
+                // للأذونات القديمة
+                itemsHtml = `<div class="log-item" style="color:#7f8c8d; font-size:14px;">${trans.details || trans.itemName}</div>`;
+            }
+
+            htmlContent += `
+            <div class="log-card">
+                <div class="log-card-header" onclick="toggleLogCard(${i})">
+                    <div>
+                        <div class="log-card-title"><i class="fas fa-truck" style="color:#3498db; margin-left:5px;"></i>${trans.destination}</div>
+                        <div class="log-card-time"><i class="far fa-clock"></i> ${trans.time}</div>
+                    </div>
+                    <i class="fas fa-chevron-down" id="card-icon-${i}" style="color:#7f8c8d;"></i>
+                </div>
+                <div class="log-card-body" id="card-body-${i}">
+                    <div style="margin-bottom: 15px;">
+                        ${itemsHtml}
+                    </div>
+                    <div class="log-actions no-print">
+                        <button class="btn-edit-log" onclick="editTransactionDest(${i})">
+                            <i class="fas fa-pen"></i> تعديل الوجهة
+                        </button>
+                        <button class="btn-del-log" onclick="deleteTransaction(${i})">
+                            <i class="fas fa-undo-alt"></i> حذف الإذن (استرجاع للمخزن)
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }
+        container.innerHTML = htmlContent;
+    }
+
+    function toggleLogCard(index) {
+        const body = document.getElementById(`card-body-${index}`);
+        const icon = document.getElementById(`card-icon-${index}`);
+        if (body.classList.contains('active')) {
+            body.classList.remove('active');
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        } else {
+            body.classList.add('active');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        }
+    }
+
+    // تعديل الوجهة في السجل
+    function editTransactionDest(index) {
+        const selectedDate = dateInput.value;
+        const trans = transactionsData[selectedDate][index];
+        const newDest = prompt("تعديل جهة الصرف:", trans.destination);
+        if(newDest && newDest.trim() !== "" && newDest !== trans.destination) {
+            trans.destination = newDest.trim();
+            db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
+        }
+    }
+
+    // الحذف الذكي (مسح واسترجاع الرصيد للمخزن)
+    function deleteTransaction(index) {
+        if(!confirm("⚠️ تحذير: هل أنت متأكد من حذف هذا الإذن بالكامل؟\nسيتم إرجاع جميع الأصناف الموجودة فيه إلى رصيد المخزن الأساسي.")) return;
+        
+        const selectedDate = dateInput.value;
+        const trans = transactionsData[selectedDate][index];
+        let items = inventoryData[selectedDate] || [];
+
+        // استرجاع الأصناف لو مسجلة بنظام rawItems
+        if (trans.rawItems) {
+            trans.rawItems.forEach(cItem => {
+                let invItem = items.find(x => x.name === cItem.name);
+                if (invItem) {
+                    let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+                    invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+                }
+            });
+            alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
+        } else {
+            alert("تنبيه: هذا الإذن بنسخة قديمة، تم حذفه من السجل فقط (يجب إرجاع رصيده يدوياً للجرد).");
+        }
+
+        // حذف من السجل
+        transactionsData[selectedDate].splice(index, 1);
+
+        // حفظ التعديلات في المخزن والسجل
+        db.ref('inventory/' + selectedDate).set(items);
+        db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
     }
 
     function calculateSelectedTotals() {
@@ -1128,31 +1277,49 @@
         }
     }
 
+    // ==========================================
+    // تصوير احترافي عالي الجودة وحل مشكلة البياض
+    // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
         
-        // إخفاء كل العناصر اللي ملهاش لازمة في الصورة (زي التبويبات، الأزرار، والبحث)
-        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print, #selectionTotalsContainer');
-        hideElements.forEach(el => el.style.display = 'none');
+        // 1. تحديد العناصر اللي مش عايزينها تبان في الصورة خالص
+        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print, #selectionTotalsContainer, .log-actions, button');
+        hideElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
 
-        // تعديل جودة الصورة لتكون أعلى وضوحاً
-        const canvas = await html2canvas(document.getElementById('mainContainer'), { 
-            useCORS: true, 
-            scale: 3,             // رفع دقة الصورة
-            backgroundColor: "#ffffff",
-            logging: false
-        });
-        
-        hideElements.forEach(el => el.style.display = '');
+        // 2. لو إحنا في تبويب السجل، هنفتح كل الأظرف عشان تبان تفاصيلها في الصورة
+        const allBodies = document.querySelectorAll('.log-card-body');
+        allBodies.forEach(b => b.classList.add('active'));
 
-        const link = document.createElement('a');
-        link.download = `تقرير_المخزن_${dateInput.value}.png`;
-        link.href = canvas.toDataURL("image/png"); // حفظ بصيغة PNG لضمان الجودة
-        link.click();
-        overlay.style.display = 'none';
-        
-        calculateSelectedTotals();
+        // 3. توحيد لون الخلفية الأبيض الناصع للمحتوى عشان الصورة تطلع بدون زوايا رمادي
+        const container = document.getElementById('mainContainer');
+        const originalBg = container.style.background;
+        container.style.background = '#ffffff';
+
+        try {
+            const canvas = await html2canvas(container, { 
+                useCORS: true, 
+                scale: 3, // دقة 4K
+                backgroundColor: "#ffffff", // إجبار الخلفية على الأبيض الصافي
+                logging: false
+            });
+            
+            const link = document.createElement('a');
+            link.download = `تقرير_المخزن_كمال_سعد_${dateInput.value}.png`;
+            link.href = canvas.toDataURL("image/png"); 
+            link.click();
+        } catch (err) {
+            console.error("خطأ في التصوير:", err);
+            alert("حدث خطأ أثناء حفظ الصورة.");
+        } finally {
+            // 4. إرجاع كل حاجة لأصلها بعد ما الصورة تنزل
+            hideElements.forEach(el => el.style.display = '');
+            allBodies.forEach(b => b.classList.remove('active'));
+            container.style.background = originalBg;
+            overlay.style.display = 'none';
+            calculateSelectedTotals();
+        }
     }
 </script>
 </body>
