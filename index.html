@@ -1323,48 +1323,89 @@
     }
 
     // ==========================================
-    // تصوير طبيعي عالي الجودة وحل مشكلة البياض المزعج
+    // تصوير طبيعي عالي الجودة وحل مشكلة البياض والقص
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
-        overlay.style.display = 'flex';
+        if (overlay) overlay.style.display = 'flex';
         
-        // إخفاء الأزرار اللي ملهاش لزمة تظهر في الصورة بس هسيب التبويبات زي ما هي
-        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn');
-        hideElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
+        // 1. إخفاء زراير الحذف والتعديل فقط عشان الصورة تطلع زي ما عينك شايفاها بالظبط (بالتبويبات)
+        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn');
+        hideElements.forEach(el => {
+            el.dataset.oldDisplay = el.style.display;
+            el.style.setProperty('display', 'none', 'important');
+        });
 
-        // فتح الأظرف لو في تبويب السجل عشان تبان
+        // 2. فتح جميع كروت السجل (الأظرف) عشان تبان تفاصيلها لو كنت بتصور السجل
         const allBodies = document.querySelectorAll('.log-card-body');
         allBodies.forEach(b => b.classList.add('active'));
 
-        try {
-            // تثبيت خلفية ثابتة خفيفة ورايقة عشان الواتساب ميقلبهاش شاشة سوداء
-            const container = document.getElementById('mainContainer');
-            const originalBg = container.style.background;
-            container.style.background = '#f4f7f6'; 
+        // 3. فك الحظر عن أبعاد الحاوية الرئيسية لمنع القص (عشان الجداول الطويلة تبان كلها)
+        const container = document.getElementById('mainContainer');
+        const originalHeight = container.style.height;
+        const originalOverflow = container.style.overflow;
+        const originalMaxHeight = container.style.maxHeight;
+        const originalBg = container.style.background;
 
+        container.style.setProperty('height', 'auto', 'important');
+        container.style.setProperty('max-height', 'none', 'important');
+        container.style.setProperty('overflow', 'visible', 'important');
+        container.style.background = '#f4f7f6'; // خلفية رايقة عشان الواتساب ميخليهاش سودة
+
+        // 4. فك الحظر عن التبويبات الداخلية عشان متتقصش
+        const scrollablePanels = document.querySelectorAll('.tab-content');
+        scrollablePanels.forEach(panel => {
+            panel.dataset.oldOverflow = panel.style.overflow;
+            panel.dataset.oldHeight = panel.style.height;
+            panel.dataset.oldMaxHeight = panel.style.maxHeight;
+            panel.style.setProperty('overflow', 'visible', 'important');
+            panel.style.setProperty('height', 'auto', 'important');
+            panel.style.setProperty('max-height', 'none', 'important');
+        });
+
+        // 5. مهلة 500 جزء من الثانية للمتصفح عشان يفرد الجداول بالكامل قبل اللقطة
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
+            // 6. التقاط الصورة بدقة فائقة وبشكل طبيعي جداً
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
-                scale: 2, 
-                backgroundColor: "#f4f7f6", // لون فاتح يمنع مشكلة الواتساب
-                logging: false
+                scale: 2.5, 
+                backgroundColor: "#f4f7f6", 
+                logging: false,
+                scrollY: -window.scrollY, // بيعالج مشكلة القص من فوق لو كنت نازل بالصفحة
+                scrollX: 0,
+                windowWidth: container.scrollWidth,
+                windowHeight: container.scrollHeight
             });
             
+            // 7. التحميل
             const link = document.createElement('a');
-            link.download = `تقرير_المخزن_${dateInput.value}.png`;
+            link.download = `تقرير_المخزن_كمال_سعد_${dateInput.value || 'جديد'}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
-
-            // نرجع الخلفية زي ما كانت بالظبط
-            container.style.background = originalBg;
         } catch (err) {
             console.error("خطأ في التصوير:", err);
             alert("حدث خطأ أثناء حفظ الصورة.");
         } finally {
-            // إرجاع كل حاجة لأصلها
-            hideElements.forEach(el => el.style.display = '');
+            // 8. إرجاع كل حاجة لأصلها بعد التصوير عشان السكربت يفضل شغال طبيعي
+            hideElements.forEach(el => {
+                el.style.display = el.dataset.oldDisplay || '';
+            });
             allBodies.forEach(b => b.classList.remove('active'));
-            overlay.style.display = 'none';
+            
+            container.style.height = originalHeight;
+            container.style.overflow = originalOverflow;
+            container.style.maxHeight = originalMaxHeight;
+            container.style.background = originalBg;
+
+            scrollablePanels.forEach(panel => {
+                panel.style.overflow = panel.dataset.oldOverflow || '';
+                panel.style.height = panel.dataset.oldHeight || '';
+                panel.style.maxHeight = panel.dataset.oldMaxHeight || '';
+            });
+
+            if (overlay) overlay.style.display = 'none';
         }
     }
 </script>
