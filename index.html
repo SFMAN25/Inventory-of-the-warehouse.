@@ -262,7 +262,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p>جاري استخراج الصورة وتجهيزها بدقة عالية...</p>
+    <p>جاري استخراج الصورة وتجهيزها...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -395,7 +395,7 @@
                     <thead>
                         <tr style="background: #ecf0f1; color: #2c3e50;">
                             <th style="padding: 10px; border: 1px solid #ddd;">الصنف</th>
-                            <th style="padding: 10px; border: 1px solid #ddd;">الكمية</th>
+                            <th style="padding: 10px; border: 1px solid #ddd;">الكمية (كرتونة وقطعة)</th>
                             <th style="padding: 10px; border: 1px solid #ddd;">إزالة</th>
                         </tr>
                     </thead>
@@ -422,7 +422,7 @@
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
-        <i class="fas fa-file-download"></i> حفظ ومشاركة كصورة (دقة عالية)
+        <i class="fas fa-file-download"></i> حفظ ومشاركة كصورة (كما تظهر)
     </button>
 
     <footer class="no-print">
@@ -646,7 +646,7 @@
         currentTransListenerRef = db.ref('transactions/' + date);
         currentTransListenerRef.on('value', (snapshot) => {
             transactionsData[date] = snapshot.val() || [];
-            renderTransactionsTable(); // تم تحويلها لرسم الأظرف
+            renderTransactionsTable(); 
         });
     }
 
@@ -696,12 +696,32 @@
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
         const unit = document.getElementById('transUnit').value;
+        const selectedDate = dateInput.value;
         
         if (!name || isNaN(qty) || qty <= 0) {
             return alert("الرجاء إدخال اسم الصنف والكمية بشكل صحيح.");
         }
+
+        // جلب معلومات الصنف من الجرد لحساب التفاصيل الدقيقة
+        let items = inventoryData[selectedDate] || [];
+        let invItem = items.find(x => x.name === name);
+        if (!invItem) {
+            return alert("تنبيه: هذا الصنف غير موجود في الجرد الحالي!");
+        }
+
+        let perCarton = invItem.perCarton || 1;
+        let exactCartons = unit === 'قطعة' ? (qty / perCarton) : qty;
+        let exactPieces = unit === 'قطعة' ? qty : (qty * perCarton);
         
-        transactionCart.push({ name, qty, unit });
+        transactionCart.push({ 
+            name, 
+            qty, 
+            unit,
+            perCarton,
+            exactCartons,
+            exactPieces
+        });
+        
         renderTransactionCart();
         
         document.getElementById('transItemName').value = '';
@@ -711,11 +731,17 @@
     function renderTransactionCart() {
         const tbody = document.getElementById('transactionCartBody');
         tbody.innerHTML = '';
+        let totalCartonsCart = 0;
+
         transactionCart.forEach((item, index) => {
+            totalCartonsCart += item.exactCartons;
             tbody.innerHTML += `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 10px; font-weight: bold;">${item.name}</td>
-                    <td style="padding: 10px;">${item.qty} ${item.unit}</td>
+                    <td style="padding: 10px;">
+                        ${item.qty} ${item.unit}<br>
+                        <small style="color:#7f8c8d;">(${item.exactCartons.toFixed(2)} كرتونة | ${Math.round(item.exactPieces)} قطعة)</small>
+                    </td>
                     <td style="padding: 10px;">
                         <button onclick="removeFromTransactionCart(${index})" style="color:#e74c3c; background:none; border:none; cursor:pointer; font-size: 16px;">
                             <i class="fas fa-trash-alt"></i>
@@ -723,6 +749,16 @@
                     </td>
                 </tr>`;
         });
+
+        // إضافة سطر الإجمالي للسلة
+        if (transactionCart.length > 0) {
+            tbody.innerHTML += `
+                <tr style="background: #e8f8f5; font-weight: bold;">
+                    <td style="padding: 10px; text-align: left;">إجمالي الكراتين:</td>
+                    <td style="padding: 10px;" colspan="2">${totalCartonsCart.toFixed(2)} كرتونة</td>
+                </tr>
+            `;
+        }
     }
 
     function removeFromTransactionCart(index) {
@@ -745,8 +781,7 @@
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
             
-            let withdrawCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            if (invItem.cartons < withdrawCartons) {
+            if (invItem.cartons < cItem.exactCartons) {
                 return alert(`الرصيد المتاح لا يكفي للصنف: "${cItem.name}"`);
             }
         }
@@ -754,14 +789,13 @@
         // 2. تنفيذ الخصم
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
-            let withdrawCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            invItem.cartons = parseFloat((invItem.cartons - withdrawCartons).toFixed(2));
+            invItem.cartons = parseFloat((invItem.cartons - cItem.exactCartons).toFixed(2));
             logDetails.push(`${cItem.qty} ${cItem.unit} (${cItem.name})`);
         }
         
         saveInventoryToFirebase();
 
-        // 3. التسجيل في سجل اليوميات (إضافة rawItems لتمكين الاسترجاع الذكي)
+        // 3. التسجيل في سجل اليوميات
         if (!transactionsData[selectedDate]) transactionsData[selectedDate] = [];
         transactionsData[selectedDate].push({
             time: new Date().toLocaleTimeString('ar-EG'),
@@ -770,25 +804,39 @@
             unit: "-",
             destination: destination,
             details: logDetails.join(' | '), 
-            rawItems: JSON.parse(JSON.stringify(transactionCart)) // داتا صافية عشان نقدر نرجعها للمخزن بعدين
+            rawItems: JSON.parse(JSON.stringify(transactionCart)) 
         });
         db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
 
         notifyTelegram(`📦 *أمر صرف مجمع جديد*\nالجهة: ${destination}\nالتفاصيل:\n${logDetails.join('\n')}`);
 
-        // 4. تجهيز وطباعة الفاتورة
+        // 4. تجهيز وطباعة الفاتورة التفصيلية
         document.getElementById('printDate').innerText = new Date().toLocaleString('ar-EG');
         document.getElementById('printDestinationLabel').innerText = `تحويل إلى: ${destination}`;
         
         const ptBody = document.getElementById('printTableBody');
         ptBody.innerHTML = '';
+        let grandTotalCartons = 0;
+
         transactionCart.forEach((item, i) => {
+            grandTotalCartons += item.exactCartons;
             ptBody.innerHTML += `<tr>
                 <td>${i + 1}</td>
                 <td>${item.name}</td>
-                <td>${item.qty} ${item.unit}</td>
+                <td>
+                    ${item.qty} ${item.unit}<br>
+                    <span style="font-size: 12px; color: #555;">(${item.exactCartons.toFixed(2)} كرتونة | ${Math.round(item.exactPieces)} قطعة)</span>
+                </td>
             </tr>`;
         });
+        
+        // سطر إجمالي الكراتين في الورقة المطبوعة
+        ptBody.innerHTML += `
+            <tr style="background-color: #f2f2f2; font-weight: bold;">
+                <td colspan="2" style="text-align: left; padding: 10px;">إجمالي الكراتين المنصرفة:</td>
+                <td style="padding: 10px;">${grandTotalCartons.toFixed(2)} كرتونة</td>
+            </tr>
+        `;
         
         window.print();
 
@@ -820,17 +868,15 @@
         for (let i = tData.length - 1; i >= 0; i--) {
             const trans = tData[i];
             
-            // تجهيز محتوى الأصناف (سواء كانت من النظام الجديد rawItems أو القديم details)
             let itemsHtml = '';
             if (trans.rawItems) {
                 itemsHtml = trans.rawItems.map(item => `
                     <div class="log-item">
                         <span>${item.name}</span>
-                        <strong><span style="color:#e74c3c">-</span> ${item.qty} ${item.unit}</strong>
+                        <strong><span style="color:#e74c3c">-</span> ${item.qty} ${item.unit} <small style="color:#7f8c8d;font-weight:normal;">(${item.exactCartons.toFixed(2)} ك)</small></strong>
                     </div>
                 `).join('');
             } else {
-                // للأذونات القديمة
                 itemsHtml = `<div class="log-item" style="color:#7f8c8d; font-size:14px;">${trans.details || trans.itemName}</div>`;
             }
 
@@ -852,7 +898,7 @@
                             <i class="fas fa-pen"></i> تعديل الوجهة
                         </button>
                         <button class="btn-del-log" onclick="deleteTransaction(${i})">
-                            <i class="fas fa-undo-alt"></i> حذف الإذن (استرجاع للمخزن)
+                            <i class="fas fa-undo-alt"></i> حذف واسترجاع
                         </button>
                     </div>
                 </div>
@@ -875,7 +921,6 @@
         }
     }
 
-    // تعديل الوجهة في السجل
     function editTransactionDest(index) {
         const selectedDate = dateInput.value;
         const trans = transactionsData[selectedDate][index];
@@ -886,7 +931,6 @@
         }
     }
 
-    // الحذف الذكي (مسح واسترجاع الرصيد للمخزن)
     function deleteTransaction(index) {
         if(!confirm("⚠️ تحذير: هل أنت متأكد من حذف هذا الإذن بالكامل؟\nسيتم إرجاع جميع الأصناف الموجودة فيه إلى رصيد المخزن الأساسي.")) return;
         
@@ -894,13 +938,11 @@
         const trans = transactionsData[selectedDate][index];
         let items = inventoryData[selectedDate] || [];
 
-        // استرجاع الأصناف لو مسجلة بنظام rawItems
         if (trans.rawItems) {
             trans.rawItems.forEach(cItem => {
                 let invItem = items.find(x => x.name === cItem.name);
                 if (invItem) {
-                    let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-                    invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+                    invItem.cartons = parseFloat((invItem.cartons + cItem.exactCartons).toFixed(2));
                 }
             });
             alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
@@ -908,10 +950,7 @@
             alert("تنبيه: هذا الإذن بنسخة قديمة، تم حذفه من السجل فقط (يجب إرجاع رصيده يدوياً للجرد).");
         }
 
-        // حذف من السجل
         transactionsData[selectedDate].splice(index, 1);
-
-        // حفظ التعديلات في المخزن والسجل
         db.ref('inventory/' + selectedDate).set(items);
         db.ref('transactions/' + selectedDate).set(transactionsData[selectedDate]);
     }
@@ -1278,47 +1317,41 @@
     }
 
     // ==========================================
-    // تصوير احترافي عالي الجودة وحل مشكلة البياض
+    // تصوير طبيعي عالي الجودة وحل مشكلة البياض المزعج
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
         
-        // 1. تحديد العناصر اللي مش عايزينها تبان في الصورة خالص
-        const hideElements = document.querySelectorAll('.controls-section, .share-btn, .action-btns, .tabs, .copy-text-btn, .map-action-btns, .logout-btn, .no-print, #selectionTotalsContainer, .log-actions, button');
+        // إخفاء الأزرار اللي ملهاش لزمة تظهر في الصورة (الطباعة والتحكم فقط)
+        const hideElements = document.querySelectorAll('.no-print, .action-btns, .map-action-btns');
         hideElements.forEach(el => el.style.setProperty('display', 'none', 'important'));
 
-        // 2. لو إحنا في تبويب السجل، هنفتح كل الأظرف عشان تبان تفاصيلها في الصورة
+        // فتح الأظرف لو في تبويب السجل عشان تبان
         const allBodies = document.querySelectorAll('.log-card-body');
         allBodies.forEach(b => b.classList.add('active'));
 
-        // 3. توحيد لون الخلفية الأبيض الناصع للمحتوى عشان الصورة تطلع بدون زوايا رمادي
-        const container = document.getElementById('mainContainer');
-        const originalBg = container.style.background;
-        container.style.background = '#ffffff';
-
         try {
-            const canvas = await html2canvas(container, { 
+            // التقاط الصورة بنفس التنسيق والشكل اللي أنت شايفه
+            const canvas = await html2canvas(document.getElementById('mainContainer'), { 
                 useCORS: true, 
-                scale: 3, // دقة 4K
-                backgroundColor: "#ffffff", // إجبار الخلفية على الأبيض الصافي
+                scale: 2, // دقة ممتازة للقراءة بدون مبالغة
+                backgroundColor: null, // الحفاظ على خلفية السيستم الأصلية الشفافة/المتدرجة
                 logging: false
             });
             
             const link = document.createElement('a');
-            link.download = `تقرير_المخزن_كمال_سعد_${dateInput.value}.png`;
+            link.download = `تقرير_المخزن_${dateInput.value}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
         } catch (err) {
             console.error("خطأ في التصوير:", err);
             alert("حدث خطأ أثناء حفظ الصورة.");
         } finally {
-            // 4. إرجاع كل حاجة لأصلها بعد ما الصورة تنزل
+            // إرجاع كل حاجة لأصلها
             hideElements.forEach(el => el.style.display = '');
             allBodies.forEach(b => b.classList.remove('active'));
-            container.style.background = originalBg;
             overlay.style.display = 'none';
-            calculateSelectedTotals();
         }
     }
 </script>
