@@ -91,7 +91,7 @@
         .edit-mode-btn { background: var(--edit-color) !important; }
         .copy-btn-names { background: var(--primary-color); color: white; border: none; cursor: pointer; font-size: 14px; }
         .copy-btn-full { background: #34495e; color: white; border: none; cursor: pointer; font-size: 14px; }
-        .share-btn { background: #2c3e50; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; font-weight: bold; border-radius: 8px; }
+        .share-btn { background: #2980b9; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; }
 
         table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
         th { background: var(--primary-color); color: white; padding: 15px; }
@@ -149,98 +149,94 @@
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 20000; justify-content: center; align-items: center; flex-direction: column; }
         #syncStatus { position: fixed; bottom: 20px; left: 20px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 50px; font-size: 14px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
+        /* تنسيقات أوامر الصرف والبحث */
         .transaction-section { background: #e8f8f5; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #a3e4d7; }
         .transaction-section h3 { margin-top: 0; color: #117864; }
         .search-container { margin-bottom: 15px; }
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
-        /* ==========================================
-           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة)
-           ========================================== */
-        #invoicePrintArea { 
-            display: none; 
-            padding: 30px; 
-            background: #ffffff !important; 
-            color: #000000 !important; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-        }
-        .print-header { 
-            text-align: center; 
-            border-bottom: 3px double #000000; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px;
-        }
-        .print-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #000; }
-        .print-header h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: bold; }
-        .print-header p { margin: 5px 0; font-size: 14px; font-weight: 600; }
-        .print-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px;
-        }
-        .print-table th { 
-            background-color: #000000 !important; 
-            color: #ffffff !important; 
-            border: 2px solid #000000; 
-            padding: 12px; 
-            font-size: 16px; 
-            font-weight: bold;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .print-table td { 
-            border: 1px solid #000000; 
-            padding: 12px; 
-            text-align: center; 
-            font-size: 15px; 
-            font-weight: bold; 
-            color: #000000 !important;
-        }
-        .print-table tr:nth-child(even) {
-            background-color: #f9f9f9 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .print-signatures { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-top: 60px; 
-            padding: 0 40px; 
-            font-size: 15px; 
-            font-weight: bold;
-            color: #000000 !important;
-        }
+        /* تنسيقات منطقة الطباعة المخفية */
+        #invoicePrintArea { display: none; padding: 20px; background: white; color: black; font-family: 'Arial', sans-serif;}
+        .print-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;}
+        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px;}
+        .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: center; }
+        .print-signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 50px; font-weight: bold;}
 
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; }
             body * { visibility: hidden; }
             #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
             #invoicePrintArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
             .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
+            body { background: white !important; }
         }
 
+        /* --------------------------------------------------- */
+        /* استايلات الأظرف الذكية (Cards) في سجل الصرف */
+        /* --------------------------------------------------- */
         .log-card {
-            background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease;
+            background: #ffffff;
+            border: 1px solid #dcdde1;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
         .log-card-header {
-            padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid transparent;
         }
         .log-card-header:hover { background: #eef2f5; }
         .log-card-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px; }
         .log-card-time { font-size: 13px; color: #7f8c8d; }
         .log-card-body {
-            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+            background: #ffffff;
+            padding: 0 15px;
         }
         .log-card-body.active {
-            max-height: 1000px; padding: 15px; border-top: 1px solid #eee;
+            max-height: 1000px; /* رقم كبير يسمح بفتح المحتوى بالكامل */
+            padding: 15px;
+            border-top: 1px solid #eee;
         }
-        .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 15px; color: #2c3e50; }
+        .log-item { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px dashed #eee; 
+            font-size: 15px; 
+            color: #2c3e50;
+        }
         .log-item:last-child { border-bottom: none; }
-        .log-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f1f2f6; padding-top: 15px; }
-        .log-actions button { flex: 1; padding: 10px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; color: white; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; }
+        .log-actions { 
+            display: flex; 
+            gap: 10px; 
+            margin-top: 15px; 
+            border-top: 1px solid #f1f2f6; 
+            padding-top: 15px;
+        }
+        .log-actions button { 
+            flex: 1;
+            padding: 10px 12px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            color: white; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            gap: 8px; 
+            font-weight: bold;
+        }
         .btn-del-log { background: #e74c3c; }
         .btn-edit-log { background: #f39c12; }
     </style>
@@ -266,7 +262,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p style="margin-top:15px; font-weight:bold;">جاري معالجة التبويب الحالي وتحويله للأبيض والأسود فائق الوضوح...</p>
+    <p>جاري استخراج الصورة وتجهيزها بدقة عالية...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -328,7 +324,7 @@
         </div>
     </header>
 
-    <div class="tabs no-print">
+    <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('daily')"><i class="fas fa-list"></i> الجرد اليومي</button>
         <button class="tab-btn" onclick="switchTab('map')"><i class="fas fa-th"></i> خريطة المخزن</button>
         <button class="tab-btn" onclick="switchTab('transactions')"><i class="fas fa-exchange-alt"></i> سجل الصرف والطباعة</button>
@@ -412,7 +408,7 @@
             </div>
         </div>
 
-        <h3><i class="fas fa-clipboard-list"></i> سجل حركات اليوم</h3>
+        <h3><i class="fas fa-clipboard-list"></i> سجل حركات اليوم (أظرف)</h3>
         <div id="transactionsCardsContainer"></div>
     </div>
 
@@ -426,7 +422,7 @@
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
-        <i class="fas fa-file-image"></i> استخراج التبويب الحالي صورة (أبيض وأسود عالي الجودة)
+        <i class="fas fa-file-download"></i> حفظ ومشاركة كصورة (كما تظهر)
     </button>
 
     <footer class="no-print">
@@ -466,7 +462,7 @@
         </div>
 
         <div class="slot-current-items">
-            <h4>الأصناف الموجودة حالياً:</h4>
+            <h4>الأصناف الموجودة حالياً (رتب، عدل أو راجع):</h4>
             <ul id="slotItemsListUI"></ul>
         </div>
     </div>
@@ -600,11 +596,7 @@
     function switchTab(tabId) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        if (event) {
-            const clickedBtn = event.target.closest('.tab-btn');
-            if (clickedBtn) clickedBtn.classList.add('active');
-        }
+        event.target.classList.add('active');
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
@@ -697,6 +689,10 @@
         }
     }
 
+    // ==========================================
+    // معالجة أوامر الصرف المجمعة (السلة) والطباعة
+    // ==========================================
+    
     function addToTransactionCart() {
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
@@ -728,10 +724,17 @@
         }
         
         transactionCart.push({ 
-            name, qty, unit, perCarton, exactCartons, piecesLeft, exactPieces
+            name, 
+            qty, 
+            unit,
+            perCarton,
+            exactCartons,
+            piecesLeft,
+            exactPieces
         });
         
         renderTransactionCart();
+        
         document.getElementById('transItemName').value = '';
         document.getElementById('transQty').value = '';
     }
@@ -740,9 +743,12 @@
         const tbody = document.getElementById('transactionCartBody');
         tbody.innerHTML = '';
         let totalCartonsCart = 0;
+        let totalPiecesCart = 0;
 
         transactionCart.forEach((item, index) => {
             totalCartonsCart += item.exactCartons;
+            totalPiecesCart += item.exactPieces;
+            
             let displayDetails = `<strong>${item.exactCartons} كرتونة</strong>`;
             if (item.piecesLeft > 0) displayDetails += ` و <strong>${item.piecesLeft} قطعة</strong> فرط`;
             
@@ -766,7 +772,8 @@
                 <tr style="background: #e8f8f5; font-weight: bold;">
                     <td style="padding: 10px; text-align: left;">إجمالي الكراتين المصروفة:</td>
                     <td style="padding: 10px; color:#27ae60; font-size:18px;" colspan="2">${totalCartonsCart} كرتونة</td>
-                </tr>`;
+                </tr>
+            `;
         }
     }
 
@@ -788,6 +795,7 @@
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
+            
             let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
             if (invItem.cartons < deductCartons) {
                 return alert(`الرصيد المتاح لا يكفي للصنف: "${cItem.name}"`);
@@ -809,7 +817,9 @@
         tArray.push({
             time: new Date().toLocaleTimeString('ar-EG'),
             itemName: "إذن مجمع",
-            qty: "-", unit: "-", destination: destination,
+            qty: "-",
+            unit: "-",
+            destination: destination,
             details: logDetails.join(' | '), 
             rawItems: JSON.parse(JSON.stringify(transactionCart)) 
         });
@@ -828,32 +838,38 @@
 
         transactionCart.forEach((item, i) => {
             grandTotalCartons += item.exactCartons;
-            let displayDetails = `${item.exactCartons} كرتونة`;
-            if (item.piecesLeft > 0) displayDetails += ` و ${item.piecesLeft} قطعة فرط`;
+            
+            let displayDetails = `<strong>${item.exactCartons} كرتونة</strong>`;
+            if (item.piecesLeft > 0) displayDetails += ` و <strong>${item.piecesLeft} قطعة</strong> فرط`;
             
             ptBody.innerHTML += `<tr>
                 <td>${i + 1}</td>
                 <td>${item.name}</td>
                 <td>
-                    <b>${displayDetails}</b><br>
-                    <span style="font-size: 12px; color: #444;">(داخل الكرتونة: ${item.perCarton}) [الإجمالي: ${item.exactPieces} قطعة]</span>
+                    ${displayDetails}<br>
+                    <span style="font-size: 12px; color: #555;">(داخل الكرتونة: ${item.perCarton}) [الإجمالي: ${item.exactPieces} قطعة]</span>
                 </td>
             </tr>`;
         });
         
         ptBody.innerHTML += `
             <tr style="background-color: #f2f2f2; font-weight: bold;">
-                <td colspan="2" style="text-align: left; padding: 12px; font-size:16px; border-top: 2px solid #000;">إجمالي الكراتين المنصرفة:</td>
-                <td style="padding: 12px; font-size:18px; border-top: 2px solid #000;">${grandTotalCartons} كرتونة</td>
-            </tr>`;
+                <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">إجمالي الكراتين المنصرفة:</td>
+                <td style="padding: 15px; font-size:18px;">${grandTotalCartons} كرتونة</td>
+            </tr>
+        `;
         
         window.print();
+
         transactionCart = [];
         renderTransactionCart();
         document.getElementById('transDestination').value = '';
         alert("تم خصم الأصناف وطباعة الإذن بنجاح!");
     }
 
+    // ==========================================
+    // نظام الأظرف الذكية (سجل حركات اليوم) والتعديل والحذف
+    // ==========================================
     function renderTransactionsTable() {
         const selectedDate = dateInput.value;
         const container = document.getElementById('transactionsCardsContainer');
@@ -871,6 +887,7 @@
         let htmlContent = '';
         for (let i = tData.length - 1; i >= 0; i--) {
             const trans = tData[i];
+            
             let itemsHtml = '';
             if (trans.rawItems) {
                 itemsHtml = trans.rawItems.map(item => {
@@ -896,10 +913,16 @@
                     <i class="fas fa-chevron-down" id="card-icon-${i}" style="color:#7f8c8d;"></i>
                 </div>
                 <div class="log-card-body" id="card-body-${i}">
-                    <div style="margin-bottom: 15px;">${itemsHtml}</div>
+                    <div style="margin-bottom: 15px;">
+                        ${itemsHtml}
+                    </div>
                     <div class="log-actions no-print">
-                        <button class="btn-edit-log" onclick="editTransactionDest(${i})"><i class="fas fa-pen"></i> تعديل الوجهة</button>
-                        <button class="btn-del-log" onclick="deleteTransaction(${i})"><i class="fas fa-undo-alt"></i> حذف واسترجاع</button>
+                        <button class="btn-edit-log" onclick="editTransactionDest(${i})">
+                            <i class="fas fa-pen"></i> تعديل الوجهة
+                        </button>
+                        <button class="btn-del-log" onclick="deleteTransaction(${i})">
+                            <i class="fas fa-undo-alt"></i> حذف واسترجاع
+                        </button>
                     </div>
                 </div>
             </div>`;
@@ -912,10 +935,12 @@
         const icon = document.getElementById(`card-icon-${index}`);
         if (body.classList.contains('active')) {
             body.classList.remove('active');
-            icon.classList.remove('fa-chevron-up'); icon.classList.add('fa-chevron-down');
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
         } else {
             body.classList.add('active');
-            icon.classList.remove('fa-chevron-down'); icon.classList.add('fa-chevron-up');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
         }
     }
 
@@ -924,6 +949,7 @@
         let rawData = transactionsData[selectedDate] || [];
         let tArray = Array.isArray(rawData) ? rawData : Object.values(rawData);
         const trans = tArray[index];
+        
         const newDest = prompt("تعديل جهة الصرف:", trans.destination);
         if(newDest && newDest.trim() !== "" && newDest !== trans.destination) {
             trans.destination = newDest.trim();
@@ -934,6 +960,7 @@
 
     function deleteTransaction(index) {
         if(!confirm("⚠️ تحذير: هل أنت متأكد من حذف هذا الإذن بالكامل؟\nسيتم إرجاع جميع الأصناف الموجودة فيه إلى رصيد المخزن الأساسي.")) return;
+        
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
         let tArray = Array.isArray(rawData) ? rawData : Object.values(rawData);
@@ -950,18 +977,21 @@
             });
             alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
         } else {
-            alert("تنبيه: هذا الإذن بنسخة قديمة، تم حذفه من السجل فقط.");
+            alert("تنبيه: هذا الإذن بنسخة قديمة، تم حذفه من السجل فقط (يجب إرجاع رصيده يدوياً للجرد).");
         }
 
         tArray.splice(index, 1);
         transactionsData[selectedDate] = tArray;
+        
         db.ref('inventory/' + selectedDate).set(items);
         db.ref('transactions/' + selectedDate).set(tArray);
     }
 
     function calculateSelectedTotals() {
         const checkboxes = document.querySelectorAll('.row-checkbox');
-        let totalCartons = 0; let totalItems = 0; let selectedCount = 0;
+        let totalCartons = 0;
+        let totalItems = 0;
+        let selectedCount = 0;
 
         checkboxes.forEach(cb => {
             if (cb.checked) {
@@ -970,7 +1000,8 @@
                 const item = inventoryData[dateInput.value][idx];
                 const c = parseFloat(item.cartons) || 0;
                 const p = parseInt(item.perCarton) || 0;
-                totalCartons += c; totalItems += (c * p);
+                totalCartons += c;
+                totalItems += (c * p);
             }
         });
 
@@ -992,8 +1023,10 @@
 
         items.forEach((item, index) => {
             const row = document.createElement('tr');
+            
             row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
             row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
+            
             if (item.isReviewed) row.classList.add('reviewed');
 
             row.innerHTML = `
@@ -1013,11 +1046,16 @@
                     <button class="move-btn" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
                     <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
                     <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
-                </td>`;
+                </td>
+            `;
             tbody.appendChild(row);
         });
+        
         calculateSelectedTotals();
-        if(document.getElementById("searchInput").value) filterTable();
+        
+        if(document.getElementById("searchInput").value) {
+            filterTable();
+        }
     }
 
     function handleMainAction() {
@@ -1055,7 +1093,9 @@
         const items = inventoryData[dateInput.value];
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < items.length) {
-            const temp = items[index]; items[index] = items[newIndex]; items[newIndex] = temp;
+            const temp = items[index];
+            items[index] = items[newIndex];
+            items[newIndex] = temp;
             saveInventoryToFirebase();
         }
     }
@@ -1126,6 +1166,7 @@
         wrapper.innerHTML = '';
         const selectedDate = dateInput.value;
         const currentMap = mapData[selectedDate] || initializeEmptyMap();
+
         let globalSlotCounter = 1;
 
         mapStructure.forEach(colDef => {
@@ -1136,6 +1177,7 @@
                 const slotId = 'slot_' + globalSlotCounter;
                 const slotData = currentMap[slotId] || { items: [], color: '#fdfdfd' };
                 const itemsInSlot = slotData.items || [];
+                
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'slot';
                 slotDiv.style.backgroundColor = slotData.color || '#fdfdfd';
@@ -1166,23 +1208,29 @@
     }
 
     function openSlotModal(slotId, displayNum) {
-        currentActiveSlotId = slotId; slotEditIndex = null; 
+        currentActiveSlotId = slotId;
+        slotEditIndex = null; 
+        
         document.getElementById('modalSlotTitle').innerText = 'تعديل الخانة رقم ' + (displayNum + 1);
         const currentColor = mapData[dateInput.value][slotId].color || '#fdfdfd';
         document.getElementById('slotColorPicker').value = currentColor === '#fdfdfd' ? '#ffffff' : currentColor;
+        
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
         document.getElementById('slotItemColor').value = '#ffffff';
+        
         const btn = document.getElementById('slotMainBtn');
         btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
         btn.classList.remove('edit-mode-btn');
+
         renderModalCurrentItems();
         document.getElementById('slotModal').style.display = 'flex';
     }
 
     function closeSlotModal() {
         document.getElementById('slotModal').style.display = 'none';
-        currentActiveSlotId = null; slotEditIndex = null;
+        currentActiveSlotId = null;
+        slotEditIndex = null;
     }
 
     function changeSlotColor() {
@@ -1205,9 +1253,11 @@
         items.forEach((item, index) => {
             const li = document.createElement('li');
             if (item.isReviewed) li.classList.add('reviewed-map-item');
+            
             const bgColor = (item.color && item.color !== '#ffffff') ? item.color + '33' : '#eee';
             const borderColor = (item.color && item.color !== '#ffffff') ? item.color : 'transparent';
-            li.style.backgroundColor = bgColor; li.style.borderRight = `5px solid ${borderColor}`;
+            li.style.backgroundColor = bgColor;
+            li.style.borderRight = `5px solid ${borderColor}`;
 
             li.innerHTML = `
                 <span><b>${item.qty} ${item.unit}</b> - ${item.name}</span>
@@ -1217,7 +1267,8 @@
                     <button class="move-btn" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
                     <button class="edit-row-btn" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
                     <button class="delete-btn" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
-                </div>`;
+                </div>
+            `;
             listUI.appendChild(li);
         });
     }
@@ -1229,20 +1280,29 @@
         const color = sanitizeInput(document.getElementById('slotItemColor').value);
 
         if(!name || isNaN(qty)) return alert("يرجى إدخال اسم الصنف والعدد بأرقام صحيحة!");
-        if(!mapData[dateInput.value][currentActiveSlotId]) mapData[dateInput.value][currentActiveSlotId] = { items: [], color: '#fdfdfd' };
-        if(!mapData[dateInput.value][currentActiveSlotId].items) mapData[dateInput.value][currentActiveSlotId].items = [];
+
+        if(!mapData[dateInput.value][currentActiveSlotId]) {
+            mapData[dateInput.value][currentActiveSlotId] = { items: [], color: '#fdfdfd' };
+        }
+        if(!mapData[dateInput.value][currentActiveSlotId].items) {
+             mapData[dateInput.value][currentActiveSlotId].items = [];
+        }
         
         if(slotEditIndex === null) {
             mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false });
         } else {
             mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex] = {
-                ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex], name, qty, unit, color
+                ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex],
+                name, qty, unit, color
             };
             slotEditIndex = null;
             const btn = document.getElementById('slotMainBtn');
-            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة'; btn.classList.remove('edit-mode-btn');
+            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
+            btn.classList.remove('edit-mode-btn');
         }
+        
         saveMapToFirebase();
+        
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
         document.getElementById('slotItemColor').value = '#ffffff';
@@ -1257,7 +1317,8 @@
         document.getElementById('slotItemColor').value = item.color || '#ffffff';
         slotEditIndex = index;
         const btn = document.getElementById('slotMainBtn');
-        btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات'; btn.classList.add('edit-mode-btn');
+        btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
+        btn.classList.add('edit-mode-btn');
     }
 
     function toggleMapItemReview(event, index) {
@@ -1272,7 +1333,9 @@
         const items = mapData[dateInput.value][currentActiveSlotId].items;
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < items.length) {
-            const temp = items[index]; items[index] = items[newIndex]; items[newIndex] = temp;
+            const temp = items[index];
+            items[index] = items[newIndex];
+            items[newIndex] = temp;
             saveMapToFirebase();
         }
     }
@@ -1286,88 +1349,87 @@
     }
 
     // ==========================================
-    // دالة التصوير الذكية والمحدثة لتصوير التبويب الحالي فقط
+    // تصوير طبيعي عالي الجودة وحل مشكلة البياض والقص
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // 1. حفظ مكان السكرول الحالي لتفادي أي تحرك عشوائي
-        const currentScrollY = window.scrollY;
-        const currentScrollX = window.scrollX;
-        
-        // الصعود لقمة الشاشة لضمان عدم حدوث مساحات بيضاء
-        window.scrollTo(0, 0);
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // 2. تحديد اسم التبويب المفتوح حالياً لتسمية الصورة بذكاء
-        const activeTab = document.querySelector('.tab-content.active');
-        let tabTitle = "تقرير_المخزن";
-        if (activeTab) {
-            if (activeTab.id === 'tab-daily') tabTitle = "الجرد_اليومي";
-            else if (activeTab.id === 'tab-map') tabTitle = "خريطة_المخزن";
-            else if (activeTab.id === 'tab-transactions') tabTitle = "سجل_حركات_الصرف";
-        }
-
-        // 3. إخفاء العناصر غير المرغوب بظهورها في التقارير الرسمية
-        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .no-print');
+        // إخفاء الأزرار المزعجة فقط في الصورة للحفاظ على شكل الشاشة
+        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn');
         hideElements.forEach(el => {
             el.dataset.oldDisplay = el.style.display;
             el.style.setProperty('display', 'none', 'important');
         });
 
-        // 4. لو واقف في السجل، افتح الكروت عشان تبان تفاصيل الأصناف كاملة
+        // لو كنت واقف في السجل، الأظرف هتتفتح كلها عشان تبان في التقرير
         const allBodies = document.querySelectorAll('.log-card-body');
-        if (activeTab && activeTab.id === 'tab-transactions') {
-            allBodies.forEach(b => b.classList.add('active'));
-        }
+        allBodies.forEach(b => b.classList.add('active'));
 
-        // 5. تطبيق فلتر الأبيض والأسود الاحترافي على الحاوية بالكامل
+        // فك حظر أبعاد الحاوية الرئيسية لمنع القص والبياض
         const container = document.getElementById('mainContainer');
+        const originalHeight = container.style.height;
+        const originalOverflow = container.style.overflow;
+        const originalMaxHeight = container.style.maxHeight;
         const originalBg = container.style.background;
-        const originalFilter = container.style.filter;
-        
-        container.style.setProperty('background', '#ffffff', 'important');
-        container.style.setProperty('filter', 'grayscale(100%) contrast(140%)', 'important');
 
+        container.style.setProperty('height', 'auto', 'important');
+        container.style.setProperty('max-height', 'none', 'important');
+        container.style.setProperty('overflow', 'visible', 'important');
+        container.style.background = '#f4f7f6'; 
+
+        // فك حظر التبويبات الداخلية
+        const scrollablePanels = document.querySelectorAll('.tab-content');
+        scrollablePanels.forEach(panel => {
+            panel.dataset.oldOverflow = panel.style.overflow;
+            panel.dataset.oldHeight = panel.style.height;
+            panel.dataset.oldMaxHeight = panel.style.maxHeight;
+            panel.style.setProperty('overflow', 'visible', 'important');
+            panel.style.setProperty('height', 'auto', 'important');
+            panel.style.setProperty('max-height', 'none', 'important');
+        });
+
+        // استنى المتصفح يظبط الأبعاد قبل اللقطة
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            // 6. التقاط الحاوية ومحتواها (سيظهر التبويب النشط فقط والتبويبات الأخرى مخفية طبيعياً)
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
-                scale: 1.5, 
-                backgroundColor: "#ffffff", 
+                scale: 2.5, 
+                backgroundColor: "#f4f7f6", 
                 logging: false,
+                scrollY: -window.scrollY, 
                 scrollX: 0,
-                scrollY: 0
+                windowWidth: container.scrollWidth,
+                windowHeight: container.scrollHeight
             });
             
             const link = document.createElement('a');
-            link.download = `تقرير_${tabTitle}_كمال_سعد_${dateInput.value || 'جديد'}.png`;
+            link.download = `تقرير_المخزن_${dateInput.value || 'جديد'}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
         } catch (err) {
-            console.error("خطأ في التصوير المطور:", err);
+            console.error("خطأ في التصوير:", err);
             alert("حدث خطأ أثناء حفظ الصورة.");
         } finally {
-            // 7. إعادة الواجهة والنظام إلى حالتهم الأصلية فوراً
+            // رجّع كل حاجة زي ما كانت
             hideElements.forEach(el => {
                 el.style.display = el.dataset.oldDisplay || '';
             });
+            allBodies.forEach(b => b.classList.remove('active'));
             
-            if (activeTab && activeTab.id === 'tab-transactions') {
-                allBodies.forEach(b => b.classList.remove('active'));
-            }
-            
+            container.style.height = originalHeight;
+            container.style.overflow = originalOverflow;
+            container.style.maxHeight = originalMaxHeight;
             container.style.background = originalBg;
-            container.style.filter = originalFilter;
 
-            // إرجاع الشاشة لموقع التصفح الأصلي للمستخدم
-            window.scrollTo(currentScrollX, currentScrollY);
+            scrollablePanels.forEach(panel => {
+                panel.style.overflow = panel.dataset.oldOverflow || '';
+                panel.style.height = panel.dataset.oldHeight || '';
+                panel.style.maxHeight = panel.dataset.oldMaxHeight || '';
+            });
 
             if (overlay) overlay.style.display = 'none';
-            if(typeof calculateSelectedTotals === "function") calculateSelectedTotals();
         }
     }
 </script>
