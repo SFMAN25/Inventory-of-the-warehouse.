@@ -1349,63 +1349,71 @@
     }
 
     // ==========================================
-    // تصوير طبيعي عالي الجودة وحل مشكلة البياض والقص
+    // دالة التصوير المعدلة لحل مشكلة القص والمسح الرمادي
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // إخفاء الأزرار المزعجة فقط في الصورة للحفاظ على شكل الشاشة
-        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn');
+        // 1. إخفاء الأزرار المزعجة فقط
+        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .no-print');
         hideElements.forEach(el => {
-            el.dataset.oldDisplay = el.style.display;
-            el.style.setProperty('display', 'none', 'important');
+            if (el.style.display !== 'none') {
+                el.dataset.oldDisplay = el.style.display;
+                el.style.setProperty('display', 'none', 'important');
+            }
         });
 
-        // لو كنت واقف في السجل، الأظرف هتتفتح كلها عشان تبان في التقرير
+        // 2. فتح الأظرف
         const allBodies = document.querySelectorAll('.log-card-body');
         allBodies.forEach(b => b.classList.add('active'));
 
-        // فك حظر أبعاد الحاوية الرئيسية لمنع القص والبياض
+        // 3. فك القيود عن الشاشة كلها مش بس الحاوية
         const container = document.getElementById('mainContainer');
-        const originalHeight = container.style.height;
-        const originalOverflow = container.style.overflow;
-        const originalMaxHeight = container.style.maxHeight;
         const originalBg = container.style.background;
-
+        container.style.background = '#ffffff'; 
+        
+        const html = document.documentElement;
+        const body = document.body;
+        
+        // حفظ الخصائص القديمة
+        const oldHtmlHeight = html.style.height;
+        const oldBodyHeight = body.style.height;
+        const oldHtmlOverflow = html.style.overflow;
+        const oldBodyOverflow = body.style.overflow;
+        
+        html.style.setProperty('height', 'auto', 'important');
+        html.style.setProperty('overflow', 'visible', 'important');
+        body.style.setProperty('height', 'auto', 'important');
+        body.style.setProperty('overflow', 'visible', 'important');
+        
         container.style.setProperty('height', 'auto', 'important');
         container.style.setProperty('max-height', 'none', 'important');
         container.style.setProperty('overflow', 'visible', 'important');
-        container.style.background = '#f4f7f6'; 
 
-        // فك حظر التبويبات الداخلية
-        const scrollablePanels = document.querySelectorAll('.tab-content');
-        scrollablePanels.forEach(panel => {
-            panel.dataset.oldOverflow = panel.style.overflow;
-            panel.dataset.oldHeight = panel.style.height;
-            panel.dataset.oldMaxHeight = panel.style.maxHeight;
-            panel.style.setProperty('overflow', 'visible', 'important');
-            panel.style.setProperty('height', 'auto', 'important');
-            panel.style.setProperty('max-height', 'none', 'important');
-        });
+        // استنى المتصفح يظبط الأبعاد عشان مفيش حاجة تتقص
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-        // استنى المتصفح يظبط الأبعاد قبل اللقطة
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // حساب الطول الكلي الحقيقي لآخر سطر تحت
+        const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
 
         try {
+            // تصوير الصفحة بالـ Scale المظبوط للموبايل (1.5) لحماية الرامات من التقطيع الرمادي
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
-                scale: 2.5, 
-                backgroundColor: "#f4f7f6", 
+                scale: 1.5, 
+                backgroundColor: "#ffffff", 
                 logging: false,
-                scrollY: -window.scrollY, 
-                scrollX: 0,
-                windowWidth: container.scrollWidth,
-                windowHeight: container.scrollHeight
+                width: container.offsetWidth,
+                height: fullHeight,
+                windowWidth: html.scrollWidth,
+                windowHeight: fullHeight,
+                scrollY: -window.scrollY,
+                scrollX: 0
             });
             
             const link = document.createElement('a');
-            link.download = `تقرير_المخزن_${dateInput.value || 'جديد'}.png`;
+            link.download = `تقرير_المخزن_كمال_سعد_${dateInput.value || 'جديد'}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
         } catch (err) {
@@ -1418,18 +1426,18 @@
             });
             allBodies.forEach(b => b.classList.remove('active'));
             
-            container.style.height = originalHeight;
-            container.style.overflow = originalOverflow;
-            container.style.maxHeight = originalMaxHeight;
             container.style.background = originalBg;
-
-            scrollablePanels.forEach(panel => {
-                panel.style.overflow = panel.dataset.oldOverflow || '';
-                panel.style.height = panel.dataset.oldHeight || '';
-                panel.style.maxHeight = panel.dataset.oldMaxHeight || '';
-            });
+            container.style.height = '';
+            container.style.maxHeight = '';
+            container.style.overflow = '';
+            
+            html.style.height = oldHtmlHeight;
+            html.style.overflow = oldHtmlOverflow;
+            body.style.height = oldBodyHeight;
+            body.style.overflow = oldBodyOverflow;
 
             if (overlay) overlay.style.display = 'none';
+            if(typeof calculateSelectedTotals === "function") calculateSelectedTotals();
         }
     }
 </script>
