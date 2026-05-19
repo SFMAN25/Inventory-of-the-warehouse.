@@ -155,18 +155,70 @@
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
-        #invoicePrintArea { display: none; padding: 20px; background: white; color: black; font-family: 'Arial', sans-serif;}
-        .print-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;}
-        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px;}
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: center; }
-        .print-signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 50px; font-weight: bold;}
+        /* ==========================================
+           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة)
+           ========================================== */
+        #invoicePrintArea { 
+            display: none; 
+            padding: 30px; 
+            background: #ffffff !important; 
+            color: #000000 !important; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+        }
+        .print-header { 
+            text-align: center; 
+            border-bottom: 3px double #000000; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px;
+        }
+        .print-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #000; }
+        .print-header h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: bold; }
+        .print-header p { margin: 5px 0; font-size: 14px; font-weight: 600; }
+        .print-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px;
+        }
+        .print-table th { 
+            background-color: #000000 !important; 
+            color: #ffffff !important; 
+            border: 2px solid #000000; 
+            padding: 12px; 
+            font-size: 16px; 
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-table td { 
+            border: 1px solid #000000; 
+            padding: 12px; 
+            text-align: center; 
+            font-size: 15px; 
+            font-weight: bold; 
+            color: #000000 !important;
+        }
+        .print-table tr:nth-child(even) {
+            background-color: #f9f9f9 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-signatures { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 60px; 
+            padding: 0 40px; 
+            font-size: 15px; 
+            font-weight: bold;
+            color: #000000 !important;
+        }
 
         @media print {
+            body { background: #ffffff !important; color: #000000 !important; }
             body * { visibility: hidden; }
             #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
             #invoicePrintArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
             .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
-            body { background: white !important; }
         }
 
         .log-card {
@@ -214,7 +266,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p style="margin-top:15px; font-weight:bold;">جاري معالجة التقرير وتحويله للأبيض والأسود فائق الوضوح...</p>
+    <p style="margin-top:15px; font-weight:bold;">جاري معالجة التبويب الحالي وتحويله للأبيض والأسود فائق الوضوح...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -374,7 +426,7 @@
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
-        <i class="fas fa-file-image"></i> استخراج التقرير كامل (أبيض وأسود عالي الجودة)
+        <i class="fas fa-file-image"></i> استخراج التبويب الحالي صورة (أبيض وأسود عالي الجودة)
     </button>
 
     <footer class="no-print">
@@ -548,7 +600,11 @@
     function switchTab(tabId) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        event.target.classList.add('active');
+        
+        if (event) {
+            const clickedBtn = event.target.closest('.tab-btn');
+            if (clickedBtn) clickedBtn.classList.add('active');
+        }
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
@@ -772,23 +828,23 @@
 
         transactionCart.forEach((item, i) => {
             grandTotalCartons += item.exactCartons;
-            let displayDetails = `<strong>${item.exactCartons} كرتونة</strong>`;
-            if (item.piecesLeft > 0) displayDetails += ` و <strong>${item.piecesLeft} قطعة</strong> فرط`;
+            let displayDetails = `${item.exactCartons} كرتونة`;
+            if (item.piecesLeft > 0) displayDetails += ` و ${item.piecesLeft} قطعة فرط`;
             
             ptBody.innerHTML += `<tr>
                 <td>${i + 1}</td>
                 <td>${item.name}</td>
                 <td>
-                    ${displayDetails}<br>
-                    <span style="font-size: 12px; color: #555;">(داخل الكرتونة: ${item.perCarton}) [الإجمالي: ${item.exactPieces} قطعة]</span>
+                    <b>${displayDetails}</b><br>
+                    <span style="font-size: 12px; color: #444;">(داخل الكرتونة: ${item.perCarton}) [الإجمالي: ${item.exactPieces} قطعة]</span>
                 </td>
             </tr>`;
         });
         
         ptBody.innerHTML += `
             <tr style="background-color: #f2f2f2; font-weight: bold;">
-                <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">إجمالي الكراتين المنصرفة:</td>
-                <td style="padding: 15px; font-size:18px;">${grandTotalCartons} كرتونة</td>
+                <td colspan="2" style="text-align: left; padding: 12px; font-size:16px; border-top: 2px solid #000;">إجمالي الكراتين المنصرفة:</td>
+                <td style="padding: 12px; font-size:18px; border-top: 2px solid #000;">${grandTotalCartons} كرتونة</td>
             </tr>`;
         
         window.print();
@@ -1230,41 +1286,43 @@
     }
 
     // ==========================================
-    // دالة التصوير الاحترافية والنهائية بالأبيض والأسود
+    // دالة التصوير الذكية والمحدثة لتصوير التبويب الحالي فقط
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // 1. حفظ مكان الشاشة الحالي عشان نرجعلها بعد ما تخلص لقطة الشاشة
+        // 1. حفظ مكان السكرول الحالي لتفادي أي تحرك عشوائي
         const currentScrollY = window.scrollY;
         const currentScrollX = window.scrollX;
         
-        // 2. الصعود لأعلى الشاشة فوراً لمنع قص الصورة أو ظهور البياض
+        // الصعود لقمة الشاشة لضمان عدم حدوث مساحات بيضاء
         window.scrollTo(0, 0);
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // 3. إخفاء الأزرار والتحكمات التي لا يجب أن تظهر بالتقرير
+        // 2. تحديد اسم التبويب المفتوح حالياً لتسمية الصورة بذكاء
+        const activeTab = document.querySelector('.tab-content.active');
+        let tabTitle = "تقرير_المخزن";
+        if (activeTab) {
+            if (activeTab.id === 'tab-daily') tabTitle = "الجرد_اليومي";
+            else if (activeTab.id === 'tab-map') tabTitle = "خريطة_المخزن";
+            else if (activeTab.id === 'tab-transactions') tabTitle = "سجل_حركات_الصرف";
+        }
+
+        // 3. إخفاء العناصر غير المرغوب بظهورها في التقارير الرسمية
         const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .no-print');
         hideElements.forEach(el => {
             el.dataset.oldDisplay = el.style.display;
             el.style.setProperty('display', 'none', 'important');
         });
 
-        // 4. فتح كافة الأظرف بسجل الحركات لإظهار التفاصيل كاملة
+        // 4. لو واقف في السجل، افتح الكروت عشان تبان تفاصيل الأصناف كاملة
         const allBodies = document.querySelectorAll('.log-card-body');
-        allBodies.forEach(b => b.classList.add('active'));
+        if (activeTab && activeTab.id === 'tab-transactions') {
+            allBodies.forEach(b => b.classList.add('active'));
+        }
 
-        // 5. إظهار كافة التبويبات (الجرد، الخريطة، السجل) مدمجين معاً بالترتيب
-        const allTabs = document.querySelectorAll('.tab-content');
-        allTabs.forEach(tab => {
-            tab.dataset.oldDisplay = tab.style.display;
-            tab.style.setProperty('display', 'block', 'important');
-            tab.style.setProperty('opacity', '1', 'important');
-            tab.style.setProperty('height', 'auto', 'important');
-        });
-
-        // 6. تطبيق فلتر الأبيض والأسود عالي التباين وإجبار الخلفيات البيضاء الصافية
+        // 5. تطبيق فلتر الأبيض والأسود الاحترافي على الحاوية بالكامل
         const container = document.getElementById('mainContainer');
         const originalBg = container.style.background;
         const originalFilter = container.style.filter;
@@ -1275,7 +1333,7 @@
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-            // 7. التقاط الصورة بأبعاد أوتوماتيكية مرنة تمنع أخطاء الذاكرة بالموبايل
+            // 6. التقاط الحاوية ومحتواها (سيظهر التبويب النشط فقط والتبويبات الأخرى مخفية طبيعياً)
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
                 scale: 1.5, 
@@ -1286,29 +1344,26 @@
             });
             
             const link = document.createElement('a');
-            link.download = `تقرير_المخزن_كمال_سعد_${dateInput.value || 'جديد'}.png`;
+            link.download = `تقرير_${tabTitle}_كمال_سعد_${dateInput.value || 'جديد'}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
         } catch (err) {
-            console.error("خطأ في التصوير:", err);
-            alert("حدث خطأ أثناء تصوير التقرير.");
+            console.error("خطأ في التصوير المطور:", err);
+            alert("حدث خطأ أثناء حفظ الصورة.");
         } finally {
-            // 8. إعادة كل شيء لوضعه الأصلي فوراً
-            allTabs.forEach(tab => {
-                tab.style.display = tab.dataset.oldDisplay || '';
-                tab.style.opacity = ''; tab.style.height = '';
-            });
-
+            // 7. إعادة الواجهة والنظام إلى حالتهم الأصلية فوراً
             hideElements.forEach(el => {
                 el.style.display = el.dataset.oldDisplay || '';
             });
             
-            allBodies.forEach(b => b.classList.remove('active'));
+            if (activeTab && activeTab.id === 'tab-transactions') {
+                allBodies.forEach(b => b.classList.remove('active'));
+            }
             
             container.style.background = originalBg;
             container.style.filter = originalFilter;
 
-            // إرجاع المستخدم لموضع تصفحه الحالي
+            // إرجاع الشاشة لموقع التصفح الأصلي للمستخدم
             window.scrollTo(currentScrollX, currentScrollY);
 
             if (overlay) overlay.style.display = 'none';
