@@ -91,7 +91,7 @@
         .edit-mode-btn { background: var(--edit-color) !important; }
         .copy-btn-names { background: var(--primary-color); color: white; border: none; cursor: pointer; font-size: 14px; }
         .copy-btn-full { background: #34495e; color: white; border: none; cursor: pointer; font-size: 14px; }
-        .share-btn { background: #2980b9; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; }
+        .share-btn { background: #2980b9; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; border-radius: 8px; font-weight: bold; }
 
         table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
         th { background: var(--primary-color); color: white; padding: 15px; }
@@ -149,94 +149,99 @@
         #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 20000; justify-content: center; align-items: center; flex-direction: column; }
         #syncStatus { position: fixed; bottom: 20px; left: 20px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 50px; font-size: 14px; display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        /* تنسيقات أوامر الصرف والبحث */
         .transaction-section { background: #e8f8f5; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #a3e4d7; }
         .transaction-section h3 { margin-top: 0; color: #117864; }
         .search-container { margin-bottom: 15px; }
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
-        /* تنسيقات منطقة الطباعة المخفية */
-        #invoicePrintArea { display: none; padding: 20px; background: white; color: black; font-family: 'Arial', sans-serif;}
-        .print-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;}
-        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px;}
-        .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: center; }
-        .print-signatures { display: flex; justify-content: space-between; margin-top: 50px; padding: 0 50px; font-weight: bold;}
+        /* ==========================================
+           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة)
+           ========================================== */
+        #invoicePrintArea { 
+            display: none; 
+            padding: 30px; 
+            background: #ffffff !important; 
+            color: #000000 !important; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+        }
+        .print-header { 
+            text-align: center; 
+            border-bottom: 3px double #000000; 
+            padding-bottom: 15px; 
+            margin-bottom: 25px;
+        }
+        .print-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #000; }
+        .print-header h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: bold; }
+        .print-header p { margin: 5px 0; font-size: 14px; font-weight: 600; }
+        .print-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px;
+        }
+        .print-table th { 
+            background-color: #000000 !important; 
+            color: #ffffff !important; 
+            border: 2px solid #000000; 
+            padding: 12px; 
+            font-size: 16px; 
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-table td { 
+            border: 1px solid #000000; 
+            padding: 12px; 
+            text-align: center; 
+            font-size: 15px; 
+            font-weight: bold; 
+            color: #000000 !important;
+        }
+        .print-table tr:nth-child(even) {
+            background-color: #f9f9f9 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-signatures { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-top: 60px; 
+            padding: 0 40px; 
+            font-size: 16px; 
+            font-weight: bold;
+            color: #000000 !important;
+        }
 
         @media print {
+            body { background: #ffffff !important; color: #000000 !important; }
             body * { visibility: hidden; }
             #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
             #invoicePrintArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
             .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
-            body { background: white !important; }
         }
 
         /* --------------------------------------------------- */
-        /* استايلات الأظرف الذكية (Cards) في سجل الصرف */
-        /* --------------------------------------------------- */
         .log-card {
-            background: #ffffff;
-            border: 1px solid #dcdde1;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            overflow: hidden;
-            transition: all 0.3s ease;
+            background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease;
         }
         .log-card-header {
-            padding: 15px;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            border-bottom: 1px solid transparent;
+            padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
         }
         .log-card-header:hover { background: #eef2f5; }
         .log-card-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px; }
         .log-card-time { font-size: 13px; color: #7f8c8d; }
         .log-card-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out, padding 0.4s ease-out;
-            background: #ffffff;
-            padding: 0 15px;
+            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px;
         }
         .log-card-body.active {
-            max-height: 1000px; /* رقم كبير يسمح بفتح المحتوى بالكامل */
-            padding: 15px;
-            border-top: 1px solid #eee;
+            max-height: 1000px; padding: 15px; border-top: 1px solid #eee;
         }
-        .log-item { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 8px 0; 
-            border-bottom: 1px dashed #eee; 
-            font-size: 15px; 
-            color: #2c3e50;
-        }
+        .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 15px; color: #2c3e50; }
         .log-item:last-child { border-bottom: none; }
-        .log-actions { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 15px; 
-            border-top: 1px solid #f1f2f6; 
-            padding-top: 15px;
-        }
-        .log-actions button { 
-            flex: 1;
-            padding: 10px 12px; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            color: white; 
-            display: flex; 
-            justify-content: center;
-            align-items: center; 
-            gap: 8px; 
-            font-weight: bold;
-        }
+        .log-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f1f2f6; padding-top: 15px; }
+        .log-actions button { flex: 1; padding: 10px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; color: white; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; }
         .btn-del-log { background: #e74c3c; }
         .btn-edit-log { background: #f39c12; }
     </style>
@@ -262,7 +267,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p>جاري استخراج الصورة وتجهيزها بدقة عالية...</p>
+    <p style="margin-top: 10px; font-weight: bold;">جاري تصوير التبويب الحالي فقط...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -324,10 +329,10 @@
         </div>
     </header>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('daily')"><i class="fas fa-list"></i> الجرد اليومي</button>
-        <button class="tab-btn" onclick="switchTab('map')"><i class="fas fa-th"></i> خريطة المخزن</button>
-        <button class="tab-btn" onclick="switchTab('transactions')"><i class="fas fa-exchange-alt"></i> سجل الصرف والطباعة</button>
+    <div class="tabs no-print" id="mainTabs">
+        <button class="tab-btn active" onclick="switchTab('daily', event)"><i class="fas fa-list"></i> الجرد اليومي</button>
+        <button class="tab-btn" onclick="switchTab('map', event)"><i class="fas fa-th"></i> خريطة المخزن</button>
+        <button class="tab-btn" onclick="switchTab('transactions', event)"><i class="fas fa-exchange-alt"></i> سجل الصرف والطباعة</button>
     </div>
 
     <div id="tab-daily" class="tab-content active">
@@ -422,7 +427,7 @@
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
-        <i class="fas fa-file-download"></i> حفظ ومشاركة كصورة (كما تظهر)
+        <i class="fas fa-camera"></i> أخذ لقطة واضحة للتبويب الحالي
     </button>
 
     <footer class="no-print">
@@ -593,10 +598,14 @@
         }[tag]));
     }
 
-    function switchTab(tabId) {
+    function switchTab(tabId, event) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        event.target.classList.add('active');
+        
+        if (event && event.target) {
+            const btn = event.target.closest('.tab-btn');
+            if (btn) btn.classList.add('active');
+        }
         document.getElementById('tab-' + tabId).classList.add('active');
     }
 
@@ -689,10 +698,6 @@
         }
     }
 
-    // ==========================================
-    // معالجة أوامر الصرف المجمعة (السلة) والطباعة
-    // ==========================================
-    
     function addToTransactionCart() {
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
@@ -867,9 +872,6 @@
         alert("تم خصم الأصناف وطباعة الإذن بنجاح!");
     }
 
-    // ==========================================
-    // نظام الأظرف الذكية (سجل حركات اليوم) والتعديل والحذف
-    // ==========================================
     function renderTransactionsTable() {
         const selectedDate = dateInput.value;
         const container = document.getElementById('transactionsCardsContainer');
@@ -1349,70 +1351,77 @@
     }
 
     // ==========================================
-    // تصوير طبيعي عالي الجودة وحل مشكلة البياض والقص
+    // تصوير طبيعي عالي الجودة للتبويب النشط فقط
+    // لحل مشكلة الشاشة البيضاء (الرامات) بالكامل
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // إخفاء الأزرار المزعجة فقط في الصورة للحفاظ على شكل الشاشة
-        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn');
+        // 1. تحديد التبويب المفتوح حالياً لتصويره فقط
+        const activeTab = document.querySelector('.tab-content.active');
+        let tabTitle = "تقرير_المخزن";
+        if (activeTab) {
+            if (activeTab.id === 'tab-daily') tabTitle = "الجرد_اليومي";
+            else if (activeTab.id === 'tab-map') tabTitle = "خريطة_المخزن";
+            else if (activeTab.id === 'tab-transactions') tabTitle = "سجل_حركات_الصرف";
+        }
+        
+        // 2. إخفاء العناصر والأزرار التي لا يجب أن تظهر في التقرير (بما فيها التبويبات العلوية)
+        const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .tabs, .no-print');
         hideElements.forEach(el => {
             el.dataset.oldDisplay = el.style.display;
             el.style.setProperty('display', 'none', 'important');
         });
 
-        // لو كنت واقف في السجل، الأظرف هتتفتح كلها عشان تبان في التقرير
+        // 3. فتح الأظرف فقط إذا كنا في تبويب السجل
         const allBodies = document.querySelectorAll('.log-card-body');
-        allBodies.forEach(b => b.classList.add('active'));
+        if (activeTab && activeTab.id === 'tab-transactions') {
+            allBodies.forEach(b => b.classList.add('active'));
+        }
 
-        // فك حظر أبعاد الحاوية الرئيسية لمنع القص والبياض
         const container = document.getElementById('mainContainer');
         const originalHeight = container.style.height;
         const originalOverflow = container.style.overflow;
-        const originalMaxHeight = container.style.maxHeight;
-        const originalBg = container.style.background;
-
+        
+        // 4. فرد التبويب النشط والحاوية لضمان عدم قص أي جدول
         container.style.setProperty('height', 'auto', 'important');
-        container.style.setProperty('max-height', 'none', 'important');
         container.style.setProperty('overflow', 'visible', 'important');
-        container.style.background = '#f4f7f6'; 
+        
+        let tabOrigHeight, tabOrigOverflow;
+        if (activeTab) {
+            tabOrigHeight = activeTab.style.height;
+            tabOrigOverflow = activeTab.style.overflow;
+            activeTab.style.setProperty('height', 'auto', 'important');
+            activeTab.style.setProperty('overflow', 'visible', 'important');
+        }
 
-        // فك حظر التبويبات الداخلية
-        const scrollablePanels = document.querySelectorAll('.tab-content');
-        scrollablePanels.forEach(panel => {
-            panel.dataset.oldOverflow = panel.style.overflow;
-            panel.dataset.oldHeight = panel.style.height;
-            panel.dataset.oldMaxHeight = panel.style.maxHeight;
-            panel.style.setProperty('overflow', 'visible', 'important');
-            panel.style.setProperty('height', 'auto', 'important');
-            panel.style.setProperty('max-height', 'none', 'important');
-        });
+        // 5. الصعود لقمة الصفحة لتجنب مشاكل الإزاحة
+        const currentScrollY = window.scrollY;
+        window.scrollTo(0, 0);
 
-        // استنى المتصفح يظبط الأبعاد قبل اللقطة
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
+            // استخدام scale = 1.5 وهو الأفضل والآمن جداً لرامات الموبايل ليمنع الشاشة البيضاء
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
-                scale: 2.5, 
+                scale: 1.5, 
                 backgroundColor: "#f4f7f6", 
                 logging: false,
-                scrollY: -window.scrollY, 
-                scrollX: 0,
-                windowWidth: container.scrollWidth,
-                windowHeight: container.scrollHeight
+                scrollY: 0, 
+                scrollX: 0
             });
             
             const link = document.createElement('a');
-            link.download = `تقرير_المخزن_${dateInput.value || 'جديد'}.png`;
+            link.download = `${tabTitle}_كمال_سعد_${dateInput.value || 'جديد'}.png`;
             link.href = canvas.toDataURL("image/png"); 
             link.click();
         } catch (err) {
             console.error("خطأ في التصوير:", err);
             alert("حدث خطأ أثناء حفظ الصورة.");
         } finally {
-            // رجّع كل حاجة زي ما كانت
+            // 6. إرجاع كل شيء لوضعه الأصلي
             hideElements.forEach(el => {
                 el.style.display = el.dataset.oldDisplay || '';
             });
@@ -1420,15 +1429,13 @@
             
             container.style.height = originalHeight;
             container.style.overflow = originalOverflow;
-            container.style.maxHeight = originalMaxHeight;
-            container.style.background = originalBg;
+            
+            if (activeTab) {
+                activeTab.style.height = tabOrigHeight;
+                activeTab.style.overflow = tabOrigOverflow;
+            }
 
-            scrollablePanels.forEach(panel => {
-                panel.style.overflow = panel.dataset.oldOverflow || '';
-                panel.style.height = panel.dataset.oldHeight || '';
-                panel.style.maxHeight = panel.dataset.oldMaxHeight || '';
-            });
-
+            window.scrollTo(0, currentScrollY);
             if (overlay) overlay.style.display = 'none';
         }
     }
