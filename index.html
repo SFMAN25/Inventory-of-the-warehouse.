@@ -425,15 +425,43 @@
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
 
-<div class="controls-section" style="margin-top:20px;">
-<h3><i class="fas fa-calculator"></i> جرد الكراس</h3>
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-<input type="number" id="palletPieces" placeholder="عدد القطع في البالتة (مثال 600)">
-<input type="number" id="totalPiecesInput" placeholder="إجمالي القطع الموجودة">
-<button class="add-btn" onclick="calculatePalletInventory()">حساب</button>
-</div>
-<div id="palletResult" style="margin-top:15px;font-weight:bold;"></div>
-</div>
+        <div class="controls-section" style="margin-top:20px;">
+            <h3><i class="fas fa-calculator"></i> حاسبة سريعة</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <input type="number" id="palletPieces" placeholder="عدد القطع في البالتة (مثال 600)">
+            <input type="number" id="totalPiecesInput" placeholder="إجمالي القطع الموجودة">
+            <button class="add-btn" onclick="calculatePalletInventory()">حساب</button>
+            </div>
+            <div id="palletResult" style="margin-top:15px;font-weight:bold;"></div>
+        </div>
+
+        <div class="controls-section no-print" style="margin-top:20px; border: 2px solid var(--secondary-color);">
+            <h3 style="color: var(--primary-color);"><i class="fas fa-clipboard-list"></i> جدول جرد الكراس والبالتات (تراكمي وحفظ تلقائي)</h3>
+            <p style="text-align: center; color: #7f8c8d; margin-top: -10px; margin-bottom: 15px;">اكتب اسم الصنف وسعة البالتة وإجمالي القطع، وسيقوم النظام بحساب وتجميع البالتات الكاملة والقواطع تلقائياً لكل صنف.</p>
+            <div class="input-group" style="grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="nbItemName" placeholder="اسم الصنف (مثال: كشكول 60)">
+                <input type="number" id="nbTotalPieces" placeholder="إجمالي القطع (مثال: 1200)">
+                <input type="number" id="nbPiecesPerPallet" placeholder="سعة البالتة (مثال: 600)">
+                <button class="add-btn" onclick="addNotebookItem()"><i class="fas fa-plus"></i> إضافة / تعديل</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم الصنف</th>
+                            <th>إجمالي القطع</th>
+                            <th>سعة البالتة</th>
+                            <th>عدد البالتات</th>
+                            <th>القاطع (المتبقي)</th>
+                            <th class="no-print">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notebookInventoryTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
@@ -1556,6 +1584,97 @@ document.addEventListener('input',function(e){
 });
 const _oldRenderInventoryTable=renderInventoryTable;
 renderInventoryTable=function(){_oldRenderInventoryTable();refreshInventorySuggestions();};
+
+// ==========================================
+// نظام جرد الكراس التراكمي (بالتات وقواطع)
+// ==========================================
+let notebookInventory = JSON.parse(localStorage.getItem('notebookInventoryData')) || [];
+let editNbIndex = -1;
+
+function addNotebookItem() {
+    const name = document.getElementById('nbItemName').value.trim();
+    const total = parseInt(document.getElementById('nbTotalPieces').value);
+    const perPallet = parseInt(document.getElementById('nbPiecesPerPallet').value);
+
+    if (!name || isNaN(total) || isNaN(perPallet) || perPallet <= 0) {
+        alert('يرجى إدخال اسم الصنف، والعدد الإجمالي، وسعة البالتة بشكل صحيح!');
+        return;
+    }
+
+    const palletsCount = Math.floor(total / perPallet);
+    const remainder = total % perPallet;
+
+    const itemData = { name, total, perPallet, palletsCount, remainder };
+
+    if (editNbIndex === -1) {
+        notebookInventory.push(itemData);
+    } else {
+        notebookInventory[editNbIndex] = itemData;
+        editNbIndex = -1;
+    }
+
+    saveAndRenderNotebook();
+    clearNotebookInputs();
+}
+
+function saveAndRenderNotebook() {
+    localStorage.setItem('notebookInventoryData', JSON.stringify(notebookInventory));
+    renderNotebookTable();
+}
+
+function renderNotebookTable() {
+    const tbody = document.getElementById('notebookInventoryTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+
+    if(notebookInventory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#777; padding:15px;">لا يوجد أصناف مسجلة في جرد الكراس التراكمي</td></tr>';
+        return;
+    }
+
+    notebookInventory.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="font-weight:bold; color:var(--primary-color);">${item.name}</td>
+            <td style="font-weight:bold;">${item.total}</td>
+            <td>${item.perPallet}</td>
+            <td><span class="badge bg-success" style="font-size:14px; padding:6px 10px;">${item.palletsCount} بالتة</span></td>
+            <td><span class="badge bg-warning" style="font-size:14px; padding:6px 10px; color:#000;">${item.remainder} قطعة</span></td>
+            <td class="no-print">
+                <button class="edit-row-btn" onclick="editNotebookItem(${index})" title="تعديل"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteNotebookItem(${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function editNotebookItem(index) {
+    const item = notebookInventory[index];
+    document.getElementById('nbItemName').value = item.name;
+    document.getElementById('nbTotalPieces').value = item.total;
+    document.getElementById('nbPiecesPerPallet').value = item.perPallet;
+    editNbIndex = index;
+}
+
+function deleteNotebookItem(index) {
+    if (confirm('هل أنت متأكد من حذف هذا الصنف من جرد الكراس التراكمي؟')) {
+        notebookInventory.splice(index, 1);
+        saveAndRenderNotebook();
+    }
+}
+
+function clearNotebookInputs() {
+    document.getElementById('nbItemName').value = '';
+    document.getElementById('nbTotalPieces').value = '';
+    document.getElementById('nbPiecesPerPallet').value = '';
+    editNbIndex = -1;
+}
+
+// عرض الجدول التراكمي بمجرد تحميل الصفحة
+window.addEventListener('load', () => {
+    renderNotebookTable();
+});
 
 </script>
 </body>
