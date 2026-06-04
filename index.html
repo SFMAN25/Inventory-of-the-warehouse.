@@ -428,41 +428,39 @@
         <div class="controls-section" style="margin-top:20px;">
             <h3><i class="fas fa-calculator"></i> حاسبة سريعة</h3>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-            <input type="number" id="palletPieces" placeholder="عدد القطع في البالتة (مثال 600)">
-            <input type="number" id="totalPiecesInput" placeholder="إجمالي القطع الموجودة">
-            <button class="add-btn" onclick="calculatePalletInventory()">حساب</button>
+                <input type="number" id="palletPieces" placeholder="عدد القطع في البالتة (مثال 600)">
+                <input type="number" id="totalPiecesInput" placeholder="إجمالي القطع الموجودة">
+                <button class="add-btn" onclick="calculatePalletInventory()">حساب</button>
             </div>
             <div id="palletResult" style="margin-top:15px;font-weight:bold;"></div>
         </div>
 
-        <div class="controls-section no-print" style="margin-top:20px; border: 2px solid var(--secondary-color);">
+        <div class="controls-section" id="notebookInventorySection" style="margin-top:20px; border: 2px solid var(--secondary-color);">
             <h3 style="color: var(--primary-color);"><i class="fas fa-clipboard-list"></i> جدول جرد الكراس والبالتات (تراكمي وحفظ تلقائي)</h3>
-            <p style="text-align: center; color: #7f8c8d; margin-top: -10px; margin-bottom: 15px;">اكتب اسم الصنف وسعة البالتة وإجمالي القطع، وسيقوم النظام بحساب وتجميع البالتات الكاملة والقواطع تلقائياً لكل صنف.</p>
-            <div class="input-group" style="grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="nbItemName" placeholder="اسم الصنف (مثال: كشكول 60)">
+            <div class="input-group no-print" style="grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="nbItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 28 مسطر)">
                 <input type="number" id="nbTotalPieces" placeholder="إجمالي القطع (مثال: 1200)">
-                <input type="number" id="nbPiecesPerPallet" placeholder="سعة البالتة (مثال: 600)">
-                <button class="add-btn" onclick="addNotebookItem()"><i class="fas fa-plus"></i> إضافة / تعديل</button>
+                <input type="number" id="nbPiecesPerPallet" placeholder="داخل البالتة (مثال: 600)">
+                <button class="add-btn" id="nbMainBtn" onclick="handleNbAction()"><i class="fas fa-plus"></i> إضافة للجرد</button>
             </div>
             <div style="overflow-x: auto;">
-                <table>
+                <table id="nbTable">
                     <thead>
                         <tr>
                             <th>اسم الصنف</th>
-                            <th>إجمالي القطع</th>
-                            <th>سعة البالتة</th>
+                            <th>عدد القطع الموجودة</th>
+                            <th>داخل البالتة</th>
                             <th>عدد البالتات</th>
-                            <th>القاطع (المتبقي)</th>
+                            <th>المتبقي (قاطع/فرط)</th>
                             <th class="no-print">إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody id="notebookInventoryTableBody">
-                    </tbody>
+                    <tbody id="nbTableBody">
+                        </tbody>
                 </table>
             </div>
         </div>
-
-    </div>
+        </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
         <i class="fas fa-camera"></i> أخذ لقطة واضحة للتبويب الحالي
@@ -547,6 +545,11 @@
     let editIndex = null;
     let slotEditIndex = null;
     
+    // متغيرات الميزة المضافة لجرد الكراس والبالتات
+    let nbInventoryData = {};
+    let nbEditIndex = null;
+    let currentNbListenerRef = null;
+    
     let currentInventoryListenerRef = null;
     let currentMapListenerRef = null;
     let currentTransListenerRef = null;
@@ -612,6 +615,7 @@
             if (currentInventoryListenerRef) currentInventoryListenerRef.off();
             if (currentMapListenerRef) currentMapListenerRef.off();
             if (currentTransListenerRef) currentTransListenerRef.off();
+            if (currentNbListenerRef) currentNbListenerRef.off(); // إيقاف مراقب جرد الكراس
             document.getElementById('mainContainer').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'flex';
             document.getElementById('userPass').value = '';
@@ -696,11 +700,16 @@
             transactionsData[date] = Array.isArray(rawData) ? rawData : Object.values(rawData);
             renderTransactionsTable(); 
         });
+
+        // مراقب ميزة جرد الكراس الجديدة بالبالتات
+        if (currentNbListenerRef) currentNbListenerRef.off();
+        currentNbListenerRef = db.ref('notebookInventory/' + date);
+        currentNbListenerRef.on('value', (snapshot) => {
+            nbInventoryData[date] = snapshot.val() || [];
+            renderNbTable();
+        });
     }
 
-    // ==========================================
-    // نظام الحماية من انقطاع الإنترنت (Local Backup)
-    // ==========================================
     function backupLocally(path, data) {
         let backup = JSON.parse(localStorage.getItem('makhzan_backup') || '{}');
         backup[path] = data;
@@ -729,7 +738,7 @@
         }
     }
     window.addEventListener('online', syncLocalBackup);
-    window.addEventListener('load', syncLocalBackup); // تأمين المزامنة أول ما يفتح المتصفح
+    window.addEventListener('load', syncLocalBackup);
 
     function saveInventoryToFirebase() {
         const selectedDate = dateInput.value;
@@ -1462,15 +1471,10 @@
         }
     }
 
-    // ==========================================
-    // تصوير طبيعي عالي الجودة للتبويب النشط فقط
-    // وتأمين ظهور جميع السطور المفلترة في الصورة
-    // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // 1. تأمين: حفظ كلمة البحث الحالية وتفريغ الخانة لإظهار الجدول كاملاً في الصورة
         const searchInputEl = document.getElementById('searchInput');
         const prevSearchValue = searchInputEl ? searchInputEl.value : '';
         if (searchInputEl && searchInputEl.value !== '') {
@@ -1548,7 +1552,6 @@
                 activeTab.style.overflow = tabOrigOverflow;
             }
 
-            // 2. تأمين: إعادة إرجاع كلمة البحث والفلترة كما كانت قبل التصوير بالضبط
             if (searchInputEl && prevSearchValue !== '') {
                 searchInputEl.value = prevSearchValue;
                 if (typeof filterTable === 'function') filterTable();
@@ -1586,96 +1589,97 @@ const _oldRenderInventoryTable=renderInventoryTable;
 renderInventoryTable=function(){_oldRenderInventoryTable();refreshInventorySuggestions();};
 
 // ==========================================
-// نظام جرد الكراس التراكمي (بالتات وقواطع)
+// ميزة جرد الكراس التراكمي (بالتات وقواطع) الجديدة كلياً والمحفوظة تلقائياً بـ Firebase
 // ==========================================
-let notebookInventory = JSON.parse(localStorage.getItem('notebookInventoryData')) || [];
-let editNbIndex = -1;
+function handleNbAction() {
+    const name = sanitizeInput(document.getElementById('nbItemName').value);
+    const total = parseFloat(document.getElementById('nbTotalPieces').value);
+    const perPallet = parseFloat(document.getElementById('nbPiecesPerPallet').value);
+    const selectedDate = dateInput.value;
 
-function addNotebookItem() {
-    const name = document.getElementById('nbItemName').value.trim();
-    const total = parseInt(document.getElementById('nbTotalPieces').value);
-    const perPallet = parseInt(document.getElementById('nbPiecesPerPallet').value);
-
-    if (!name || isNaN(total) || isNaN(perPallet) || perPallet <= 0) {
-        alert('يرجى إدخال اسم الصنف، والعدد الإجمالي، وسعة البالتة بشكل صحيح!');
-        return;
+    if(!name || isNaN(total) || isNaN(perPallet) || perPallet <= 0) {
+        return alert("الرجاء إدخال اسم الصنف، إجمالي القطع، وسعة البالتة (يجب أن تكون رقماً صحيحاً أكبر من 0).");
     }
 
     const palletsCount = Math.floor(total / perPallet);
     const remainder = total % perPallet;
 
-    const itemData = { name, total, perPallet, palletsCount, remainder };
+    if(!nbInventoryData[selectedDate]) nbInventoryData[selectedDate] = [];
 
-    if (editNbIndex === -1) {
-        notebookInventory.push(itemData);
+    if(nbEditIndex === null) {
+        nbInventoryData[selectedDate].push({ name, total, perPallet, palletsCount, remainder });
     } else {
-        notebookInventory[editNbIndex] = itemData;
-        editNbIndex = -1;
+        nbInventoryData[selectedDate][nbEditIndex] = { name, total, perPallet, palletsCount, remainder };
+        nbEditIndex = null;
+        const btn = document.getElementById('nbMainBtn');
+        btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للجرد';
+        btn.classList.remove('edit-mode-btn');
     }
-
-    saveAndRenderNotebook();
-    clearNotebookInputs();
+    
+    document.getElementById('nbItemName').value = '';
+    document.getElementById('nbTotalPieces').value = '';
+    document.getElementById('nbPiecesPerPallet').value = '';
+    
+    saveNbToFirebase();
 }
 
-function saveAndRenderNotebook() {
-    localStorage.setItem('notebookInventoryData', JSON.stringify(notebookInventory));
-    renderNotebookTable();
+function saveNbToFirebase() {
+    const selectedDate = dateInput.value;
+    db.ref('notebookInventory/' + selectedDate).set(nbInventoryData[selectedDate]).then(() => {
+        showSyncStatus();
+        backupLocally('notebookInventory/' + selectedDate, nbInventoryData[selectedDate]);
+    });
 }
 
-function renderNotebookTable() {
-    const tbody = document.getElementById('notebookInventoryTableBody');
+function renderNbTable() {
+    const selectedDate = dateInput.value;
+    const tbody = document.getElementById('nbTableBody');
     if(!tbody) return;
     tbody.innerHTML = '';
+    const items = nbInventoryData[selectedDate] || [];
 
-    if(notebookInventory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="color:#777; padding:15px;">لا يوجد أصناف مسجلة في جرد الكراس التراكمي</td></tr>';
+    if(items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="color:#777; padding:15px;">لا يوجد أصناف مسجلة في جرد الكراس بالبالتات لهذا اليوم</td></tr>';
         return;
     }
 
-    notebookInventory.forEach((item, index) => {
+    items.forEach((item, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td style="font-weight:bold; color:var(--primary-color);">${item.name}</td>
             <td style="font-weight:bold;">${item.total}</td>
             <td>${item.perPallet}</td>
-            <td><span class="badge bg-success" style="font-size:14px; padding:6px 10px;">${item.palletsCount} بالتة</span></td>
-            <td><span class="badge bg-warning" style="font-size:14px; padding:6px 10px; color:#000;">${item.remainder} قطعة</span></td>
-            <td class="no-print">
-                <button class="edit-row-btn" onclick="editNotebookItem(${index})" title="تعديل"><i class="fas fa-edit"></i></button>
-                <button class="delete-btn" onclick="deleteNotebookItem(${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
+            <td><span class="badge" style="background-color: #27ae60; font-size:14px; padding:6px 10px;">${item.palletsCount} بالتة</span></td>
+            <td><span class="badge" style="background-color: #f39c12; font-size:14px; padding:6px 10px; color:#fff;">${item.remainder} قطعة</span></td>
+            <td class="action-btns no-print">
+                <button class="edit-row-btn" onclick="prepareNbEdit(${index})" title="تعديل"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteNbItem(${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function editNotebookItem(index) {
-    const item = notebookInventory[index];
+function prepareNbEdit(index) {
+    const selectedDate = dateInput.value;
+    const item = nbInventoryData[selectedDate][index];
     document.getElementById('nbItemName').value = item.name;
     document.getElementById('nbTotalPieces').value = item.total;
     document.getElementById('nbPiecesPerPallet').value = item.perPallet;
-    editNbIndex = index;
+    nbEditIndex = index;
+    const btn = document.getElementById('nbMainBtn');
+    btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
+    btn.classList.add('edit-mode-btn');
+    window.scrollTo({ top: document.getElementById('notebookInventorySection').offsetTop, behavior: 'smooth' });
 }
 
-function deleteNotebookItem(index) {
-    if (confirm('هل أنت متأكد من حذف هذا الصنف من جرد الكراس التراكمي؟')) {
-        notebookInventory.splice(index, 1);
-        saveAndRenderNotebook();
+function deleteNbItem(index) {
+    if(confirm("هل تريد حذف هذا البند نهائياً من جرد الكراس والبالتات؟")) {
+        const selectedDate = dateInput.value;
+        nbInventoryData[selectedDate].splice(index, 1);
+        saveNbToFirebase();
     }
 }
-
-function clearNotebookInputs() {
-    document.getElementById('nbItemName').value = '';
-    document.getElementById('nbTotalPieces').value = '';
-    document.getElementById('nbPiecesPerPallet').value = '';
-    editNbIndex = -1;
-}
-
-// عرض الجدول التراكمي بمجرد تحميل الصفحة
-window.addEventListener('load', () => {
-    renderNotebookTable();
-});
-
 </script>
 </body>
 </html>
