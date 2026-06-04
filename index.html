@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد مخزن الكراس - نسخة الإدارة العليا</title>
+    <title>نظام إدارة المخزن - كمال سعد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -21,9 +21,6 @@
             --white: #ffffff;
             --review-color: #7f8c8d;
         }
-
-        /* إخفاء الأزرار الحساسة للمستخدمين العاديين */
-        body.role-user .admin-only { display: none !important; }
 
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -76,7 +73,6 @@
 
         .header-content { display: flex; align-items: center; justify-content: center; gap: 25px; flex-wrap: wrap; }
         .logo-img { max-width: 120px; height: auto; border-radius: 15px; }
-        
         .roles-header { margin-top: 10px; font-size: 18px; color: #444; background: #eef2f3; padding: 10px; border-radius: 50px; display: inline-block; border: 2px solid var(--secondary-color); }
 
         .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
@@ -110,12 +106,7 @@
         .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
         .move-btn { color: #34495e; background: none; border: none; cursor: pointer; font-size: 16px; }
 
-        #selectionTotalsContainer {
-            display: none; background: #27ae60; color: white; padding: 15px; 
-            border-radius: 8px; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            animation: fadeIn 0.3s ease-in-out;
-        }
+        #selectionTotalsContainer { display: none; background: #27ae60; color: white; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; font-size: 18px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease-in-out; }
         .row-checkbox { transform: scale(1.5); cursor: pointer; }
 
         .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; flex-wrap: wrap; }
@@ -202,7 +193,7 @@
         .btn-edit-log { background: #f39c12; }
     </style>
 </head>
-<body class="role-user">
+<body>
 
 <div id="loginScreen">
     <div class="login-box">
@@ -214,8 +205,8 @@
             <input type="text" id="hp_user_check" tabindex="-1" autocomplete="off">
         </div>
 
-        <input type="email" id="userEmail" placeholder="1404@kms.com">
-        <input type="password" id="userPass" placeholder="14041404">
+        <input type="email" id="userEmail" placeholder="البريد الإلكتروني">
+        <input type="password" id="userPass" placeholder="كلمة المرور">
         <button onclick="handleLogin()">دخول آمن <i class="fas fa-sign-in-alt"></i></button>
         <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none;"></p>
     </div>
@@ -230,7 +221,7 @@
 
 <div id="invoicePrintArea">
     <div class="print-header">
-        <h2>مخازن شركة كمال سعد للورق - المنشية</h2>
+        <h2>مخازن شركة كمال سعد للورق - فرع السيوف</h2>
         <h3>إذن صرف بضاعة (أمر مجمع)</h3>
         <p>التاريخ: <span id="printDate"></span> | <strong><span id="printDestinationLabel"></span></strong></p>
     </div>
@@ -294,16 +285,16 @@
     </div>
 
     <div id="tab-daily" class="tab-content active">
-        <div class="controls-section no-print admin-only">
+        <div class="controls-section no-print">
             <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
                 <div class="history-btns">
-                    <button class="copy-btn-names admin-only" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
-                    <button class="copy-btn-full admin-only" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
+                    <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
+                    <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
             </div>
             
-            <div class="input-group admin-only">
+            <div class="input-group">
                 <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
                 <input type="number" id="cartons" placeholder="الكراتين" min="0" step="any">
                 <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
@@ -320,7 +311,7 @@
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print admin-only">تعديل / حذف / مراجعة</th>
+                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / حذف / مراجعة</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -354,7 +345,7 @@
     </div>
 
     <div id="tab-transactions" class="tab-content">
-        <div class="transaction-section no-print admin-only">
+        <div class="transaction-section no-print">
             <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سلة الأصناف المجمعة)</h3>
             
             <div style="margin-bottom: 15px; background: white; padding: 10px; border-radius: 8px;">
@@ -396,7 +387,7 @@
     </div>
 
     <div id="tab-map" class="tab-content">
-        <div class="controls-section no-print admin-only" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+        <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
             <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
         </div>
@@ -435,14 +426,14 @@
     <div class="modal-box">
         <div class="modal-header">
             <h3 id="modalSlotTitle">تعديل الخانة</h3>
-            <div class="color-picker-wrapper admin-only">
+            <div class="color-picker-wrapper">
                 <label for="slotColorPicker">لون الخانة:</label>
                 <input type="color" id="slotColorPicker" onchange="changeSlotColor()" title="اختر لون لتلوين خلفية الخانة في الخريطة">
             </div>
             <button class="close-modal" onclick="closeSlotModal()">&times;</button>
         </div>
         
-        <div class="modal-form-group admin-only">
+        <div class="modal-form-group">
             <label>إضافة / تعديل صنف في الخانة:</label>
             <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -469,12 +460,6 @@
 </div>
 
 <script>
-    // ==========================================
-    // إعدادات الصلاحيات والمديرين
-    // ==========================================
-    const ADMIN_EMAILS = ["1404@kms.com"];
-    let currentUserRole = "user";
-
     const firebaseConfig = {
       apiKey: "AIzaSyDgwdBexMXQepqc7HVGL5tUDXU2JHOcuFg",
       authDomain: "kmskoras.firebaseapp.com",
@@ -585,18 +570,6 @@
         if (user) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
-            
-            // تطبيق نظام الصلاحيات
-            if(ADMIN_EMAILS.includes(user.email)) {
-                currentUserRole = "admin";
-                document.body.classList.remove('role-user');
-                document.body.classList.add('role-admin');
-            } else {
-                currentUserRole = "user";
-                document.body.classList.remove('role-admin');
-                document.body.classList.add('role-user');
-            }
-
             attachFirebaseListeners(dateInput.value);
         } else {
             document.getElementById('mainContainer').style.display = 'none';
@@ -795,8 +768,6 @@
     }
 
     function addToTransactionCart() {
-        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط لتنفيذ الصرف!");
-
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
         const unit = document.getElementById('transUnit').value;
@@ -886,8 +857,6 @@
     }
 
     function processAndPrintTransaction() {
-        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
-
         const destination = sanitizeInput(document.getElementById('transDestination').value);
         const selectedDate = dateInput.value;
 
@@ -1011,14 +980,6 @@
                 itemsHtml = `<div class="log-item" style="color:#7f8c8d; font-size:14px;">${trans.details || trans.itemName}</div>`;
             }
 
-            // أزرار التعديل والحذف للأدمن فقط
-            let adminActions = currentUserRole === 'admin' ? `
-                <div class="log-actions no-print admin-only">
-                    <button class="btn-edit-log" onclick="editTransactionDest(${i})"><i class="fas fa-pen"></i> تعديل الوجهة</button>
-                    <button class="btn-del-log" onclick="deleteTransaction(${i})"><i class="fas fa-undo-alt"></i> حذف واسترجاع</button>
-                </div>
-            ` : '';
-
             htmlContent += `
             <div class="log-card">
                 <div class="log-card-header" onclick="toggleLogCard(${i})">
@@ -1032,7 +993,10 @@
                     <div style="margin-bottom: 15px;">
                         ${itemsHtml}
                     </div>
-                    ${adminActions}
+                    <div class="log-actions no-print">
+                        <button class="btn-edit-log" onclick="editTransactionDest(${i})"><i class="fas fa-pen"></i> تعديل الوجهة</button>
+                        <button class="btn-del-log" onclick="deleteTransaction(${i})"><i class="fas fa-undo-alt"></i> حذف واسترجاع</button>
+                    </div>
                 </div>
             </div>`;
         }
@@ -1054,7 +1018,6 @@
     }
 
     function editTransactionDest(index) {
-        if(currentUserRole !== 'admin') return;
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
         let tArray = Array.isArray(rawData) ? rawData : Object.values(rawData);
@@ -1075,7 +1038,6 @@
     }
 
     function deleteTransaction(index) {
-        if(currentUserRole !== 'admin') return;
         if(!confirm("⚠️ تحذير: هل أنت متأكد من حذف هذا الإذن بالكامل؟\nسيتم إرجاع جميع الأصناف الموجودة فيه إلى رصيد المخزن الأساسي.")) return;
         
         const selectedDate = dateInput.value;
@@ -1147,12 +1109,10 @@
         tbody.innerHTML = '';
         const items = inventoryData[selectedDate] || [];
         
-        // تحديث القائمة الذكية للمنصرف بناءً على الجرد الحالي
         const availableList = document.getElementById('availableItemsList');
         availableList.innerHTML = '';
 
         items.forEach((item, index) => {
-            // إضافة الصنف للقائمة الذكية للمنصرف
             const option = document.createElement('option');
             option.value = item.name;
             availableList.appendChild(option);
@@ -1162,14 +1122,6 @@
             row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
             
             if (item.isReviewed) row.classList.add('reviewed');
-
-            let adminActions = currentUserRole === 'admin' ? `
-                <button class="check-btn admin-only" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
-                <button class="move-btn admin-only" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
-                <button class="move-btn admin-only" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
-                <button class="edit-row-btn admin-only" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
-                <button class="delete-btn admin-only" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
-            ` : '';
 
             row.innerHTML = `
                 <td class="no-print"><input type="checkbox" class="row-checkbox" value="${index}" onchange="calculateSelectedTotals()"></td>
@@ -1182,8 +1134,12 @@
                 <td>${item.cartons || 0}</td>
                 <td>${item.perCarton || 0}</td>
                 <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
-                <td class="action-btns no-print admin-only">
-                    ${adminActions}
+                <td class="action-btns no-print">
+                    <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                    <button class="move-btn" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
+                    <button class="move-btn" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
+                    <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -1197,7 +1153,6 @@
     }
 
     function handleMainAction() {
-        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
         const name = sanitizeInput(document.getElementById('itemName').value);
         const cartons = parseFloat(document.getElementById('cartons').value);
         const perCarton = parseInt(document.getElementById('perCarton').value);
@@ -1224,13 +1179,11 @@
     }
 
     function toggleReview(index) {
-        if(currentUserRole !== 'admin') return;
         inventoryData[dateInput.value][index].isReviewed = !inventoryData[dateInput.value][index].isReviewed;
         saveInventoryToFirebase();
     }
     
     function moveItem(index, direction) {
-        if(currentUserRole !== 'admin') return;
         const items = inventoryData[dateInput.value];
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < items.length) {
@@ -1242,7 +1195,6 @@
     }
 
     function prepareEdit(index) {
-        if(currentUserRole !== 'admin') return;
         const item = inventoryData[dateInput.value][index];
         document.getElementById('itemName').value = item.name;
         document.getElementById('cartons').value = item.cartons;
@@ -1255,7 +1207,6 @@
     }
 
     function deleteItem(index) {
-        if(currentUserRole !== 'admin') return;
         if(confirm("هل تريد حذف هذا البند من الجرد اليومي؟")) {
             inventoryData[dateInput.value].splice(index, 1);
             saveInventoryToFirebase();
@@ -1263,7 +1214,6 @@
     }
 
     function copyFromYesterday(includeNumbers) {
-        if(currentUserRole !== 'admin') return;
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         db.ref('inventory/' + yesterday).once('value').then((snapshot) => {
@@ -1279,7 +1229,6 @@
     }
 
     function copyMapFromYesterday() {
-        if(currentUserRole !== 'admin') return;
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         db.ref('warehouseMap/' + yesterday).once('value').then((snapshot) => {
@@ -1316,7 +1265,6 @@
         
         let aggregates = {};
         
-        // التجميع من كل الخانات
         for (let slotId in currentMap) {
             let items = currentMap[slotId].items || [];
             items.forEach(item => {
@@ -1325,7 +1273,7 @@
                 }
                 
                 let q = parseFloat(item.qty) || 0;
-                let pSize = parseInt(item.palletSize) || 0; // حجم البالتة
+                let pSize = parseInt(item.palletSize) || 0; 
                 
                 if (item.unit === 'بالتة') { 
                     aggregates[item.name].pallets += q; 
@@ -1344,7 +1292,6 @@
             });
         }
 
-        // عرض التجميع في الجدول
         for (let name in aggregates) {
             let agg = aggregates[name];
             let otherText = [];
@@ -1409,7 +1356,7 @@
             wrapper.appendChild(colDiv);
         });
 
-        renderMapSummary(); // استدعاء دالة التجميع
+        renderMapSummary(); 
     }
 
     function openSlotModal(slotId, displayNum) {
@@ -1423,7 +1370,7 @@
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
         document.getElementById('slotItemColor').value = '#ffffff';
-        document.getElementById('slotItemPalletSize').value = ''; // تصفير حجم البالتة
+        document.getElementById('slotItemPalletSize').value = ''; 
         
         const btn = document.getElementById('slotMainBtn');
         btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
@@ -1440,7 +1387,6 @@
     }
 
     function changeSlotColor() {
-        if(currentUserRole !== 'admin') return;
         if(!currentActiveSlotId) return;
         const color = document.getElementById('slotColorPicker').value;
         if(!mapData[dateInput.value][currentActiveSlotId]) {
@@ -1466,20 +1412,16 @@
             li.style.backgroundColor = bgColor;
             li.style.borderRight = `5px solid ${borderColor}`;
 
-            let adminActions = currentUserRole === 'admin' ? `
-                <button class="check-btn admin-only" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
-                <button class="move-btn admin-only" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
-                <button class="move-btn admin-only" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
-                <button class="edit-row-btn admin-only" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
-                <button class="delete-btn admin-only" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
-            ` : '';
-
             let palletBadge = item.palletSize > 0 ? `<br><small style="color:#27ae60;">(حجم البالتة: ${item.palletSize})</small>` : '';
 
             li.innerHTML = `
                 <span><b>${item.qty} ${item.unit}</b> - ${item.name} ${palletBadge}</span>
-                <div class="map-action-btns admin-only">
-                    ${adminActions}
+                <div class="map-action-btns">
+                    <button class="check-btn" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                    <button class="move-btn" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
+                    <button class="move-btn" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
+                    <button class="edit-row-btn" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
                 </div>
             `;
             listUI.appendChild(li);
@@ -1487,8 +1429,6 @@
     }
 
     function handleAddOrEditSlotItem() {
-        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
-        
         const name = sanitizeInput(document.getElementById('slotItemName').value);
         const qty = parseFloat(document.getElementById('slotItemQty').value);
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
@@ -1526,7 +1466,6 @@
     }
 
     function prepareSlotItemEdit(event, index) {
-        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         const item = mapData[dateInput.value][currentActiveSlotId].items[index];
         document.getElementById('slotItemName').value = item.name;
@@ -1541,7 +1480,6 @@
     }
 
     function toggleMapItemReview(event, index) {
-        if(currentUserRole !== 'admin') return;
         event.stopPropagation(); 
         const items = mapData[dateInput.value][currentActiveSlotId].items;
         items[index].isReviewed = !items[index].isReviewed;
@@ -1549,7 +1487,6 @@
     }
 
     function moveMapItem(event, index, direction) {
-        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         const items = mapData[dateInput.value][currentActiveSlotId].items;
         const newIndex = index + direction;
@@ -1562,7 +1499,6 @@
     }
 
     function deleteItemFromSlot(event, index) {
-        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         if(confirm("هل تريد حذف هذا الصنف من الخانة؟")) {
             mapData[dateInput.value][currentActiveSlotId].items.splice(index, 1);
@@ -1635,4 +1571,35 @@
             });
             
             const link = document.createElement('a');
-            link.download = `${tabTitle}_كمال_سعد_${dateInput.value || 'جديد
+            link.download = `${tabTitle}_كمال_سعد_${dateInput.value || 'جديد'}.png`;
+            link.href = canvas.toDataURL("image/png"); 
+            link.click();
+        } catch (err) {
+            console.error("خطأ في التصوير:", err);
+            alert("حدث خطأ أثناء حفظ الصورة.");
+        } finally {
+            hideElements.forEach(el => {
+                el.style.display = el.dataset.oldDisplay || '';
+            });
+            allBodies.forEach(b => b.classList.remove('active'));
+            
+            container.style.height = originalHeight;
+            container.style.overflow = originalOverflow;
+            
+            if (activeTab) {
+                activeTab.style.height = tabOrigHeight;
+                activeTab.style.overflow = tabOrigOverflow;
+            }
+
+            if (searchInputEl && prevSearchValue !== '') {
+                searchInputEl.value = prevSearchValue;
+                if (typeof filterTable === 'function') filterTable();
+            }
+
+            window.scrollTo(0, currentScrollY);
+            if (overlay) overlay.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
