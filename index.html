@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد مخزن الكراس - نسخة مؤمنة</title>
+    <title>نظام جرد مخزن الكراس - نسخة الإدارة العليا</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -21,6 +21,9 @@
             --white: #ffffff;
             --review-color: #7f8c8d;
         }
+
+        /* إخفاء الأزرار الحساسة للمستخدمين العاديين */
+        body.role-user .admin-only { display: none !important; }
 
         #loginScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -73,13 +76,14 @@
 
         .header-content { display: flex; align-items: center; justify-content: center; gap: 25px; flex-wrap: wrap; }
         .logo-img { max-width: 120px; height: auto; border-radius: 15px; }
-        .roles-header { margin-top: 10px; font-size: 18px; color: #444; background: #eef2f3; padding: 10px; border-radius: 50px; display: inline-block; }
+        
+        .roles-header { margin-top: 10px; font-size: 18px; color: #444; background: #eef2f3; padding: 10px; border-radius: 50px; display: inline-block; border: 2px solid var(--secondary-color); }
 
-        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; }
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn { padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; }
         .tab-btn.active { background: var(--secondary-color); color: white; }
         .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -89,11 +93,11 @@
         input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
         .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
         .edit-mode-btn { background: var(--edit-color) !important; }
-        .copy-btn-names { background: var(--primary-color); color: white; border: none; cursor: pointer; font-size: 14px; }
-        .copy-btn-full { background: #34495e; color: white; border: none; cursor: pointer; font-size: 14px; }
+        .copy-btn-names { background: var(--primary-color); color: white; border: none; cursor: pointer; font-size: 14px; padding: 10px; }
+        .copy-btn-full { background: #34495e; color: white; border: none; cursor: pointer; font-size: 14px; padding: 10px; }
         .share-btn { background: #2c3e50; color: white; border: none; margin-top: 20px; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; font-weight: bold; border-radius: 8px; }
 
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         th { background: var(--primary-color); color: white; padding: 15px; }
         td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-weight: 600; }
         .reviewed { text-decoration: line-through; color: #7f8c8d; opacity: 0.7; }
@@ -112,11 +116,10 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             animation: fadeIn 0.3s ease-in-out;
         }
-
         .row-checkbox { transform: scale(1.5); cursor: pointer; }
 
-        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; }
-        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; }
+        .map-wrapper { display: flex; gap: 20px; justify-content: center; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #ddd; flex-wrap: wrap; }
+        .map-col { display: flex; flex-direction: column; gap: 15px; flex: 1; min-width: 200px; }
         .slot { border: 2px solid #34495e; border-radius: 8px; min-height: 80px; padding: 10px; background: #fdfdfd; cursor: pointer; transition: 0.2s; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
         .slot:hover { border-color: var(--secondary-color); transform: translateY(-2px); }
         .slot-title { font-weight: bold; color: var(--primary-color); border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; margin-bottom: 8px; font-size: 14px; text-align: center; }
@@ -125,8 +128,11 @@
         .slot-items li:last-child { border-bottom: none; }
         .empty-slot { color: rgba(0,0,0,0.5); text-align: center; font-size: 12px; font-style: italic; }
 
+        .map-summary-section { background: #eef2f5; padding: 20px; border-radius: 12px; margin-top: 25px; border: 2px solid #bdc3c7; }
+        .map-summary-section h3 { margin-top: 0; color: #2c3e50; text-align: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; }
-        .modal-box { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 550px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal-box { background: white; padding: 25px; border-radius: 15px; width: 95%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
         .close-modal { background: none; border: none; font-size: 24px; color: #e74c3c; cursor: pointer; }
         
@@ -143,6 +149,13 @@
         .map-action-btns button { background: none; border: none; cursor: pointer; font-size: 16px; padding: 5px; }
         .reviewed-map-item { text-decoration: line-through; color: #7f8c8d; opacity: 0.7; }
 
+        /* إحصائيات */
+        .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eee; }
+        .stat-card i { font-size: 40px; margin-bottom: 15px; color: var(--secondary-color); }
+        .stat-card h3 { margin: 0; color: #7f8c8d; font-size: 18px; }
+        .stat-card .value { font-size: 32px; font-weight: bold; color: var(--primary-color); margin-top: 10px; }
+
         footer { margin-top: 40px; text-align: center; padding: 20px; background: rgba(255,255,255,0.8); border-radius: 12px; }
         .whatsapp-btn { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white; padding: 15px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; margin-top: 15px; }
 
@@ -155,64 +168,17 @@
         .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
-        /* ==========================================
-           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة)
-           ========================================== */
-        #invoicePrintArea { 
-            display: none; 
-            padding: 30px; 
-            background: #ffffff !important; 
-            color: #000000 !important; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-        }
-        .print-header { 
-            text-align: center; 
-            border-bottom: 3px double #000000; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px;
-        }
+        /* الطباعة */
+        #invoicePrintArea { display: none; padding: 30px; background: #ffffff !important; color: #000000 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; }
+        .print-header { text-align: center; border-bottom: 3px double #000000; padding-bottom: 15px; margin-bottom: 25px; }
         .print-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #000; }
         .print-header h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: bold; }
         .print-header p { margin: 5px 0; font-size: 14px; font-weight: 600; }
-        .print-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px;
-        }
-        .print-table th { 
-            background-color: #000000 !important; 
-            color: #ffffff !important; 
-            border: 2px solid #000000; 
-            padding: 12px; 
-            font-size: 16px; 
-            font-weight: bold;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .print-table td { 
-            border: 1px solid #000000; 
-            padding: 12px; 
-            text-align: center; 
-            font-size: 15px; 
-            font-weight: bold; 
-            color: #000000 !important;
-        }
-        .print-table tr:nth-child(even) {
-            background-color: #f9f9f9 !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-        .print-signatures { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-top: 60px; 
-            padding: 0 40px; 
-            font-size: 16px; 
-            font-weight: bold;
-            color: #000000 !important;
-        }
-
+        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .print-table th { background-color: #000000 !important; color: #ffffff !important; border: 2px solid #000000; padding: 12px; font-size: 16px; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-table td { border: 1px solid #000000; padding: 12px; text-align: center; font-size: 15px; font-weight: bold; color: #000000 !important; }
+        .print-table tr:nth-child(even) { background-color: #f9f9f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-signatures { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 40px; font-size: 16px; font-weight: bold; color: #000000 !important; }
         @media print {
             body { background: #ffffff !important; color: #000000 !important; }
             body * { visibility: hidden; }
@@ -221,23 +187,13 @@
             .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
         }
 
-        /* --------------------------------------------------- */
-        .log-card {
-            background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease;
-        }
-        .log-card-header {
-            padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
+        .log-card { background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease; }
+        .log-card-header { padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .log-card-header:hover { background: #eef2f5; }
         .log-card-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px; }
         .log-card-time { font-size: 13px; color: #7f8c8d; }
-        .log-card-body {
-            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px;
-        }
-        .log-card-body.active {
-            max-height: 1000px; padding: 15px; border-top: 1px solid #eee;
-        }
+        .log-card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px; }
+        .log-card-body.active { max-height: 1000px; padding: 15px; border-top: 1px solid #eee; }
         .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 15px; color: #2c3e50; }
         .log-item:last-child { border-bottom: none; }
         .log-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f1f2f6; padding-top: 15px; }
@@ -246,7 +202,7 @@
         .btn-edit-log { background: #f39c12; }
     </style>
 </head>
-<body>
+<body class="role-user">
 
 <div id="loginScreen">
     <div class="login-box">
@@ -307,6 +263,8 @@
     <option value="رسم 40">
 </datalist>
 
+<datalist id="availableItemsList"></datalist>
+
 <datalist id="destinationsList">
     <option value="محل فنون">
     <option value="محل الكراس">
@@ -322,8 +280,7 @@
             <div>
                 <h1>نظام إدارة مخزن الكراس</h1>
                 <div class="roles-header">
-                    <i class="fas fa-user-tie"></i> أمين المخزن: <b>علي عبداللطيف</b> | 
-                    <i class="fas fa-user-edit"></i> مساعد أمين المخزن: <b>عبدالرحمن محمد فوزي</b>
+                    <i class="fas fa-user-tie"></i> مدير المخزن: <b>عبدالرحمن محمد فوزي</b>
                 </div>
             </div>
         </div>
@@ -332,20 +289,21 @@
     <div class="tabs no-print" id="mainTabs">
         <button class="tab-btn active" onclick="switchTab('daily', event)"><i class="fas fa-list"></i> الجرد اليومي</button>
         <button class="tab-btn" onclick="switchTab('map', event)"><i class="fas fa-th"></i> خريطة المخزن</button>
-        <button class="tab-btn" onclick="switchTab('transactions', event)"><i class="fas fa-exchange-alt"></i> سجل الصرف والطباعة</button>
+        <button class="tab-btn" onclick="switchTab('transactions', event)"><i class="fas fa-exchange-alt"></i> الصرف والطباعة</button>
+        <button class="tab-btn" onclick="switchTab('stats', event)"><i class="fas fa-chart-pie"></i> الإحصائيات</button>
     </div>
 
     <div id="tab-daily" class="tab-content active">
-        <div class="controls-section no-print">
+        <div class="controls-section no-print admin-only">
             <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
                 <div class="history-btns">
-                    <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
-                    <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
+                    <button class="copy-btn-names admin-only" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
+                    <button class="copy-btn-full admin-only" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
             </div>
             
-            <div class="input-group">
+            <div class="input-group admin-only">
                 <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
                 <input type="number" id="cartons" placeholder="الكراتين" min="0" step="any">
                 <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
@@ -362,7 +320,7 @@
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / حذف / مراجعة</th>
+                    <th>اسم الصنف</th><th>الكراتين</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print admin-only">تعديل / حذف / مراجعة</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -375,8 +333,28 @@
         </div>
     </div>
 
+    <div id="tab-stats" class="tab-content">
+        <div class="stats-cards">
+            <div class="stat-card">
+                <i class="fas fa-box" style="color: #3498db;"></i>
+                <h3>إجمالي الكراتين بالجرد</h3>
+                <div class="value" id="statTotalCartons">0</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-layer-group" style="color: #27ae60;"></i>
+                <h3>إجمالي القطع في المخزن</h3>
+                <div class="value" id="statTotalPieces">0</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-truck-loading" style="color: #e74c3c;"></i>
+                <h3>إجمالي المصروف اليوم (كرتونة)</h3>
+                <div class="value" id="statTotalDispatched">0</div>
+            </div>
+        </div>
+    </div>
+
     <div id="tab-transactions" class="tab-content">
-        <div class="transaction-section no-print">
+        <div class="transaction-section no-print admin-only">
             <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سلة الأصناف المجمعة)</h3>
             
             <div style="margin-bottom: 15px; background: white; padding: 10px; border-radius: 8px;">
@@ -385,7 +363,7 @@
             </div>
 
             <div class="trans-input-group">
-                <input type="text" id="transItemName" list="itemNamesList" placeholder="اختر اسم الصنف">
+                <input type="text" id="transItemName" list="availableItemsList" placeholder="ابحث واختر الصنف المتاح">
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
@@ -418,12 +396,27 @@
     </div>
 
     <div id="tab-map" class="tab-content">
-        <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
+        <div class="controls-section no-print admin-only" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
             <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
         </div>
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
+
+        <div class="map-summary-section">
+            <h3><i class="fas fa-cubes"></i> جرد الخريطة المجمع (تلقائي)</h3>
+            <table style="width:100%; text-align: center; border-collapse: collapse; background: white;">
+                <thead>
+                    <tr>
+                        <th style="background:#2c3e50; color:white; padding:10px;">اسم الصنف</th>
+                        <th style="background:#2c3e50; color:white; padding:10px;">إجمالي البالتات</th>
+                        <th style="background:#2c3e50; color:white; padding:10px;">كميات أخرى (كرتونة/رصة)</th>
+                        <th style="background:#2c3e50; color:white; padding:10px;">إجمالي القطع التقديري</th>
+                    </tr>
+                </thead>
+                <tbody id="mapSummaryBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
@@ -431,7 +424,7 @@
     </button>
 
     <footer class="no-print">
-        <p><b>تصميم وتطوير:</b> عبدالرحمن محمد فوزي (مساعد أمين مخزن)</p>
+        <p><b>تصميم وتطوير:</b> عبدالرحمن محمد فوزي (مدير المخزن)</p>
         <a href="https://wa.me/201285577074" class="whatsapp-btn">
             <i class="fab fa-whatsapp"></i> واتساب: 01285577074
         </a>
@@ -442,14 +435,14 @@
     <div class="modal-box">
         <div class="modal-header">
             <h3 id="modalSlotTitle">تعديل الخانة</h3>
-            <div class="color-picker-wrapper">
+            <div class="color-picker-wrapper admin-only">
                 <label for="slotColorPicker">لون الخانة:</label>
                 <input type="color" id="slotColorPicker" onchange="changeSlotColor()" title="اختر لون لتلوين خلفية الخانة في الخريطة">
             </div>
             <button class="close-modal" onclick="closeSlotModal()">&times;</button>
         </div>
         
-        <div class="modal-form-group">
+        <div class="modal-form-group admin-only">
             <label>إضافة / تعديل صنف في الخانة:</label>
             <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 10px; align-items: center;">
@@ -463,17 +456,25 @@
                 </select>
                 <input type="color" id="slotItemColor" value="#ffffff" title="لون الصنف (اختياري)" style="width: 40px; height: 40px;">
             </div>
+            <input type="number" id="slotItemPalletSize" placeholder="كمية البالتة الواحدة (مثال: 600 أو 504 لحساب القطع)" style="width: 100%; margin-top: 5px;">
+            
             <button class="add-to-slot-btn" id="slotMainBtn" onclick="handleAddOrEditSlotItem()"><i class="fas fa-plus"></i> إضافة للخانة</button>
         </div>
 
         <div class="slot-current-items">
-            <h4>الأصناف الموجودة حالياً (رتب، عدل أو راجع):</h4>
+            <h4>الأصناف الموجودة حالياً:</h4>
             <ul id="slotItemsListUI"></ul>
         </div>
     </div>
 </div>
 
 <script>
+    // ==========================================
+    // إعدادات الصلاحيات والمديرين
+    // ==========================================
+    const ADMIN_EMAILS = ["1404@kms.com"];
+    let currentUserRole = "user";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDgwdBexMXQepqc7HVGL5tUDXU2JHOcuFg",
       authDomain: "kmskoras.firebaseapp.com",
@@ -584,6 +585,18 @@
         if (user) {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
+            
+            // تطبيق نظام الصلاحيات
+            if(ADMIN_EMAILS.includes(user.email)) {
+                currentUserRole = "admin";
+                document.body.classList.remove('role-user');
+                document.body.classList.add('role-admin');
+            } else {
+                currentUserRole = "user";
+                document.body.classList.remove('role-admin');
+                document.body.classList.add('role-user');
+            }
+
             attachFirebaseListeners(dateInput.value);
         } else {
             document.getElementById('mainContainer').style.display = 'none';
@@ -607,6 +620,8 @@
             if (btn) btn.classList.add('active');
         }
         document.getElementById('tab-' + tabId).classList.add('active');
+
+        if(tabId === 'stats') renderStatistics();
     }
 
     function initializeEmptyMap() {
@@ -627,6 +642,7 @@
         currentInventoryListenerRef.on('value', (snapshot) => {
             inventoryData[date] = snapshot.val() || [];
             renderInventoryTable();
+            renderStatistics();
         });
 
         if (currentMapListenerRef) currentMapListenerRef.off();
@@ -657,6 +673,7 @@
             let rawData = snapshot.val() || [];
             transactionsData[date] = Array.isArray(rawData) ? rawData : Object.values(rawData);
             renderTransactionsTable(); 
+            renderStatistics();
         });
     }
 
@@ -691,7 +708,7 @@
         }
     }
     window.addEventListener('online', syncLocalBackup);
-    window.addEventListener('load', syncLocalBackup); // تأمين المزامنة أول ما يفتح المتصفح
+    window.addEventListener('load', syncLocalBackup); 
 
     function saveInventoryToFirebase() {
         const selectedDate = dateInput.value;
@@ -751,7 +768,35 @@
         }
     }
 
+    // ==========================================
+    // حساب الإحصائيات العامة (Dashboard)
+    // ==========================================
+    function renderStatistics() {
+        const selectedDate = dateInput.value;
+        let inv = inventoryData[selectedDate] || [];
+        let trans = transactionsData[selectedDate] || [];
+        
+        let tCartons = 0; let tPieces = 0; let tDispCartons = 0;
+        
+        inv.forEach(i => {
+            let c = parseFloat(i.cartons)||0; let p = parseInt(i.perCarton)||0;
+            tCartons += c; tPieces += (c*p);
+        });
+        
+        trans.forEach(t => {
+            if(t.rawItems) {
+                t.rawItems.forEach(ri => { tDispCartons += (parseFloat(ri.exactCartons)||0); });
+            }
+        });
+
+        document.getElementById('statTotalCartons').innerText = tCartons.toFixed(2);
+        document.getElementById('statTotalPieces').innerText = Math.round(tPieces).toLocaleString();
+        document.getElementById('statTotalDispatched').innerText = tDispCartons.toFixed(2);
+    }
+
     function addToTransactionCart() {
+        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط لتنفيذ الصرف!");
+
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
         const unit = document.getElementById('transUnit').value;
@@ -841,6 +886,8 @@
     }
 
     function processAndPrintTransaction() {
+        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
+
         const destination = sanitizeInput(document.getElementById('transDestination').value);
         const selectedDate = dateInput.value;
 
@@ -964,6 +1011,14 @@
                 itemsHtml = `<div class="log-item" style="color:#7f8c8d; font-size:14px;">${trans.details || trans.itemName}</div>`;
             }
 
+            // أزرار التعديل والحذف للأدمن فقط
+            let adminActions = currentUserRole === 'admin' ? `
+                <div class="log-actions no-print admin-only">
+                    <button class="btn-edit-log" onclick="editTransactionDest(${i})"><i class="fas fa-pen"></i> تعديل الوجهة</button>
+                    <button class="btn-del-log" onclick="deleteTransaction(${i})"><i class="fas fa-undo-alt"></i> حذف واسترجاع</button>
+                </div>
+            ` : '';
+
             htmlContent += `
             <div class="log-card">
                 <div class="log-card-header" onclick="toggleLogCard(${i})">
@@ -977,14 +1032,7 @@
                     <div style="margin-bottom: 15px;">
                         ${itemsHtml}
                     </div>
-                    <div class="log-actions no-print">
-                        <button class="btn-edit-log" onclick="editTransactionDest(${i})">
-                            <i class="fas fa-pen"></i> تعديل الوجهة
-                        </button>
-                        <button class="btn-del-log" onclick="deleteTransaction(${i})">
-                            <i class="fas fa-undo-alt"></i> حذف واسترجاع
-                        </button>
-                    </div>
+                    ${adminActions}
                 </div>
             </div>`;
         }
@@ -1006,6 +1054,7 @@
     }
 
     function editTransactionDest(index) {
+        if(currentUserRole !== 'admin') return;
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
         let tArray = Array.isArray(rawData) ? rawData : Object.values(rawData);
@@ -1026,6 +1075,7 @@
     }
 
     function deleteTransaction(index) {
+        if(currentUserRole !== 'admin') return;
         if(!confirm("⚠️ تحذير: هل أنت متأكد من حذف هذا الإذن بالكامل؟\nسيتم إرجاع جميع الأصناف الموجودة فيه إلى رصيد المخزن الأساسي.")) return;
         
         const selectedDate = dateInput.value;
@@ -1096,14 +1146,30 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
         const items = inventoryData[selectedDate] || [];
+        
+        // تحديث القائمة الذكية للمنصرف بناءً على الجرد الحالي
+        const availableList = document.getElementById('availableItemsList');
+        availableList.innerHTML = '';
 
         items.forEach((item, index) => {
+            // إضافة الصنف للقائمة الذكية للمنصرف
+            const option = document.createElement('option');
+            option.value = item.name;
+            availableList.appendChild(option);
+
             const row = document.createElement('tr');
-            
             row.style.backgroundColor = (item.color && item.color !== "#ffffff") ? item.color + "33" : "transparent"; 
             row.style.borderRight = (item.color && item.color !== "#ffffff") ? `6px solid ${item.color}` : "none";
             
             if (item.isReviewed) row.classList.add('reviewed');
+
+            let adminActions = currentUserRole === 'admin' ? `
+                <button class="check-btn admin-only" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                <button class="move-btn admin-only" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
+                <button class="move-btn admin-only" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
+                <button class="edit-row-btn admin-only" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn admin-only" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
+            ` : '';
 
             row.innerHTML = `
                 <td class="no-print"><input type="checkbox" class="row-checkbox" value="${index}" onchange="calculateSelectedTotals()"></td>
@@ -1116,12 +1182,8 @@
                 <td>${item.cartons || 0}</td>
                 <td>${item.perCarton || 0}</td>
                 <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
-                <td class="action-btns no-print">
-                    <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
-                    <button class="move-btn" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
-                    <button class="move-btn" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
-                    <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
+                <td class="action-btns no-print admin-only">
+                    ${adminActions}
                 </td>
             `;
             tbody.appendChild(row);
@@ -1135,6 +1197,7 @@
     }
 
     function handleMainAction() {
+        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
         const name = sanitizeInput(document.getElementById('itemName').value);
         const cartons = parseFloat(document.getElementById('cartons').value);
         const perCarton = parseInt(document.getElementById('perCarton').value);
@@ -1161,11 +1224,13 @@
     }
 
     function toggleReview(index) {
+        if(currentUserRole !== 'admin') return;
         inventoryData[dateInput.value][index].isReviewed = !inventoryData[dateInput.value][index].isReviewed;
         saveInventoryToFirebase();
     }
     
     function moveItem(index, direction) {
+        if(currentUserRole !== 'admin') return;
         const items = inventoryData[dateInput.value];
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < items.length) {
@@ -1177,6 +1242,7 @@
     }
 
     function prepareEdit(index) {
+        if(currentUserRole !== 'admin') return;
         const item = inventoryData[dateInput.value][index];
         document.getElementById('itemName').value = item.name;
         document.getElementById('cartons').value = item.cartons;
@@ -1189,6 +1255,7 @@
     }
 
     function deleteItem(index) {
+        if(currentUserRole !== 'admin') return;
         if(confirm("هل تريد حذف هذا البند من الجرد اليومي؟")) {
             inventoryData[dateInput.value].splice(index, 1);
             saveInventoryToFirebase();
@@ -1196,6 +1263,7 @@
     }
 
     function copyFromYesterday(includeNumbers) {
+        if(currentUserRole !== 'admin') return;
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         db.ref('inventory/' + yesterday).once('value').then((snapshot) => {
@@ -1211,6 +1279,7 @@
     }
 
     function copyMapFromYesterday() {
+        if(currentUserRole !== 'admin') return;
         const d = new Date(dateInput.value); d.setDate(d.getDate() - 1);
         const yesterday = d.toISOString().split('T')[0];
         db.ref('warehouseMap/' + yesterday).once('value').then((snapshot) => {
@@ -1236,6 +1305,64 @@
             } else { alert("لا توجد خريطة مسجلة لتاريخ أمس!"); }
         });
     }
+
+    // ==========================================
+    // جرد الخريطة المجمع (Map Aggregation)
+    // ==========================================
+    function renderMapSummary() {
+        const body = document.getElementById('mapSummaryBody');
+        body.innerHTML = '';
+        const currentMap = mapData[dateInput.value] || {};
+        
+        let aggregates = {};
+        
+        // التجميع من كل الخانات
+        for (let slotId in currentMap) {
+            let items = currentMap[slotId].items || [];
+            items.forEach(item => {
+                if(!aggregates[item.name]) {
+                    aggregates[item.name] = { pallets: 0, cartons: 0, rassas: 0, estimatedPieces: 0 };
+                }
+                
+                let q = parseFloat(item.qty) || 0;
+                let pSize = parseInt(item.palletSize) || 0; // حجم البالتة
+                
+                if (item.unit === 'بالتة') { 
+                    aggregates[item.name].pallets += q; 
+                    aggregates[item.name].estimatedPieces += (q * pSize); 
+                }
+                else if (item.unit === 'نص بالتة') { 
+                    aggregates[item.name].pallets += (q * 0.5); 
+                    aggregates[item.name].estimatedPieces += (q * 0.5 * pSize); 
+                }
+                else if (item.unit === 'ربع بالتة') { 
+                    aggregates[item.name].pallets += (q * 0.25); 
+                    aggregates[item.name].estimatedPieces += (q * 0.25 * pSize); 
+                }
+                else if (item.unit === 'كرتونة') aggregates[item.name].cartons += q;
+                else if (item.unit === 'رصة') aggregates[item.name].rassas += q;
+            });
+        }
+
+        // عرض التجميع في الجدول
+        for (let name in aggregates) {
+            let agg = aggregates[name];
+            let otherText = [];
+            if(agg.cartons > 0) otherText.push(`${agg.cartons} كرتونة`);
+            if(agg.rassas > 0) otherText.push(`${agg.rassas} رصة`);
+            
+            body.innerHTML += `
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="font-weight:bold; color:var(--primary-color); padding:10px;">${name}</td>
+                    <td style="color:var(--secondary-color); font-weight:bold; font-size:16px; padding:10px;">${agg.pallets > 0 ? agg.pallets + ' بالتة' : '-'}</td>
+                    <td style="padding:10px;">${otherText.length > 0 ? otherText.join(' و ') : '-'}</td>
+                    <td style="font-weight:bold; padding:10px;">${agg.estimatedPieces > 0 ? agg.estimatedPieces + ' قطعة' : '-'}</td>
+                </tr>
+            `;
+        }
+        if(Object.keys(aggregates).length === 0) body.innerHTML = '<tr><td colspan="4" style="padding:10px;">الخريطة فارغة حالياً</td></tr>';
+    }
+
 
     function renderMapUI() {
         const wrapper = document.getElementById('warehouseMapUI');
@@ -1281,6 +1408,8 @@
             }
             wrapper.appendChild(colDiv);
         });
+
+        renderMapSummary(); // استدعاء دالة التجميع
     }
 
     function openSlotModal(slotId, displayNum) {
@@ -1294,6 +1423,7 @@
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
         document.getElementById('slotItemColor').value = '#ffffff';
+        document.getElementById('slotItemPalletSize').value = ''; // تصفير حجم البالتة
         
         const btn = document.getElementById('slotMainBtn');
         btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
@@ -1310,6 +1440,7 @@
     }
 
     function changeSlotColor() {
+        if(currentUserRole !== 'admin') return;
         if(!currentActiveSlotId) return;
         const color = document.getElementById('slotColorPicker').value;
         if(!mapData[dateInput.value][currentActiveSlotId]) {
@@ -1335,14 +1466,20 @@
             li.style.backgroundColor = bgColor;
             li.style.borderRight = `5px solid ${borderColor}`;
 
+            let adminActions = currentUserRole === 'admin' ? `
+                <button class="check-btn admin-only" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                <button class="move-btn admin-only" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
+                <button class="move-btn admin-only" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
+                <button class="edit-row-btn admin-only" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn admin-only" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
+            ` : '';
+
+            let palletBadge = item.palletSize > 0 ? `<br><small style="color:#27ae60;">(حجم البالتة: ${item.palletSize})</small>` : '';
+
             li.innerHTML = `
-                <span><b>${item.qty} ${item.unit}</b> - ${item.name}</span>
-                <div class="map-action-btns">
-                    <button class="check-btn" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
-                    <button class="move-btn" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
-                    <button class="move-btn" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
-                    <button class="edit-row-btn" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn" onclick="deleteItemFromSlot(event, ${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
+                <span><b>${item.qty} ${item.unit}</b> - ${item.name} ${palletBadge}</span>
+                <div class="map-action-btns admin-only">
+                    ${adminActions}
                 </div>
             `;
             listUI.appendChild(li);
@@ -1350,10 +1487,13 @@
     }
 
     function handleAddOrEditSlotItem() {
+        if(currentUserRole !== 'admin') return alert("صلاحية الإدارة فقط!");
+        
         const name = sanitizeInput(document.getElementById('slotItemName').value);
         const qty = parseFloat(document.getElementById('slotItemQty').value);
         const unit = sanitizeInput(document.getElementById('slotItemUnit').value);
         const color = sanitizeInput(document.getElementById('slotItemColor').value);
+        const palletSize = parseInt(document.getElementById('slotItemPalletSize').value) || 0;
 
         if(!name || isNaN(qty)) return alert("يرجى إدخال اسم الصنف والعدد بأرقام صحيحة!");
 
@@ -1365,11 +1505,11 @@
         }
         
         if(slotEditIndex === null) {
-            mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false });
+            mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false, palletSize });
         } else {
             mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex] = {
                 ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex],
-                name, qty, unit, color
+                name, qty, unit, color, palletSize
             };
             slotEditIndex = null;
             const btn = document.getElementById('slotMainBtn');
@@ -1382,15 +1522,18 @@
         document.getElementById('slotItemName').value = '';
         document.getElementById('slotItemQty').value = '';
         document.getElementById('slotItemColor').value = '#ffffff';
+        document.getElementById('slotItemPalletSize').value = '';
     }
 
     function prepareSlotItemEdit(event, index) {
+        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         const item = mapData[dateInput.value][currentActiveSlotId].items[index];
         document.getElementById('slotItemName').value = item.name;
         document.getElementById('slotItemQty').value = item.qty;
         document.getElementById('slotItemUnit').value = item.unit || 'بالتة';
         document.getElementById('slotItemColor').value = item.color || '#ffffff';
+        document.getElementById('slotItemPalletSize').value = item.palletSize || '';
         slotEditIndex = index;
         const btn = document.getElementById('slotMainBtn');
         btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
@@ -1398,6 +1541,7 @@
     }
 
     function toggleMapItemReview(event, index) {
+        if(currentUserRole !== 'admin') return;
         event.stopPropagation(); 
         const items = mapData[dateInput.value][currentActiveSlotId].items;
         items[index].isReviewed = !items[index].isReviewed;
@@ -1405,6 +1549,7 @@
     }
 
     function moveMapItem(event, index, direction) {
+        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         const items = mapData[dateInput.value][currentActiveSlotId].items;
         const newIndex = index + direction;
@@ -1417,6 +1562,7 @@
     }
 
     function deleteItemFromSlot(event, index) {
+        if(currentUserRole !== 'admin') return;
         event.stopPropagation();
         if(confirm("هل تريد حذف هذا الصنف من الخانة؟")) {
             mapData[dateInput.value][currentActiveSlotId].items.splice(index, 1);
@@ -1426,13 +1572,11 @@
 
     // ==========================================
     // تصوير طبيعي عالي الجودة للتبويب النشط فقط
-    // وتأمين ظهور جميع السطور المفلترة في الصورة
     // ==========================================
     async function captureReport() {
         const overlay = document.getElementById('loadingOverlay');
         if (overlay) overlay.style.display = 'flex';
         
-        // 1. تأمين: حفظ كلمة البحث الحالية وتفريغ الخانة لإظهار الجدول كاملاً في الصورة
         const searchInputEl = document.getElementById('searchInput');
         const prevSearchValue = searchInputEl ? searchInputEl.value : '';
         if (searchInputEl && searchInputEl.value !== '') {
@@ -1446,6 +1590,7 @@
             if (activeTab.id === 'tab-daily') tabTitle = "الجرد_اليومي";
             else if (activeTab.id === 'tab-map') tabTitle = "خريطة_المخزن";
             else if (activeTab.id === 'tab-transactions') tabTitle = "سجل_حركات_الصرف";
+            else if (activeTab.id === 'tab-stats') tabTitle = "الاحصائيات";
         }
         
         const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .tabs, .no-print');
@@ -1490,36 +1635,4 @@
             });
             
             const link = document.createElement('a');
-            link.download = `${tabTitle}_كمال_سعد_${dateInput.value || 'جديد'}.png`;
-            link.href = canvas.toDataURL("image/png"); 
-            link.click();
-        } catch (err) {
-            console.error("خطأ في التصوير:", err);
-            alert("حدث خطأ أثناء حفظ الصورة.");
-        } finally {
-            hideElements.forEach(el => {
-                el.style.display = el.dataset.oldDisplay || '';
-            });
-            allBodies.forEach(b => b.classList.remove('active'));
-            
-            container.style.height = originalHeight;
-            container.style.overflow = originalOverflow;
-            
-            if (activeTab) {
-                activeTab.style.height = tabOrigHeight;
-                activeTab.style.overflow = tabOrigOverflow;
-            }
-
-            // 2. تأمين: إعادة إرجاع كلمة البحث والفلترة كما كانت قبل التصوير بالضبط
-            if (searchInputEl && prevSearchValue !== '') {
-                searchInputEl.value = prevSearchValue;
-                if (typeof filterTable === 'function') filterTable();
-            }
-
-            window.scrollTo(0, currentScrollY);
-            if (overlay) overlay.style.display = 'none';
-        }
-    }
-</script>
-</body>
-            </html>
+            link.download = `${tabTitle}_كمال_سعد_${dateInput.value || 'جديد
