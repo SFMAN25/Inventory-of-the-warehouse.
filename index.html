@@ -385,7 +385,7 @@
             </div>
 
             <div class="trans-input-group">
-                <input type="text" id="transItemName" list="itemNamesList" placeholder="اختر اسم الصنف">
+                <input type="text" id="transItemName" list="inventorySuggestions" placeholder="اختر اسم الصنف"><datalist id="inventorySuggestions"></datalist>
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
@@ -424,6 +424,16 @@
         </div>
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
+
+<div class="controls-section" style="margin-top:20px;">
+<h3><i class="fas fa-calculator"></i> جرد الكراس</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+<input type="number" id="palletPieces" placeholder="عدد القطع في البالتة (مثال 600)">
+<input type="number" id="totalPiecesInput" placeholder="إجمالي القطع الموجودة">
+<button class="add-btn" onclick="calculatePalletInventory()">حساب</button>
+</div>
+<div id="palletResult" style="margin-top:15px;font-weight:bold;"></div>
+</div>
     </div>
 
     <button class="share-btn no-print" onclick="captureReport()">
@@ -1520,6 +1530,33 @@
             if (overlay) overlay.style.display = 'none';
         }
     }
+
+function calculatePalletInventory(){
+ const per=parseFloat(document.getElementById('palletPieces').value)||0;
+ const total=parseFloat(document.getElementById('totalPiecesInput').value)||0;
+ if(per<=0){alert('ادخل عدد القطع في البالتة');return;}
+ const pallets=Math.floor(total/per);
+ const remain=total%per;
+ document.getElementById('palletResult').innerHTML=
+ `عدد البالتات الكاملة: <b>${pallets}</b> | المتبقي: <b>${remain}</b> قطعة | إجمالي القطع: <b>${total}</b>`;
+}
+function refreshInventorySuggestions(){
+ const list=document.getElementById('inventorySuggestions');
+ if(!list) return;
+ const items=inventoryData[dateInput.value]||[];
+ list.innerHTML='';
+ items.forEach(it=>{
+   const op=document.createElement('option');
+   op.value=it.name;
+   list.appendChild(op);
+ });
+}
+document.addEventListener('input',function(e){
+ if(e.target && e.target.id==='transItemName'){refreshInventorySuggestions();}
+});
+const _oldRenderInventoryTable=renderInventoryTable;
+renderInventoryTable=function(){_oldRenderInventoryTable();refreshInventorySuggestions();};
+
 </script>
 </body>
-                                                                                                         </html>
+</html>
