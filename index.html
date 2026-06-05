@@ -163,7 +163,7 @@
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
         /* ==========================================
-           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة)
+           تنسيق احترافي ومحسن جداً لطبعة الصرف (الفاتورة) وتصوير الشاشة
            ========================================== */
         #invoicePrintArea { 
             display: none; 
@@ -220,12 +220,31 @@
             color: #000000 !important;
         }
 
+        /* تحسينات الطباعة لمنع الشاشة البيضاء تماماً */
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; }
+            body, html { 
+                background: #ffffff !important; 
+                color: #000000 !important; 
+                height: auto !important; 
+                overflow: visible !important; 
+                margin: 0; 
+                padding: 0; 
+            }
             body * { visibility: hidden; }
             #invoicePrintArea, #invoicePrintArea * { visibility: visible; }
-            #invoicePrintArea { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
-            .container { box-shadow: none; margin: 0; padding: 0; background: transparent; }
+            #invoicePrintArea { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                display: block !important; 
+                margin: 0; 
+                padding: 20px; 
+                box-sizing: border-box; 
+            }
+            .container, #loginScreen, #mainTabs, header, footer, #loadingOverlay { 
+                display: none !important; 
+            }
         }
 
         /* --------------------------------------------------- */
@@ -274,7 +293,7 @@
 
 <div id="loadingOverlay">
     <i class="fas fa-circle-notch fa-spin fa-3x"></i>
-    <p style="margin-top: 10px; font-weight: bold;">جاري تصوير التبويب الحالي فقط...</p>
+    <p style="margin-top: 10px; font-weight: bold;">جاري تصوير التبويب الحالي بدقة عالية...</p>
 </div>
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
@@ -536,7 +555,7 @@
     // ==========================================
     let historyStack = [];
     let redoStack = [];
-    const MAX_HISTORY = 50; // الحد الأقصى للخطوات المحفوظة
+    const MAX_HISTORY = 50; 
 
     function saveState() {
         const selectedDate = dateInput.value;
@@ -1619,7 +1638,7 @@
         
         const hideElements = document.querySelectorAll('.delete-btn, .edit-row-btn, .check-btn, .move-btn, .btn-del-log, .btn-edit-log, .share-btn, .logout-btn, .add-btn, .copy-text-btn, .tabs, .no-print');
         hideElements.forEach(el => {
-            el.dataset.oldDisplay = el.style.display;
+            el.dataset.oldDisplay = el.style.display || '';
             el.style.setProperty('display', 'none', 'important');
         });
 
@@ -1644,18 +1663,27 @@
         }
 
         const currentScrollY = window.scrollY;
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'instant' });
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             const canvas = await html2canvas(container, { 
                 useCORS: true, 
-                scale: 1.5, 
+                scale: 2, 
                 backgroundColor: "#f4f7f6", 
                 logging: false,
-                scrollY: 0, 
-                scrollX: 0
+                windowWidth: document.documentElement.offsetWidth,
+                windowHeight: document.documentElement.scrollHeight,
+                onclone: function(clonedDoc) {
+                    const clonedContainer = clonedDoc.getElementById('mainContainer');
+                    if(clonedContainer) {
+                        clonedContainer.style.height = 'auto';
+                        clonedContainer.style.overflow = 'visible';
+                    }
+                    const over = clonedDoc.getElementById('loadingOverlay');
+                    if (over) over.style.display = 'none';
+                }
             });
             
             const link = document.createElement('a');
@@ -1664,10 +1692,10 @@
             link.click();
         } catch (err) {
             console.error("خطأ في التصوير:", err);
-            alert("حدث خطأ أثناء حفظ الصورة.");
+            alert("حدث خطأ أثناء حفظ الصورة. تأكد من وجود ذاكرة كافية.");
         } finally {
             hideElements.forEach(el => {
-                el.style.display = el.dataset.oldDisplay || '';
+                el.style.display = el.dataset.oldDisplay;
             });
             allBodies.forEach(b => b.classList.remove('active'));
             
@@ -1684,7 +1712,7 @@
                 if (typeof filterTable === 'function') filterTable();
             }
 
-            window.scrollTo(0, currentScrollY);
+            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
             if (overlay) overlay.style.display = 'none';
         }
     }
@@ -1710,4 +1738,4 @@
 
 </script>
 </body>
-    </html>
+</html>
