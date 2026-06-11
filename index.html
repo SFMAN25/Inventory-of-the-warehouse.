@@ -110,6 +110,7 @@
         .edit-row-btn { color: #f39c12; background: none; border: none; cursor: pointer; font-size: 18px; }
         .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
         .move-btn { color: #34495e; background: none; border: none; cursor: pointer; font-size: 16px; }
+        .duplicate-btn { color: #8e44ad; background: none; border: none; cursor: pointer; font-size: 18px; }
 
         #selectionTotalsContainer {
             display: none; background: #27ae60; color: white; padding: 15px; 
@@ -212,18 +213,15 @@
             body { 
                 background: #fff !important; 
                 color: #000 !important; 
-                /* تحويل الألوان إجبارياً إلى الأبيض والأسود */
                 filter: grayscale(100%) !important; 
                 -webkit-filter: grayscale(100%) !important;
             }
-            /* إخفاء التطبيق بالكامل أثناء الطباعة لمنع التداخل */
             #mainContainer, #loginScreen, .modal-overlay, #syncStatus { 
                 display: none !important; 
             }
-            /* إظهار الفاتورة فقط كعنصر مستقل */
             #invoicePrintArea { 
                 display: block !important; 
-                position: relative; /* لتجنب الشاشة البيضاء */
+                position: relative; 
             }
         }
 
@@ -389,7 +387,7 @@
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th><th>الكراتين / البالتات</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / حذف / مراجعة</th>
+                    <th>اسم الصنف</th><th>الكراتين / البالتات</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / تكرار / حذف / مراجعة</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -921,7 +919,6 @@
         renderTransactionCart();
     }
 
-    // دالة تقوم بالخصم والحفظ فقط بدون فتح الطباعة التلقائية
     function processTransactionOnly() {
         const destination = sanitizeInput(document.getElementById('transDestination').value);
         const selectedDate = dateInput.value;
@@ -983,7 +980,6 @@
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
-    // لطباعة الفاتورة بدقة مع إجمالي القطع والكراتين للمنشية
     function printOldTransaction(index) {
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
@@ -1222,10 +1218,11 @@
                 <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
                 <td class="action-btns no-print">
                     <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                    <button class="duplicate-btn" onclick="duplicateItem(${index})" title="تكرار السطر (نسخ)"><i class="fas fa-copy"></i></button>
                     <button class="move-btn" onclick="moveItem(${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
                     <button class="move-btn" onclick="moveItem(${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
-                    <button class="edit-row-btn" onclick="prepareEdit(${index})"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn" onclick="deleteItem(${index})"><i class="fas fa-trash-alt"></i></button>
+                    <button class="edit-row-btn" onclick="prepareEdit(${index})" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteItem(${index})" title="حذف"><i class="fas fa-trash-alt"></i></button>
                 </td>
             `;
             tbody.appendChild(row);
@@ -1337,6 +1334,27 @@
     function toggleReview(index) {
         saveState(); // حفظ حالة الجرد للتراجع
         inventoryData[dateInput.value][index].isReviewed = !inventoryData[dateInput.value][index].isReviewed;
+        saveInventoryToFirebase();
+    }
+    
+    function duplicateItem(index) {
+        saveState(); // حفظ حالة الجرد للتراجع عشان لو كرر بالغلط
+        const selectedDate = dateInput.value;
+        const items = inventoryData[selectedDate];
+        const originalItem = items[index];
+        
+        // عمل نسخة من العنصر الأصلي
+        const duplicatedItem = {
+            name: originalItem.name,
+            cartons: originalItem.cartons,
+            perCarton: originalItem.perCarton,
+            color: originalItem.color,
+            isReviewed: false // السطر الجديد المنسوخ ينزل مش متراجع
+        };
+        
+        // إدراج النسخة الجديدة تحت السطر الأصلي مباشرة (السطر الحالي + 1)
+        items.splice(index + 1, 0, duplicatedItem);
+        
         saveInventoryToFirebase();
     }
     
