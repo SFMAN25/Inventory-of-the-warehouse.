@@ -161,7 +161,7 @@
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
         /* ==========================================
-           تنسيق الطباعة (أبيض وأسود إجباري + حل الشاشة البيضاء)
+           تنسيق الطباعة (أبيض وأسود إجباري)
            ========================================== */
         #invoicePrintArea { 
             display: none; 
@@ -426,6 +426,24 @@
             <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
         </div>
         
+        <div class="controls-section no-print" style="margin-bottom: 20px; border: 2px dashed #3498db;">
+            <h3 style="color: #3498db; margin-top: 0;"><i class="fas fa-calculator"></i> حاسبة البالتات السريعة (لخريطة المخزن)</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                <div style="flex: 1;">
+                    <label style="font-weight: bold; font-size: 14px;">إجمالي القطع (الباكو):</label>
+                    <input type="number" id="mapCalcTotal" placeholder="مثال: 1200" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" oninput="calcMapPallets()">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-weight: bold; font-size: 14px;">العدد داخل البالتة:</label>
+                    <input type="number" id="mapCalcPerPallet" placeholder="مثال: 600" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" oninput="calcMapPallets()">
+                </div>
+                <div style="flex: 1; background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center; border-bottom: 3px solid #3498db;">
+                    <span style="font-size: 14px; color: #7f8c8d;">عدد البالتات:</span><br>
+                    <strong id="mapCalcResult" style="font-size: 20px; color: #2c3e50;">0</strong>
+                </div>
+            </div>
+        </div>
+
         <div class="map-wrapper" id="warehouseMapUI"></div>
     </div>
 
@@ -806,6 +824,27 @@
         }
     }
 
+    // ==========================================
+    // حاسبة البالتات لخريطة المخزن
+    // ==========================================
+    function calcMapPallets() {
+        const total = parseFloat(document.getElementById('mapCalcTotal').value) || 0;
+        const per = parseFloat(document.getElementById('mapCalcPerPallet').value) || 0;
+        const res = document.getElementById('mapCalcResult');
+        
+        if(per > 0) {
+            const pallets = total / per;
+            let text = pallets.toFixed(2);
+            // إزالة الأصفار لو كان الرقم صحيح
+            if (pallets === Math.floor(pallets)) text = pallets;
+            res.innerHTML = text + ' <span style="font-size:14px; color: #7f8c8d;">بالتة</span>';
+            res.style.color = '#27ae60';
+        } else {
+            res.innerHTML = '0';
+            res.style.color = '#2c3e50';
+        }
+    }
+
     function addToTransactionCart() {
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
@@ -917,7 +956,7 @@
             }
         }
 
-        saveState(); // حفظ حالة الجرد للتراجع
+        saveState(); 
 
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
@@ -1112,7 +1151,7 @@
         let items = inventoryData[selectedDate] || [];
 
         if (trans.rawItems) {
-            saveState(); // حفظ حالة الجرد
+            saveState(); 
             trans.rawItems.forEach(cItem => {
                 let invItem = items.find(x => x.name === cItem.name);
                 if (invItem) {
@@ -1225,7 +1264,7 @@
 
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
-        saveState(); // حفظ حالة الجرد للتراجع
+        saveState(); 
 
         if(editIndex === null) {
             inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
@@ -1243,29 +1282,26 @@
     }
 
     function toggleReview(index) {
-        saveState(); // حفظ حالة الجرد للتراجع
+        saveState(); 
         inventoryData[dateInput.value][index].isReviewed = !inventoryData[dateInput.value][index].isReviewed;
         saveInventoryToFirebase();
     }
     
     function duplicateItem(index) {
-        saveState(); // حفظ حالة الجرد للتراجع عشان لو كرر بالغلط
+        saveState(); 
         const selectedDate = dateInput.value;
         const items = inventoryData[selectedDate];
         const originalItem = items[index];
         
-        // عمل نسخة من العنصر الأصلي
         const duplicatedItem = {
             name: originalItem.name,
             cartons: originalItem.cartons,
             perCarton: originalItem.perCarton,
             color: originalItem.color,
-            isReviewed: false // السطر الجديد المنسوخ ينزل مش متراجع
+            isReviewed: false 
         };
         
-        // إدراج النسخة الجديدة تحت السطر الأصلي مباشرة (السطر الحالي + 1)
         items.splice(index + 1, 0, duplicatedItem);
-        
         saveInventoryToFirebase();
     }
     
@@ -1273,7 +1309,7 @@
         const items = inventoryData[dateInput.value];
         const newIndex = index + direction;
         if (newIndex >= 0 && newIndex < items.length) {
-            saveState(); // حفظ حالة الجرد للتراجع
+            saveState(); 
             const temp = items[index];
             items[index] = items[newIndex];
             items[newIndex] = temp;
@@ -1295,7 +1331,7 @@
 
     function deleteItem(index) {
         if(confirm("هل تريد حذف هذا البند من الجرد اليومي؟")) {
-            saveState(); // حفظ حالة الجرد للتراجع
+            saveState(); 
             inventoryData[dateInput.value].splice(index, 1);
             saveInventoryToFirebase();
         }
@@ -1313,7 +1349,7 @@
         db.ref('inventory/' + yesterday).once('value').then((snapshot) => {
             const yesterdayItems = snapshot.val();
             if(yesterdayItems && yesterdayItems.length > 0) {
-                saveState(); // حفظ حالة الجرد الحالية للتراجع في حال النسخ بالخطأ
+                saveState(); 
                 inventoryData[dateInput.value] = yesterdayItems.map(item => ({
                     name: item.name, cartons: includeNumbers ? item.cartons : "", perCarton: includeNumbers ? item.perCarton : "", color: item.color || "#ffffff", isReviewed: false 
                 }));
@@ -1534,23 +1570,20 @@
         const targetSlotId = 'slot_' + targetSlotNum;
         const selectedDate = dateInput.value;
 
-        // التأكد من أن الخانة موجودة في الخريطة
         if (!mapData[selectedDate][targetSlotId]) {
             mapData[selectedDate][targetSlotId] = { items: [], color: '#fdfdfd' };
         }
 
         if(confirm(`هل أنت متأكد من نقل الصنف لخانة رقم ${targetSlotNum}؟`)) {
-            // سحب الصنف من الخانة الحالية
             const itemToMove = mapData[selectedDate][currentActiveSlotId].items.splice(index, 1)[0];
             
-            // إضافته للخانة الجديدة
             if (!mapData[selectedDate][targetSlotId].items) {
                 mapData[selectedDate][targetSlotId].items = [];
             }
             mapData[selectedDate][targetSlotId].items.push(itemToMove);
             
             saveMapToFirebase();
-            renderModalCurrentItems(); // تحديث الخانة الحالية المفتوحة
+            renderModalCurrentItems();
             alert(`تم النقل بنجاح لخانة رقم ${targetSlotNum} 🚚`);
         }
     }
@@ -1596,4 +1629,4 @@
 
 </script>
 </body>
-    </html>
+</html>
