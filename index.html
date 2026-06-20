@@ -347,28 +347,6 @@
                     <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
             </div>
-
-            <div class="pallet-calc-box" style="background: #f8f9fa; border: 2px dashed #27ae60; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <label style="font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 15px;">
-                    <input type="checkbox" id="enablePalletCalc" onchange="togglePalletCalc()" style="width: 18px; height: 18px; cursor: pointer;"> 
-                    <i class="fas fa-calculator" style="color: var(--secondary-color);"></i>
-                    حساب عدد البالتات تلقائياً بناءً على إجمالي القطع (البواكو)
-                </label>
-                
-                <div id="palletCalcInputs" style="display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: center; margin-top: 10px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">إجمالي عدد القطع (الباكو):</label>
-                        <input type="number" id="calcTotalPieces" placeholder="مثال: 1200 أو 312" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">العدد داخل البالتة الواحدة:</label>
-                        <input type="number" id="calcUnitsPerPallet" placeholder="مثال: 600" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div style="grid-column: span 2; background: #f1f5f9; padding: 10px; border-radius: 4px; border-left: 4px solid #27ae60; font-size: 14px; color: #2c3e50; font-weight: bold;" id="calcPalletOutput">
-                        💡 أدخل البيانات أعلاه لحساب البالتات فوراً...
-                    </div>
-                </div>
-            </div>
             
             <div class="input-group">
                 <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
@@ -1235,68 +1213,6 @@
         }
     }
 
-    function togglePalletCalc() {
-        const isChecked = document.getElementById('enablePalletCalc').checked;
-        const calcInputs = document.getElementById('palletCalcInputs');
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
-        
-        if (isChecked) {
-            calcInputs.style.display = 'grid';
-            if (perCartonInput.value) {
-                document.getElementById('calcUnitsPerPallet').value = perCartonInput.value;
-            }
-            cartonsInput.readOnly = true;
-            cartonsInput.style.backgroundColor = '#e9ecef';
-            perCartonInput.readOnly = true;
-            perCartonInput.style.backgroundColor = '#e9ecef';
-        } else {
-            calcInputs.style.display = 'none';
-            cartonsInput.readOnly = false;
-            cartonsInput.style.backgroundColor = '';
-            perCartonInput.readOnly = false;
-            perCartonInput.style.backgroundColor = '';
-        }
-    }
-
-    function runPalletCalculation() {
-        const totalPieces = parseFloat(document.getElementById('calcTotalPieces').value) || 0;
-        const unitsPerPallet = parseFloat(document.getElementById('calcUnitsPerPallet').value) || 0;
-        
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
-        const outputDiv = document.getElementById('calcPalletOutput');
-        
-        if (unitsPerPallet <= 0) {
-            outputDiv.innerHTML = "<span style='color:#c0392b;'>⚠️ يرجى إدخال عدد القطع داخل البالتة بشكل صحيح (أكبر من 0).</span>";
-            cartonsInput.value = '';
-            perCartonInput.value = '';
-            return;
-        }
-        
-        const exactPallets = totalPieces / unitsPerPallet;
-        
-        cartonsInput.value = exactPallets.toFixed(2);
-        perCartonInput.value = unitsPerPallet;
-        
-        let descriptiveText = "";
-        if (exactPallets === 1) {
-            descriptiveText = "بالتة كاملة (1)";
-        } else if (exactPallets === 2) {
-            descriptiveText = "2 بالتة كاملة";
-        } else if (exactPallets === 0.5) {
-            descriptiveText = "نصف بالتة تماماً (0.50)";
-        } else {
-            if (exactPallets >= 0.45 && exactPallets <= 0.55) {
-                descriptiveText = `نصف بالتة تقريباً (${exactPallets.toFixed(2)} بالتة)`;
-            } else {
-                descriptiveText = `${exactPallets.toFixed(2)} بالتة`;
-            }
-        }
-        
-        outputDiv.innerHTML = `⚙️ <b>التحليل الآلي:</b> الإجمالي يعادل <span style='color:#27ae60;'>${descriptiveText}</span>. (تم تعبئة الجدول تلقائياً)`;
-    }
-
     function handleMainAction() {
         const name = sanitizeInput(document.getElementById('itemName').value);
         const cartons = parseFloat(document.getElementById('cartons').value);
@@ -1323,11 +1239,6 @@
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
         
-        if (document.getElementById('enablePalletCalc') && document.getElementById('enablePalletCalc').checked) {
-            document.getElementById('calcTotalPieces').value = '';
-            document.getElementById('calcPalletOutput').innerHTML = '💡 أدخل البيانات أعلاه لحساب البالتات فوراً...';
-        }
-
         saveInventoryToFirebase();
     }
 
@@ -1543,6 +1454,7 @@
                 <span><b>${item.qty} ${item.unit}</b> - ${item.name}</span>
                 <div class="map-action-btns">
                     <button class="check-btn" onclick="toggleMapItemReview(event, ${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
+                    <button class="move-btn" style="color: #9b59b6;" onclick="moveItemToOtherSlot(event, ${index})" title="نقل لخانة أخرى"><i class="fas fa-share-square"></i></button>
                     <button class="move-btn" onclick="moveMapItem(event, ${index}, -1)" title="نقل لأعلى"><i class="fas fa-arrow-up"></i></button>
                     <button class="move-btn" onclick="moveMapItem(event, ${index}, 1)" title="نقل لأسفل"><i class="fas fa-arrow-down"></i></button>
                     <button class="edit-row-btn" onclick="prepareSlotItemEdit(event, ${index})" title="تعديل"><i class="fas fa-edit"></i></button>
@@ -1607,6 +1519,41 @@
         items[index].isReviewed = !items[index].isReviewed;
         saveMapToFirebase();
     }
+    
+    function moveItemToOtherSlot(event, index) {
+        event.stopPropagation();
+        let targetSlotNum = prompt("أدخل رقم الخانة اللي عايز تنقل الصنف ده ليها (من 1 لحد 18):");
+        if (!targetSlotNum || targetSlotNum.trim() === "") return;
+        
+        targetSlotNum = parseInt(targetSlotNum);
+        if (isNaN(targetSlotNum) || targetSlotNum < 1 || targetSlotNum > 18) {
+            alert("رقم الخانة غير صحيح! تأكد من إدخال رقم بين 1 و 18.");
+            return;
+        }
+
+        const targetSlotId = 'slot_' + targetSlotNum;
+        const selectedDate = dateInput.value;
+
+        // التأكد من أن الخانة موجودة في الخريطة
+        if (!mapData[selectedDate][targetSlotId]) {
+            mapData[selectedDate][targetSlotId] = { items: [], color: '#fdfdfd' };
+        }
+
+        if(confirm(`هل أنت متأكد من نقل الصنف لخانة رقم ${targetSlotNum}؟`)) {
+            // سحب الصنف من الخانة الحالية
+            const itemToMove = mapData[selectedDate][currentActiveSlotId].items.splice(index, 1)[0];
+            
+            // إضافته للخانة الجديدة
+            if (!mapData[selectedDate][targetSlotId].items) {
+                mapData[selectedDate][targetSlotId].items = [];
+            }
+            mapData[selectedDate][targetSlotId].items.push(itemToMove);
+            
+            saveMapToFirebase();
+            renderModalCurrentItems(); // تحديث الخانة الحالية المفتوحة
+            alert(`تم النقل بنجاح لخانة رقم ${targetSlotNum} 🚚`);
+        }
+    }
 
     function moveMapItem(event, index, direction) {
         event.stopPropagation();
@@ -1649,4 +1596,4 @@
 
 </script>
 </body>
-</html>
+    </html>
