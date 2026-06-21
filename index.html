@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام جرد مخزن الكراس - نسخة مؤمنة</title>
+    <title>نظام جرد مخزن الكراس - كمال سعد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -85,13 +85,12 @@
         .controls-section { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd; }
         .history-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         
-        /* تنسيق أزرار التراجع والإعادة */
         .btn-undo { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-redo { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-undo:hover, .btn-redo:hover { opacity: 0.9; }
         .btn-undo:disabled, .btn-redo:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.7; }
 
-        .input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 0.6fr 1.5fr; gap: 12px; margin-top: 15px; }
+        .input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 0.5fr 1.5fr; gap: 12px; margin-top: 15px; }
         input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
         .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
         .edit-mode-btn { background: var(--edit-color) !important; }
@@ -105,7 +104,7 @@
         .item-name-cell { display: flex; align-items: center; justify-content: center; gap: 10px; }
         .copy-text-btn { color: #7f8c8d; background: none; border: none; cursor: pointer; font-size: 14px; }
         
-        .action-btns { display: flex; justify-content: center; gap: 8px; align-items: center; }
+        .action-btns { display: flex; justify-content: center; gap: 8px; align-items: center; flex-wrap: wrap; }
         .delete-btn { color: #c0392b; background: none; border: none; cursor: pointer; font-size: 18px; }
         .edit-row-btn { color: #f39c12; background: none; border: none; cursor: pointer; font-size: 18px; }
         .check-btn { color: var(--secondary-color); background: none; border: none; cursor: pointer; font-size: 18px; }
@@ -156,14 +155,17 @@
 
         .transaction-section { background: #e8f8f5; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #a3e4d7; }
         .transaction-section h3 { margin-top: 0; color: #117864; }
-        .search-container { margin-bottom: 15px; }
-        .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .search-container { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+        .search-input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .print-search-btn { background: #34495e; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .print-search-btn:hover { background: #2c3e50; }
+
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
         /* ==========================================
-           تنسيق الطباعة (أبيض وأسود إجباري)
+           تنسيق الطباعة المشترك (أبيض وأسود إجباري)
            ========================================== */
-        #invoicePrintArea { 
+        #printArea { 
             display: none; 
             padding: 30px; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -198,6 +200,7 @@
             font-size: 15px; 
             font-weight: bold; 
             color: #000 !important;
+            vertical-align: middle;
         }
         .print-signatures { 
             display: flex; 
@@ -219,10 +222,11 @@
             #mainContainer, #loginScreen, .modal-overlay, #syncStatus { 
                 display: none !important; 
             }
-            #invoicePrintArea { 
+            #printArea { 
                 display: block !important; 
                 position: relative; 
             }
+            .badge { border: 1px solid #000; padding: 2px 5px !important; color: #000 !important; background: transparent !important; display: inline-block; margin-bottom: 2px;}
         }
 
         /* --------------------------------------------------- */
@@ -271,16 +275,15 @@
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
 
-<div id="invoicePrintArea">
+<div id="printArea">
     <div class="print-header">
         <h2>مخازن شركة كمال سعد للورق - فرع المنشية</h2>
-        <h3 id="printTitle">إذن صرف بضاعة (أمر مجمع)</h3>
+        <h3 id="printTitle">التقرير</h3>
         <p>التاريخ: <span id="printDate"></span> | <strong><span id="printDestinationLabel"></span></strong></p>
     </div>
     <table class="print-table">
         <thead id="printTableHead">
-            <tr><th>م</th><th>اسم الصنف</th><th>الكمية المنصرفة</th></tr>
-        </thead>
+            </thead>
         <tbody id="printTableBody"></tbody>
     </table>
     <div class="print-signatures" id="printSignaturesArea">
@@ -348,32 +351,11 @@
                 </div>
             </div>
             
-            <div class="pallet-calc-box" style="background: #f8f9fa; border: 2px dashed #27ae60; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <label style="font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 15px;">
-                    <input type="checkbox" id="enablePalletCalc" onchange="togglePalletCalc()" style="width: 18px; height: 18px; cursor: pointer;"> 
-                    <i class="fas fa-calculator" style="color: var(--secondary-color);"></i>
-                    حاسبة البالتات التلقائية (مساعد إدخال)
-                </label>
-                
-                <div id="palletCalcInputs" style="display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: center; margin-top: 10px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">إجمالي عدد القطع:</label>
-                        <input type="number" id="calcTotalPieces" placeholder="مثال: 1200" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">العدد الداخلي (للبالتة):</label>
-                        <input type="number" id="calcUnitsPerPallet" placeholder="مثال: 600" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div style="grid-column: span 2; background: #f1f5f9; padding: 10px; border-radius: 4px; border-left: 4px solid #27ae60; font-size: 14px; color: #2c3e50; font-weight: bold;" id="calcPalletOutput">
-                        💡 أدخل القطع والعدد الداخلي لحساب البالتات وتعبئة الخانات...
-                    </div>
-                </div>
-            </div>
-
             <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
-                <input type="number" id="cartons" placeholder="الكراتين/البالتات" min="0" step="any">
-                <input type="number" id="perCarton" placeholder="العدد الداخلي" min="0">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="اسم الصنف للإضافة">
+                <input type="number" id="perCarton" placeholder="العدد الداخلي (للكرتونة)" min="1" oninput="syncInputs('per')">
+                <input type="number" id="totalPieces" placeholder="إجمالي القطع" step="any" oninput="syncInputs('total')">
+                <input type="number" id="cartons" placeholder="عدد الكراتين" step="any" oninput="syncInputs('pallets')">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
@@ -388,7 +370,12 @@
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th><th>الكراتين / البالتات</th><th>العدد الداخلي</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / تكرار / حذف / مراجعة</th>
+                    <th>اسم الصنف</th>
+                    <th>العدد الداخلي</th>
+                    <th>الإجمالي بالقطع</th>
+                    <th>عدد الكراتين</th>
+                    <th>المتبقي (قطع)</th>
+                    <th class="no-print">إجراءات</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -396,7 +383,7 @@
         
         <div id="selectionTotalsContainer" class="no-print">
             <i class="fas fa-calculator"></i> إجمالي الأصناف المحددة:
-            <strong><span id="selectedCartonsTotal">0</span> كرتونة/بالتة</strong> | 
+            <strong><span id="selectedCartonsTotal">0</span> كرتونة</strong> | 
             الإجمالي الكلي بالقطع: <strong><span id="selectedItemsTotal">0</span></strong>
         </div>
     </div>
@@ -415,6 +402,7 @@
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
+                    <option value="بالتة">بالتة</option>
                     <option value="قطعة">قطعة</option>
                 </select>
                 <button class="add-btn" onclick="addToTransactionCart()">إضافة لقائمة الصرف <i class="fas fa-cart-plus"></i></button>
@@ -446,10 +434,31 @@
     <div id="tab-map" class="tab-content">
         <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
-            <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس بالكامل</button>
+            <div style="display:flex; gap:10px;">
+                <button class="add-btn" onclick="printMapInventory()" style="background: #34495e; padding: 10px 15px;"><i class="fas fa-print"></i> طباعة جرد البالتات</button>
+                <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس</button>
+            </div>
         </div>
         
         <div class="map-wrapper" id="warehouseMapUI"></div>
+
+        <div class="controls-section no-print" style="margin-top: 20px; border: 2px dashed #3498db;">
+            <h3 style="color: #3498db; margin-top: 0;"><i class="fas fa-calculator"></i> حاسبة البالتات السريعة</h3>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                <div style="flex: 1;">
+                    <label style="font-weight: bold; font-size: 14px;">إجمالي القطع (الباكو):</label>
+                    <input type="number" id="mapCalcTotal" placeholder="مثال: 1200" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" oninput="calcMapPallets()">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-weight: bold; font-size: 14px;">العدد داخل البالتة:</label>
+                    <input type="number" id="mapCalcPerPallet" placeholder="مثال: 600" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px;" oninput="calcMapPallets()">
+                </div>
+                <div style="flex: 1; background: #ecf0f1; padding: 15px; border-radius: 8px; text-align: center; border-bottom: 3px solid #3498db;">
+                    <span style="font-size: 14px; color: #7f8c8d;">عدد البالتات:</span><br>
+                    <strong id="mapCalcResult" style="font-size: 20px; color: #2c3e50;">0</strong>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="no-print">
@@ -827,50 +836,52 @@
     }
 
     // ==========================================
-    // حاسبة البالتات المساعدة في الجرد اليومي
+    // حاسبة البالتات لخريطة المخزن
     // ==========================================
-    function togglePalletCalc() {
-        const isChecked = document.getElementById('enablePalletCalc').checked;
-        const calcInputs = document.getElementById('palletCalcInputs');
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
+    function calcMapPallets() {
+        const total = parseFloat(document.getElementById('mapCalcTotal').value) || 0;
+        const per = parseFloat(document.getElementById('mapCalcPerPallet').value) || 0;
+        const res = document.getElementById('mapCalcResult');
         
-        if (isChecked) {
-            calcInputs.style.display = 'grid';
-            cartonsInput.readOnly = true;
-            cartonsInput.style.backgroundColor = '#e9ecef';
-            perCartonInput.readOnly = true;
-            perCartonInput.style.backgroundColor = '#e9ecef';
+        if(per > 0) {
+            const pallets = total / per;
+            let text = pallets.toFixed(2);
+            if (pallets === Math.floor(pallets)) text = pallets;
+            res.innerHTML = text + ' <span style="font-size:14px; color: #7f8c8d;">بالتة</span>';
+            res.style.color = '#27ae60';
         } else {
-            calcInputs.style.display = 'none';
-            cartonsInput.readOnly = false;
-            cartonsInput.style.backgroundColor = '';
-            perCartonInput.readOnly = false;
-            perCartonInput.style.backgroundColor = '';
+            res.innerHTML = '0';
+            res.style.color = '#2c3e50';
         }
     }
 
-    function runPalletCalculation() {
-        const totalPieces = parseFloat(document.getElementById('calcTotalPieces').value) || 0;
-        const unitsPerPallet = parseFloat(document.getElementById('calcUnitsPerPallet').value) || 0;
+    // ==========================================
+    // تزامن حقول الإدخال في الجرد اليومي
+    // ==========================================
+    function syncInputs(source) {
+        const tInput = document.getElementById('totalPieces');
+        const pInput = document.getElementById('cartons');
+        const cInput = document.getElementById('perCarton');
         
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
-        const outputDiv = document.getElementById('calcPalletOutput');
-        
-        if (unitsPerPallet <= 0) {
-            outputDiv.innerHTML = "<span style='color:#c0392b;'>⚠️ يرجى إدخال العدد الداخلي بشكل صحيح للتمكن من الحساب.</span>";
-            cartonsInput.value = '';
-            perCartonInput.value = '';
-            return;
+        let t = parseFloat(tInput.value);
+        let p = parseFloat(pInput.value);
+        let c = parseFloat(cInput.value);
+
+        if (source === 'total' && !isNaN(t) && !isNaN(c) && c > 0) {
+            pInput.value = (t / c).toFixed(2);
+        } 
+        else if (source === 'pallets' && !isNaN(p) && !isNaN(c) && c > 0) {
+            if (tInput.value === '') {
+                tInput.value = Math.round(p * c);
+            }
+        } 
+        else if (source === 'per' && !isNaN(c) && c > 0) {
+            if (tInput.value !== '') {
+                pInput.value = (parseFloat(tInput.value) / c).toFixed(2);
+            } else if (pInput.value !== '') {
+                tInput.value = Math.round(parseFloat(pInput.value) * c);
+            }
         }
-        
-        const exactPallets = totalPieces / unitsPerPallet;
-        
-        cartonsInput.value = exactPallets.toFixed(2);
-        perCartonInput.value = unitsPerPallet;
-        
-        outputDiv.innerHTML = `⚙️ <b>العملية:</b> ${totalPieces} ÷ ${unitsPerPallet} = <span style='color:#27ae60;'>${exactPallets.toFixed(2)} بالتة تقريباً</span>. (تم التعبئة بالأسفل)`;
     }
 
     function addToTransactionCart() {
@@ -890,17 +901,15 @@
         }
 
         let perCarton = invItem.perCarton || 1;
-        let exactCartons = 0;
-        let piecesLeft = 0;
         let exactPieces = 0;
+        let exactCartons = 0;
 
         if (unit === 'قطعة') {
             exactPieces = qty;
             exactCartons = qty / perCarton;
-            piecesLeft = qty % perCarton;
         } else {
             exactCartons = qty;
-            exactPieces = qty * perCarton;
+            exactPieces = Math.round(qty * perCarton);
         }
         
         transactionCart.push({ 
@@ -909,7 +918,6 @@
             unit,
             perCarton,
             exactCartons,
-            piecesLeft,
             exactPieces
         });
         
@@ -929,7 +937,7 @@
             totalCartonsCart += item.exactCartons;
             totalPiecesCart += item.exactPieces;
             
-            let displayDetails = `<strong>${parseFloat(item.exactCartons.toFixed(2))} كرتونة/بالتة</strong>`;
+            let displayDetails = `<strong>${parseFloat(item.exactCartons.toFixed(2))} ${item.unit}</strong>`;
             
             tbody.innerHTML += `
                 <tr style="border-bottom: 1px solid #eee;">
@@ -951,8 +959,7 @@
                 <tr style="background: #e8f8f5; font-weight: bold;">
                     <td style="padding: 10px; text-align: left;">إجمالي المنصرف:</td>
                     <td style="padding: 10px; color:#27ae60; font-size:16px;" colspan="2">
-                        ${parseFloat(totalCartonsCart.toFixed(2))} كرتونة / بالتة <br>
-                        <span style="font-size:14px; color:#e74c3c;">(إجمالي القطع: ${totalPiecesCart} قطعة)</span>
+                        <span style="font-size:14px; color:#e74c3c;">(الكمية المجمعة: ${totalPiecesCart} قطعة)</span>
                     </td>
                 </tr>
             `;
@@ -978,8 +985,9 @@
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
             
-            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            if (invItem.cartons < deductCartons) {
+            let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
+            
+            if (currentTotalPieces < cItem.exactPieces) {
                 return alert(`الرصيد المتاح لا يكفي للصنف: "${cItem.name}"`);
             }
         }
@@ -988,8 +996,10 @@
 
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
-            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            invItem.cartons = parseFloat((invItem.cartons - deductCartons).toFixed(2));
+            let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
+            
+            invItem.totalPieces = currentTotalPieces - cItem.exactPieces;
+            invItem.cartons = parseFloat((invItem.totalPieces / (invItem.perCarton || 1)).toFixed(2));
             logDetails.push(`${cItem.qty} ${cItem.unit} (${cItem.name})`);
         }
         
@@ -1025,9 +1035,6 @@
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
-    // ==========================================
-    // طباعة إذن الصرف المجمع من السجل
-    // ==========================================
     function printOldTransaction(index) {
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
@@ -1049,14 +1056,12 @@
         
         const ptBody = document.getElementById('printTableBody');
         ptBody.innerHTML = '';
-        let grandTotalCartons = 0;
         let grandTotalPieces = 0;
 
         trans.rawItems.forEach((item, i) => {
-            grandTotalCartons += item.exactCartons;
             grandTotalPieces += item.exactPieces;
             
-            let displayDetails = `<strong>${parseFloat(item.exactCartons.toFixed(2))} كرتونة/بالتة</strong>`;
+            let displayDetails = `<strong>${parseFloat(item.exactCartons.toFixed(2))} ${item.unit}</strong>`;
             
             ptBody.innerHTML += `<tr>
                 <td>${i + 1}</td>
@@ -1072,8 +1077,7 @@
             <tr style="background-color: #fff; font-weight: bold; border-top: 2px solid #000;">
                 <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">إجمالي المنصرف:</td>
                 <td style="padding: 15px; font-size:16px;">
-                    ${parseFloat(grandTotalCartons.toFixed(2))} كرتونة <br>
-                    (${grandTotalPieces} قطعة)
+                    الكمية المجمعة: ${grandTotalPieces} قطعة
                 </td>
             </tr>
         `;
@@ -1082,7 +1086,7 @@
     }
 
     // ==========================================
-    // طباعة الجرد اليومي 
+    // طباعة الجرد اليومي (الكراتين والقطع)
     // ==========================================
     function printDailyInventory() {
         const selectedDate = dateInput.value;
@@ -1099,13 +1103,13 @@
             return;
         }
 
-        document.getElementById('printTitle').innerText = "تقرير الجرد اليومي";
+        document.getElementById('printTitle').innerText = "تقرير الجرد اليومي (كراتين وقطع)";
         document.getElementById('printDate').innerText = selectedDate;
         document.getElementById('printDestinationLabel').innerText = searchInput ? `نتيجة البحث عن: ${searchInput}` : "الجرد الشامل للمخزن";
         document.getElementById('printSignaturesArea').style.display = "none"; 
         
         const thead = document.getElementById('printTableHead');
-        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>عدد البالتات/الكراتين</th><th>العدد الداخلي</th><th>الإجمالي بالقطع</th></tr>`;
+        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>العدد الداخلي</th><th>إجمالي القطع</th><th>عدد الكراتين</th><th>المتبقي</th></tr>`;
         
         const tbody = document.getElementById('printTableBody');
         tbody.innerHTML = '';
@@ -1114,30 +1118,82 @@
         let totalCartonsAll = 0;
 
         filteredItems.forEach((item, i) => {
-            let c = parseFloat(item.cartons) || 0;
-            let p = parseInt(item.perCarton) || 0;
-            let total = Math.round(c * p);
+            let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
+            let perC = item.perCarton || 1;
+            let fullCartons = Math.floor(tPieces / perC);
+            let loosePieces = tPieces % perC;
             
-            totalPiecesAll += total;
-            totalCartonsAll += c;
+            let floatCartons = parseFloat(item.cartons) || 0;
+
+            totalPiecesAll += tPieces;
+            totalCartonsAll += floatCartons;
 
             tbody.innerHTML += `<tr>
                 <td>${i + 1}</td>
                 <td>${item.name}</td>
-                <td>${c.toFixed(2)}</td>
-                <td>${p}</td>
-                <td>${total}</td>
+                <td>${perC}</td>
+                <td>${tPieces}</td>
+                <td><span class="badge">${fullCartons} كرتونة</span></td>
+                <td>${loosePieces > 0 ? loosePieces + ' قطعة' : '-'}</td>
             </tr>`;
         });
         
         tbody.innerHTML += `
             <tr style="background-color: #fff; font-weight: bold; border-top: 2px solid #000;">
-                <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">الإجمالي الكلي:</td>
-                <td style="padding: 15px; font-size:16px;">${totalCartonsAll.toFixed(2)} بالتة</td>
-                <td></td>
+                <td colspan="3" style="text-align: left; padding: 15px; font-size:16px;">الإجمالي الكلي:</td>
                 <td style="padding: 15px; font-size:18px;">${totalPiecesAll} قطعة</td>
+                <td colspan="2" style="padding: 15px; font-size:16px;">${totalCartonsAll.toFixed(2)} كرتونة</td>
             </tr>
         `;
+        
+        window.print();
+    }
+
+    // ==========================================
+    // طباعة خريطة المخزن (جرد البالتات)
+    // ==========================================
+    function printMapInventory() {
+        const selectedDate = dateInput.value;
+        const currentMap = mapData[selectedDate];
+        
+        if(!currentMap) {
+            alert("الخريطة فارغة لا توجد بيانات لطباعتها!");
+            return;
+        }
+
+        document.getElementById('printTitle').innerText = "تقرير خريطة المخزن (جرد البالتات)";
+        document.getElementById('printDate').innerText = selectedDate;
+        document.getElementById('printDestinationLabel').innerText = "مواقع وتوزيع البضائع";
+        document.getElementById('printSignaturesArea').style.display = "none"; 
+        
+        const thead = document.getElementById('printTableHead');
+        thead.innerHTML = `<tr><th>رقم الخانة</th><th>اسم الصنف</th><th>الكمية / التعبئة</th></tr>`;
+        
+        const tbody = document.getElementById('printTableBody');
+        tbody.innerHTML = '';
+        
+        let hasItems = false;
+        
+        for(let i=1; i<=18; i++) {
+            const slotId = 'slot_' + i;
+            const slotData = currentMap[slotId];
+            if(slotData && slotData.items && slotData.items.length > 0) {
+                hasItems = true;
+                slotData.items.forEach((item, index) => {
+                    let cell1 = index === 0 ? `<td rowspan="${slotData.items.length}"><strong>خانة ${i}</strong></td>` : '';
+                    tbody.innerHTML += `<tr>
+                        ${cell1}
+                        <td>${item.name}</td>
+                        <td><span class="badge">${item.qty} ${item.unit}</span></td>
+                    </tr>`;
+                });
+            }
+        }
+
+        if(!hasItems) {
+            alert("كل الخانات فارغة، لا يوجد ما يتم طباعته!");
+            return;
+        }
         
         window.print();
     }
@@ -1163,7 +1219,7 @@
             let itemsHtml = '';
             if (trans.rawItems) {
                 itemsHtml = trans.rawItems.map(item => {
-                    let displayDetails = `${parseFloat(item.exactCartons.toFixed(2))} ك`;
+                    let displayDetails = `${parseFloat(item.exactCartons.toFixed(2))} ${item.unit || 'ك'}`;
                     return `
                     <div class="log-item">
                         <span>${item.name}</span>
@@ -1252,8 +1308,9 @@
             trans.rawItems.forEach(cItem => {
                 let invItem = items.find(x => x.name === cItem.name);
                 if (invItem) {
-                    let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-                    invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+                    let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
+                    invItem.totalPieces = currentTotalPieces + cItem.exactPieces;
+                    invItem.cartons = parseFloat((invItem.totalPieces / (invItem.perCarton || 1)).toFixed(2));
                 }
             });
             alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
@@ -1288,10 +1345,11 @@
                 selectedCount++;
                 const idx = parseInt(cb.value);
                 const item = inventoryData[dateInput.value][idx];
-                const c = parseFloat(item.cartons) || 0;
-                const p = parseInt(item.perCarton) || 0;
+                let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
+                let c = tPieces / (item.perCarton || 1);
+                
                 totalCartons += c;
-                totalItems += (c * p);
+                totalItems += tPieces;
             }
         });
 
@@ -1319,6 +1377,18 @@
             
             if (item.isReviewed) row.classList.add('reviewed');
 
+            let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
+            let perC = item.perCarton || 1;
+            let fullCartons = Math.floor(tPieces / perC);
+            let loosePieces = tPieces % perC;
+            
+            let badgesHtml = `<td><span class="badge" style="background-color: #27ae60; font-size:14px; padding:6px 10px; color:#fff; border-radius: 5px; display:inline-block; margin-bottom:4px;">${fullCartons} كرتونة</span></td>`;
+            if (loosePieces > 0) {
+                badgesHtml += `<td><span class="badge" style="background-color: #f39c12; font-size:14px; padding:6px 10px; color:#fff; border-radius: 5px; display:inline-block;">${loosePieces} قطعة</span></td>`;
+            } else {
+                badgesHtml += `<td><span style="color:#ccc;">-</span></td>`;
+            }
+
             row.innerHTML = `
                 <td class="no-print"><input type="checkbox" class="row-checkbox" value="${index}" onchange="calculateSelectedTotals()"></td>
                 <td>
@@ -1327,9 +1397,9 @@
                         <button class="copy-text-btn no-print" onclick="copyToClipboard('${item.name}')" title="نسخ الاسم"><i class="fas fa-copy"></i></button>
                     </div>
                 </td>
-                <td>${item.cartons || 0}</td>
-                <td>${item.perCarton || 0}</td>
-                <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
+                <td>${perC}</td>
+                <td><strong>${tPieces}</strong></td>
+                ${badgesHtml}
                 <td class="action-btns no-print">
                     <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
                     <button class="duplicate-btn" onclick="duplicateItem(${index})" title="تكرار السطر (نسخ)"><i class="fas fa-copy"></i></button>
@@ -1351,36 +1421,49 @@
 
     function handleMainAction() {
         const name = sanitizeInput(document.getElementById('itemName').value);
-        const cartons = parseFloat(document.getElementById('cartons').value);
-        const perCarton = parseInt(document.getElementById('perCarton').value);
+        const tInputVal = document.getElementById('totalPieces').value;
+        const pInputVal = document.getElementById('cartons').value;
+        const cInputVal = document.getElementById('perCarton').value;
         const color = sanitizeInput(document.getElementById('itemColor').value);
         const selectedDate = dateInput.value;
 
         if(!name) return alert("أدخل اسم الصنف على الأقل");
-        if(isNaN(cartons) && document.getElementById('cartons').value !== '') return alert("عدد الكراتين يجب أن يكون أرقام فقط");
+
+        let perCarton = parseFloat(cInputVal);
+        if(isNaN(perCarton) || perCarton <= 0) {
+            return alert("الرجاء إدخال العدد الداخلي للكرتونة بشكل صحيح.");
+        }
+
+        let totalPieces = parseFloat(tInputVal);
+        let cartons = parseFloat(pInputVal);
+
+        if(isNaN(totalPieces) && isNaN(cartons)) {
+            return alert("الرجاء إدخال إما إجمالي القطع أو عدد الكراتين.");
+        }
+
+        if(!isNaN(totalPieces)) {
+            cartons = parseFloat((totalPieces / perCarton).toFixed(2));
+        } else {
+            totalPieces = Math.round(cartons * perCarton);
+        }
 
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
         saveState(); 
 
         if(editIndex === null) {
-            inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
+            inventoryData[selectedDate].push({ name, totalPieces, cartons, perCarton, color, isReviewed: false });
         } else {
-            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons: cartons || 0, perCarton: perCarton || 0, color };
+            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, totalPieces, cartons, perCarton, color };
             editIndex = null;
             mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
             mainBtn.classList.remove('edit-mode-btn');
         }
         
-        // تفريغ كل الخانات ومساعد الإدخال
         document.getElementById('itemName').value = '';
+        document.getElementById('totalPieces').value = '';
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
-        
-        if(document.getElementById('enablePalletCalc') && document.getElementById('enablePalletCalc').checked) {
-            document.getElementById('calcTotalPieces').value = '';
-            document.getElementById('calcPalletOutput').innerHTML = '💡 أدخل القطع والعدد الداخلي لحساب البالتات وتعبئة الخانات...';
-        }
         
         saveInventoryToFirebase();
     }
@@ -1399,6 +1482,7 @@
         
         const duplicatedItem = {
             name: originalItem.name,
+            totalPieces: originalItem.totalPieces,
             cartons: originalItem.cartons,
             perCarton: originalItem.perCarton,
             color: originalItem.color,
@@ -1424,8 +1508,12 @@
     function prepareEdit(index) {
         const item = inventoryData[dateInput.value][index];
         document.getElementById('itemName').value = item.name;
-        document.getElementById('cartons').value = item.cartons;
-        document.getElementById('perCarton').value = item.perCarton;
+        document.getElementById('perCarton').value = item.perCarton || '';
+        
+        let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 0));
+        document.getElementById('totalPieces').value = tPieces;
+        document.getElementById('cartons').value = item.cartons || '';
+        
         document.getElementById('itemColor').value = item.color || "#ffffff";
         editIndex = index;
         mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
@@ -1454,9 +1542,17 @@
             const yesterdayItems = snapshot.val();
             if(yesterdayItems && yesterdayItems.length > 0) {
                 saveState(); 
-                inventoryData[dateInput.value] = yesterdayItems.map(item => ({
-                    name: item.name, cartons: includeNumbers ? item.cartons : "", perCarton: includeNumbers ? item.perCarton : "", color: item.color || "#ffffff", isReviewed: false 
-                }));
+                inventoryData[dateInput.value] = yesterdayItems.map(item => {
+                    let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 0));
+                    return {
+                        name: item.name, 
+                        totalPieces: includeNumbers ? tPieces : "", 
+                        cartons: includeNumbers ? item.cartons : "",
+                        perCarton: includeNumbers ? item.perCarton : "", 
+                        color: item.color || "#ffffff", 
+                        isReviewed: false 
+                    };
+                });
                 saveInventoryToFirebase();
                 alert(includeNumbers ? "تم نسخ جرد أمس بنجاح." : "تم نسخ الأسماء بنجاح.");
             } else { alert("لا توجد بيانات لتاريخ أمس!"); }
@@ -1619,118 +1715,3 @@
         if(!mapData[dateInput.value][currentActiveSlotId].items) {
              mapData[dateInput.value][currentActiveSlotId].items = [];
         }
-        
-        if(slotEditIndex === null) {
-            mapData[dateInput.value][currentActiveSlotId].items.push({ name, qty, unit, color, isReviewed: false });
-        } else {
-            mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex] = {
-                ...mapData[dateInput.value][currentActiveSlotId].items[slotEditIndex],
-                name, qty, unit, color
-            };
-            slotEditIndex = null;
-            const btn = document.getElementById('slotMainBtn');
-            btn.innerHTML = '<i class="fas fa-plus"></i> إضافة للخانة';
-            btn.classList.remove('edit-mode-btn');
-        }
-        
-        saveMapToFirebase();
-        
-        document.getElementById('slotItemName').value = '';
-        document.getElementById('slotItemQty').value = '';
-        document.getElementById('slotItemColor').value = '#ffffff';
-    }
-
-    function prepareSlotItemEdit(event, index) {
-        event.stopPropagation();
-        const item = mapData[dateInput.value][currentActiveSlotId].items[index];
-        document.getElementById('slotItemName').value = item.name;
-        document.getElementById('slotItemQty').value = item.qty;
-        document.getElementById('slotItemUnit').value = item.unit || 'بالتة';
-        document.getElementById('slotItemColor').value = item.color || '#ffffff';
-        slotEditIndex = index;
-        const btn = document.getElementById('slotMainBtn');
-        btn.innerHTML = '<i class="fas fa-check-double"></i> حفظ التعديلات';
-        btn.classList.add('edit-mode-btn');
-    }
-
-    function toggleMapItemReview(event, index) {
-        event.stopPropagation(); 
-        const items = mapData[dateInput.value][currentActiveSlotId].items;
-        items[index].isReviewed = !items[index].isReviewed;
-        saveMapToFirebase();
-    }
-    
-    function moveItemToOtherSlot(event, index) {
-        event.stopPropagation();
-        let targetSlotNum = prompt("أدخل رقم الخانة اللي عايز تنقل الصنف ده ليها (من 1 لحد 18):");
-        if (!targetSlotNum || targetSlotNum.trim() === "") return;
-        
-        targetSlotNum = parseInt(targetSlotNum);
-        if (isNaN(targetSlotNum) || targetSlotNum < 1 || targetSlotNum > 18) {
-            alert("رقم الخانة غير صحيح! تأكد من إدخال رقم بين 1 و 18.");
-            return;
-        }
-
-        const targetSlotId = 'slot_' + targetSlotNum;
-        const selectedDate = dateInput.value;
-
-        if (!mapData[selectedDate][targetSlotId]) {
-            mapData[selectedDate][targetSlotId] = { items: [], color: '#fdfdfd' };
-        }
-
-        if(confirm(`هل أنت متأكد من نقل الصنف لخانة رقم ${targetSlotNum}؟`)) {
-            const itemToMove = mapData[selectedDate][currentActiveSlotId].items.splice(index, 1)[0];
-            
-            if (!mapData[selectedDate][targetSlotId].items) {
-                mapData[selectedDate][targetSlotId].items = [];
-            }
-            mapData[selectedDate][targetSlotId].items.push(itemToMove);
-            
-            saveMapToFirebase();
-            renderModalCurrentItems();
-            alert(`تم النقل بنجاح لخانة رقم ${targetSlotNum} 🚚`);
-        }
-    }
-
-    function moveMapItem(event, index, direction) {
-        event.stopPropagation();
-        const items = mapData[dateInput.value][currentActiveSlotId].items;
-        const newIndex = index + direction;
-        if (newIndex >= 0 && newIndex < items.length) {
-            const temp = items[index];
-            items[index] = items[newIndex];
-            items[newIndex] = temp;
-            saveMapToFirebase();
-        }
-    }
-
-    function deleteItemFromSlot(event, index) {
-        event.stopPropagation();
-        if(confirm("هل تريد حذف هذا الصنف من الخانة؟")) {
-            mapData[dateInput.value][currentActiveSlotId].items.splice(index, 1);
-            saveMapToFirebase();
-        }
-    }
-
-    function refreshInventorySuggestions(){
-     const list=document.getElementById('inventorySuggestions');
-     if(!list) return;
-     const items=inventoryData[dateInput.value]||[];
-     list.innerHTML='';
-     items.forEach(it=>{
-       const op=document.createElement('option');
-       op.value=it.name;
-       list.appendChild(op);
-     });
-    }
-    
-    document.addEventListener('input',function(e){
-     if(e.target && e.target.id==='transItemName'){refreshInventorySuggestions();}
-    });
-    
-    const _oldRenderInventoryTable=renderInventoryTable;
-    renderInventoryTable=function(){_oldRenderInventoryTable();refreshInventorySuggestions();};
-
-</script>
-</body>
-</html>
