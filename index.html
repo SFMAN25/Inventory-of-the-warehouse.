@@ -1,4 +1,4 @@
-Enter<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -90,7 +90,7 @@ Enter<!DOCTYPE html>
         .btn-undo:hover, .btn-redo:hover { opacity: 0.9; }
         .btn-undo:disabled, .btn-redo:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.7; }
 
-        .input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 0.5fr 1.5fr; gap: 12px; margin-top: 15px; }
+        .input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 0.6fr 1.5fr; gap: 12px; margin-top: 15px; }
         input, select, button { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
         .add-btn { background: var(--secondary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
         .edit-mode-btn { background: var(--edit-color) !important; }
@@ -269,7 +269,7 @@ Enter<!DOCTYPE html>
         <input type="email" id="userEmail" placeholder="البريد الإلكتروني">
         <input type="password" id="userPass" placeholder="كلمة المرور">
         <button onclick="handleLogin()">دخول آمن <i class="fas fa-sign-in-alt"></i></button>
-        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none;"></p>
+        <p id="errorMsg" style="color: #ff7675; margin-top: 10px; display: none; font-weight: bold;"></p>
     </div>
 </div>
 
@@ -352,10 +352,9 @@ Enter<!DOCTYPE html>
             </div>
             
             <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="اسم الصنف للإضافة">
-                <input type="number" id="perCarton" placeholder="العدد الداخلي (للكرتونة)" min="1" oninput="syncInputs('per')">
-                <input type="number" id="totalPieces" placeholder="إجمالي القطع" step="any" oninput="syncInputs('total')">
-                <input type="number" id="cartons" placeholder="عدد الكراتين" step="any" oninput="syncInputs('pallets')">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
+                <input type="number" id="cartons" placeholder="الكراتين/البالتات" min="0" step="any">
+                <input type="number" id="perCarton" placeholder="داخل الكرتونة" min="0">
                 <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
                 <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
@@ -370,12 +369,7 @@ Enter<!DOCTYPE html>
             <thead>
                 <tr>
                     <th class="no-print"><i class="fas fa-check-square"></i></th>
-                    <th>اسم الصنف</th>
-                    <th>العدد الداخلي</th>
-                    <th>الإجمالي بالقطع</th>
-                    <th>عدد الكراتين</th>
-                    <th>المتبقي (قطع)</th>
-                    <th class="no-print">إجراءات</th>
+                    <th>اسم الصنف</th><th>الكراتين / البالتات</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th><th class="no-print">تعديل / تكرار / حذف / مراجعة</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -383,7 +377,7 @@ Enter<!DOCTYPE html>
         
         <div id="selectionTotalsContainer" class="no-print">
             <i class="fas fa-calculator"></i> إجمالي الأصناف المحددة:
-            <strong><span id="selectedCartonsTotal">0</span> كرتونة</strong> | 
+            <strong><span id="selectedCartonsTotal">0</span> كرتونة/بالتة</strong> | 
             الإجمالي الكلي بالقطع: <strong><span id="selectedItemsTotal">0</span></strong>
         </div>
     </div>
@@ -402,7 +396,6 @@ Enter<!DOCTYPE html>
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
-                    <option value="بالتة">بالتة</option>
                     <option value="قطعة">قطعة</option>
                 </select>
                 <button class="add-btn" onclick="addToTransactionCart()">إضافة لقائمة الصرف <i class="fas fa-cart-plus"></i></button>
@@ -433,7 +426,7 @@ Enter<!DOCTYPE html>
 
     <div id="tab-map" class="tab-content">
         <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
-            <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
+            <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل البالتات بداخلها.</p>
             <div style="display:flex; gap:10px;">
                 <button class="add-btn" onclick="printMapInventory()" style="background: #34495e; padding: 10px 15px;"><i class="fas fa-print"></i> طباعة جرد البالتات</button>
                 <button class="copy-btn-full" onclick="copyMapFromYesterday()"><i class="fas fa-clone"></i> نسخ خريطة أمس</button>
@@ -489,7 +482,6 @@ Enter<!DOCTYPE html>
                     <option value="بالتة">بالتة كاملة</option>
                     <option value="نص بالتة">نص بالتة</option>
                     <option value="ربع بالتة">ربع بالتة</option>
-                    <option value="كرتونة">كرتونة</option>
                     <option value="رصة">رصة</option>
                 </select>
                 <input type="color" id="slotItemColor" value="#ffffff" title="لون الصنف (اختياري)" style="width: 40px; height: 40px;">
@@ -628,31 +620,50 @@ Enter<!DOCTYPE html>
 
     async function handleLogin() {
         const email = document.getElementById('userEmail').value;
-        const pass = document.getElementById('userPass').value;
-        const hpValue = document.getElementById('hp_user_check').value;
-        const errorElement = document.getElementById('errorMsg');
+        const password = document.getElementById('userPass').value;
+        const hpField = document.getElementById('hp_user_check').value;
+        const errorMsg = document.getElementById('errorMsg');
         
         const userIP = await getUserIP();
         const time = new Date().toLocaleString('ar-EG');
 
-        if (hpValue.length > 0) {
-            await notifyTelegram(`🚫 *محاولة دخول من بوت!* \n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
-            return; 
+        // تنظيف حقل الحماية لو تم ملؤه بواسطة المتصفح (Autofill)
+        if (hpField !== "") {
+            console.warn("تم اكتشاف إدخال في حقل البوت، جاري مسحه...");
+            document.getElementById('hp_user_check').value = "";
         }
 
-        if (!email || !pass) {
-            errorElement.innerText = "اكتب الإيميل والباسورد يا بطل!";
-            errorElement.style.display = 'block';
+        if (!email || !password) {
+            errorMsg.textContent = "الرجاء إدخال البريد الإلكتروني وكلمة المرور!";
+            errorMsg.style.display = "block";
             return;
         }
 
+        errorMsg.textContent = "جاري تسجيل الدخول...";
+        errorMsg.style.color = "#f39c12"; 
+        errorMsg.style.display = "block";
+
         try {
-            await auth.signInWithEmailAndPassword(email, pass);
+            await firebase.auth().signInWithEmailAndPassword(email, password);
             await notifyTelegram(`✅ *تم دخول النظام بنجاح*\n📧 الإيميل: ${email}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}`);
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            errorMsg.style.display = "none";
+            
         } catch (error) {
-            await notifyTelegram(`⚠️ *محاولة دخول فاشلة!*\n📧 الإيميل: ${email}\n🔑 الباسورد: ${pass}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}\n❌ السبب: ${error.message}`);
-            errorElement.innerText = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
-            errorElement.style.display = 'block';
+            await notifyTelegram(`⚠️ *محاولة دخول فاشلة!*\n📧 الإيميل: ${email}\n🔑 الباسورد: ${password}\n🌐 IP: ${userIP}\n🕒 الوقت: ${time}\n❌ السبب: ${error.message}`);
+            
+            errorMsg.style.color = "#ff7675"; 
+            if (error.code === 'auth/user-not-found') {
+                errorMsg.textContent = "هذا الحساب غير مسجل في النظام.";
+            } else if (error.code === 'auth/wrong-password') {
+                errorMsg.textContent = "كلمة المرور غير صحيحة.";
+            } else if (error.code === 'auth/invalid-email') {
+                errorMsg.textContent = "صيغة البريد الإلكتروني غير صحيحة.";
+            } else {
+                errorMsg.textContent = "بيانات الدخول غلط، راجع الإيميل أو الباسورد.";
+            }
         }
     }
 
@@ -855,35 +866,6 @@ Enter<!DOCTYPE html>
         }
     }
 
-    // ==========================================
-    // تزامن حقول الإدخال في الجرد اليومي
-    // ==========================================
-    function syncInputs(source) {
-        const tInput = document.getElementById('totalPieces');
-        const pInput = document.getElementById('cartons');
-        const cInput = document.getElementById('perCarton');
-        
-        let t = parseFloat(tInput.value);
-        let p = parseFloat(pInput.value);
-        let c = parseFloat(cInput.value);
-
-        if (source === 'total' && !isNaN(t) && !isNaN(c) && c > 0) {
-            pInput.value = (t / c).toFixed(2);
-        } 
-        else if (source === 'pallets' && !isNaN(p) && !isNaN(c) && c > 0) {
-            if (tInput.value === '') {
-                tInput.value = Math.round(p * c);
-            }
-        } 
-        else if (source === 'per' && !isNaN(c) && c > 0) {
-            if (tInput.value !== '') {
-                pInput.value = (parseFloat(tInput.value) / c).toFixed(2);
-            } else if (pInput.value !== '') {
-                tInput.value = Math.round(parseFloat(pInput.value) * c);
-            }
-        }
-    }
-
     function addToTransactionCart() {
         const name = sanitizeInput(document.getElementById('transItemName').value);
         const qty = parseFloat(document.getElementById('transQty').value);
@@ -901,12 +883,14 @@ Enter<!DOCTYPE html>
         }
 
         let perCarton = invItem.perCarton || 1;
-        let exactPieces = 0;
         let exactCartons = 0;
+        let piecesLeft = 0;
+        let exactPieces = 0;
 
         if (unit === 'قطعة') {
             exactPieces = qty;
             exactCartons = qty / perCarton;
+            piecesLeft = qty % perCarton;
         } else {
             exactCartons = qty;
             exactPieces = Math.round(qty * perCarton);
@@ -918,6 +902,7 @@ Enter<!DOCTYPE html>
             unit,
             perCarton,
             exactCartons,
+            piecesLeft,
             exactPieces
         });
         
@@ -985,9 +970,8 @@ Enter<!DOCTYPE html>
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
             
-            let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
-            
-            if (currentTotalPieces < cItem.exactPieces) {
+            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+            if (invItem.cartons < deductCartons) {
                 return alert(`الرصيد المتاح لا يكفي للصنف: "${cItem.name}"`);
             }
         }
@@ -996,10 +980,8 @@ Enter<!DOCTYPE html>
 
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
-            let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
-            
-            invItem.totalPieces = currentTotalPieces - cItem.exactPieces;
-            invItem.cartons = parseFloat((invItem.totalPieces / (invItem.perCarton || 1)).toFixed(2));
+            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+            invItem.cartons = parseFloat((invItem.cartons - deductCartons).toFixed(2));
             logDetails.push(`${cItem.qty} ${cItem.unit} (${cItem.name})`);
         }
         
@@ -1035,6 +1017,9 @@ Enter<!DOCTYPE html>
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
+    // ==========================================
+    // طباعة إذن الصرف المجمع من السجل
+    // ==========================================
     function printOldTransaction(index) {
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
@@ -1086,7 +1071,7 @@ Enter<!DOCTYPE html>
     }
 
     // ==========================================
-    // طباعة الجرد اليومي (الكراتين والقطع)
+    // طباعة الجرد اليومي (الجدول الأصلي)
     // ==========================================
     function printDailyInventory() {
         const selectedDate = dateInput.value;
@@ -1103,13 +1088,13 @@ Enter<!DOCTYPE html>
             return;
         }
 
-        document.getElementById('printTitle').innerText = "تقرير الجرد اليومي (كراتين وقطع)";
+        document.getElementById('printTitle').innerText = "تقرير الجرد اليومي";
         document.getElementById('printDate').innerText = selectedDate;
         document.getElementById('printDestinationLabel').innerText = searchInput ? `نتيجة البحث عن: ${searchInput}` : "الجرد الشامل للمخزن";
         document.getElementById('printSignaturesArea').style.display = "none"; 
         
         const thead = document.getElementById('printTableHead');
-        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>العدد الداخلي</th><th>إجمالي القطع</th><th>عدد الكراتين</th><th>المتبقي</th></tr>`;
+        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>الكراتين / البالتات</th><th>داخل الكرتونة</th><th>الإجمالي بالقطع</th></tr>`;
         
         const tbody = document.getElementById('printTableBody');
         tbody.innerHTML = '';
@@ -1118,31 +1103,28 @@ Enter<!DOCTYPE html>
         let totalCartonsAll = 0;
 
         filteredItems.forEach((item, i) => {
-            let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
-            let perC = item.perCarton || 1;
-            let fullCartons = Math.floor(tPieces / perC);
-            let loosePieces = tPieces % perC;
-            
-            let floatCartons = parseFloat(item.cartons) || 0;
+            let c = parseFloat(item.cartons) || 0;
+            let p = parseInt(item.perCarton) || 0;
+            let total = Math.round(c * p);
 
-            totalPiecesAll += tPieces;
-            totalCartonsAll += floatCartons;
+            totalPiecesAll += total;
+            totalCartonsAll += c;
 
             tbody.innerHTML += `<tr>
                 <td>${i + 1}</td>
                 <td>${item.name}</td>
-                <td>${perC}</td>
-                <td>${tPieces}</td>
-                <td><span class="badge">${fullCartons} كرتونة</span></td>
-                <td>${loosePieces > 0 ? loosePieces + ' قطعة' : '-'}</td>
+                <td>${c.toFixed(2)}</td>
+                <td>${p}</td>
+                <td>${total}</td>
             </tr>`;
         });
         
         tbody.innerHTML += `
             <tr style="background-color: #fff; font-weight: bold; border-top: 2px solid #000;">
-                <td colspan="3" style="text-align: left; padding: 15px; font-size:16px;">الإجمالي الكلي:</td>
+                <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">الإجمالي الكلي:</td>
+                <td style="padding: 15px; font-size:16px;">${totalCartonsAll.toFixed(2)} كرتونة</td>
+                <td></td>
                 <td style="padding: 15px; font-size:18px;">${totalPiecesAll} قطعة</td>
-                <td colspan="2" style="padding: 15px; font-size:16px;">${totalCartonsAll.toFixed(2)} كرتونة</td>
             </tr>
         `;
         
@@ -1308,9 +1290,8 @@ Enter<!DOCTYPE html>
             trans.rawItems.forEach(cItem => {
                 let invItem = items.find(x => x.name === cItem.name);
                 if (invItem) {
-                    let currentTotalPieces = invItem.totalPieces !== undefined ? invItem.totalPieces : Math.round((invItem.cartons || 0) * (invItem.perCarton || 0));
-                    invItem.totalPieces = currentTotalPieces + cItem.exactPieces;
-                    invItem.cartons = parseFloat((invItem.totalPieces / (invItem.perCarton || 1)).toFixed(2));
+                    let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+                    invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
                 }
             });
             alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
@@ -1345,11 +1326,10 @@ Enter<!DOCTYPE html>
                 selectedCount++;
                 const idx = parseInt(cb.value);
                 const item = inventoryData[dateInput.value][idx];
-                let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
-                let c = tPieces / (item.perCarton || 1);
-                
+                const c = parseFloat(item.cartons) || 0;
+                const p = parseInt(item.perCarton) || 0;
                 totalCartons += c;
-                totalItems += tPieces;
+                totalItems += Math.round(c * p);
             }
         });
 
@@ -1357,7 +1337,7 @@ Enter<!DOCTYPE html>
         if (selectedCount > 0) {
             container.style.display = 'block';
             document.getElementById('selectedCartonsTotal').innerText = parseFloat(totalCartons.toFixed(2));
-            document.getElementById('selectedItemsTotal').innerText = Math.round(totalItems);
+            document.getElementById('selectedItemsTotal').innerText = totalItems;
         } else {
             container.style.display = 'none';
         }
@@ -1377,17 +1357,9 @@ Enter<!DOCTYPE html>
             
             if (item.isReviewed) row.classList.add('reviewed');
 
-            let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 1));
-            let perC = item.perCarton || 1;
-            let fullCartons = Math.floor(tPieces / perC);
-            let loosePieces = tPieces % perC;
-            
-            let badgesHtml = `<td><span class="badge" style="background-color: #27ae60; font-size:14px; padding:6px 10px; color:#fff; border-radius: 5px; display:inline-block; margin-bottom:4px;">${fullCartons} كرتونة</span></td>`;
-            if (loosePieces > 0) {
-                badgesHtml += `<td><span class="badge" style="background-color: #f39c12; font-size:14px; padding:6px 10px; color:#fff; border-radius: 5px; display:inline-block;">${loosePieces} قطعة</span></td>`;
-            } else {
-                badgesHtml += `<td><span style="color:#ccc;">-</span></td>`;
-            }
+            let c = parseFloat(item.cartons) || 0;
+            let p = parseInt(item.perCarton) || 0;
+            let total = Math.round(c * p);
 
             row.innerHTML = `
                 <td class="no-print"><input type="checkbox" class="row-checkbox" value="${index}" onchange="calculateSelectedTotals()"></td>
@@ -1397,9 +1369,9 @@ Enter<!DOCTYPE html>
                         <button class="copy-text-btn no-print" onclick="copyToClipboard('${item.name}')" title="نسخ الاسم"><i class="fas fa-copy"></i></button>
                     </div>
                 </td>
-                <td>${perC}</td>
-                <td><strong>${tPieces}</strong></td>
-                ${badgesHtml}
+                <td>${c.toFixed(2)}</td>
+                <td>${p}</td>
+                <td><strong>${total}</strong></td>
                 <td class="action-btns no-print">
                     <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
                     <button class="duplicate-btn" onclick="duplicateItem(${index})" title="تكرار السطر (نسخ)"><i class="fas fa-copy"></i></button>
@@ -1421,47 +1393,28 @@ Enter<!DOCTYPE html>
 
     function handleMainAction() {
         const name = sanitizeInput(document.getElementById('itemName').value);
-        const tInputVal = document.getElementById('totalPieces').value;
-        const pInputVal = document.getElementById('cartons').value;
-        const cInputVal = document.getElementById('perCarton').value;
+        const cartons = parseFloat(document.getElementById('cartons').value);
+        const perCarton = parseInt(document.getElementById('perCarton').value);
         const color = sanitizeInput(document.getElementById('itemColor').value);
         const selectedDate = dateInput.value;
 
         if(!name) return alert("أدخل اسم الصنف على الأقل");
-
-        let perCarton = parseFloat(cInputVal);
-        if(isNaN(perCarton) || perCarton <= 0) {
-            return alert("الرجاء إدخال العدد الداخلي للكرتونة بشكل صحيح.");
-        }
-
-        let totalPieces = parseFloat(tInputVal);
-        let cartons = parseFloat(pInputVal);
-
-        if(isNaN(totalPieces) && isNaN(cartons)) {
-            return alert("الرجاء إدخال إما إجمالي القطع أو عدد الكراتين.");
-        }
-
-        if(!isNaN(totalPieces)) {
-            cartons = parseFloat((totalPieces / perCarton).toFixed(2));
-        } else {
-            totalPieces = Math.round(cartons * perCarton);
-        }
+        if(isNaN(cartons) && document.getElementById('cartons').value !== '') return alert("الكمية يجب أن تكون أرقام فقط");
 
         if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
 
         saveState(); 
 
         if(editIndex === null) {
-            inventoryData[selectedDate].push({ name, totalPieces, cartons, perCarton, color, isReviewed: false });
+            inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
         } else {
-            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, totalPieces, cartons, perCarton, color };
+            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons: cartons || 0, perCarton: perCarton || 0, color };
             editIndex = null;
             mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
             mainBtn.classList.remove('edit-mode-btn');
         }
         
         document.getElementById('itemName').value = '';
-        document.getElementById('totalPieces').value = '';
         document.getElementById('cartons').value = '';
         document.getElementById('perCarton').value = '';
         
@@ -1482,7 +1435,6 @@ Enter<!DOCTYPE html>
         
         const duplicatedItem = {
             name: originalItem.name,
-            totalPieces: originalItem.totalPieces,
             cartons: originalItem.cartons,
             perCarton: originalItem.perCarton,
             color: originalItem.color,
@@ -1508,12 +1460,8 @@ Enter<!DOCTYPE html>
     function prepareEdit(index) {
         const item = inventoryData[dateInput.value][index];
         document.getElementById('itemName').value = item.name;
-        document.getElementById('perCarton').value = item.perCarton || '';
-        
-        let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 0));
-        document.getElementById('totalPieces').value = tPieces;
-        document.getElementById('cartons').value = item.cartons || '';
-        
+        document.getElementById('cartons').value = item.cartons;
+        document.getElementById('perCarton').value = item.perCarton;
         document.getElementById('itemColor').value = item.color || "#ffffff";
         editIndex = index;
         mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
@@ -1542,17 +1490,9 @@ Enter<!DOCTYPE html>
             const yesterdayItems = snapshot.val();
             if(yesterdayItems && yesterdayItems.length > 0) {
                 saveState(); 
-                inventoryData[dateInput.value] = yesterdayItems.map(item => {
-                    let tPieces = item.totalPieces !== undefined ? item.totalPieces : Math.round((item.cartons || 0) * (item.perCarton || 0));
-                    return {
-                        name: item.name, 
-                        totalPieces: includeNumbers ? tPieces : "", 
-                        cartons: includeNumbers ? item.cartons : "",
-                        perCarton: includeNumbers ? item.perCarton : "", 
-                        color: item.color || "#ffffff", 
-                        isReviewed: false 
-                    };
-                });
+                inventoryData[dateInput.value] = yesterdayItems.map(item => ({
+                    name: item.name, cartons: includeNumbers ? item.cartons : "", perCarton: includeNumbers ? item.perCarton : "", color: item.color || "#ffffff", isReviewed: false 
+                }));
                 saveInventoryToFirebase();
                 alert(includeNumbers ? "تم نسخ جرد أمس بنجاح." : "تم نسخ الأسماء بنجاح.");
             } else { alert("لا توجد بيانات لتاريخ أمس!"); }
@@ -1829,4 +1769,4 @@ Enter<!DOCTYPE html>
 
 </script>
 </body>
-                  </html>
+</html>
