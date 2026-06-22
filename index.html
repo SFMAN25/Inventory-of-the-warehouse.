@@ -74,18 +74,18 @@
         .logo-img { max-width: 120px; height: auto; border-radius: 15px; }
         .roles-header { margin-top: 10px; font-size: 18px; color: #444; background: #eef2f3; padding: 10px; border-radius: 50px; display: inline-block; }
 
-        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .tab-btn { padding: 12px 25px; font-size: 18px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; }
-        .tab-btn.active { background: var(--secondary-color); color: white; }
+        .tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px; flex-wrap: wrap;}
+        .tab-btn { padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; background: #eee; color: #555; border-radius: 8px 8px 0 0; cursor: pointer; transition: 0.3s; margin-bottom: -10px;}
+        .tab-btn.active { background: var(--secondary-color); color: white; padding-bottom: 22px; margin-bottom: -12px; z-index: 1; position: relative;}
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.5s ease-in-out; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .controls-section { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd; }
+        .controls-section { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #ddd; position: relative; z-index: 2;}
         .history-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         
-        /* تنسيق أزرار التراجع والإعادة */
         .btn-undo { background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-redo { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
         .btn-undo:hover, .btn-redo:hover { opacity: 0.9; }
@@ -328,15 +328,48 @@
         </div>
     </header>
 
+    <!-- التقسيم الجديد للتبويبات -->
     <div class="tabs no-print" id="mainTabs">
-        <button class="tab-btn active" onclick="switchTab('daily', event)"><i class="fas fa-list"></i> الجرد اليومي</button>
+        <button class="tab-btn active" onclick="switchTab('daily', event)"><i class="fas fa-box"></i> الجرد اليومي (بالكرتونة)</button>
+        <button class="tab-btn" onclick="switchTab('koras', event)"><i class="fas fa-calculator"></i> جرد الكراس والحاسبة (بالقطعة)</button>
         <button class="tab-btn" onclick="switchTab('map', event)"><i class="fas fa-th"></i> خريطة المخزن</button>
         <button class="tab-btn" onclick="switchTab('transactions', event)"><i class="fas fa-exchange-alt"></i> سجل الصرف والطباعة</button>
     </div>
 
+    <!-- تبويب إدخال الجرد الأساسي بالكرتونة -->
     <div id="tab-daily" class="tab-content active">
-        <div class="controls-section no-print">
-            <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+        <div class="controls-section no-print" style="border-top: 3px solid var(--primary-color);">
+            <h3 style="margin-top: 0; color: var(--primary-color);"><i class="fas fa-box-open"></i> إدخال الجرد الأساسي</h3>
+            <div class="input-group">
+                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
+                <input type="number" id="cartons" placeholder="الكراتين/البالتات" min="0" step="any">
+                <input type="number" id="perCarton" placeholder="العدد الداخلي" min="0">
+                <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
+                <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- تبويب إدخال جرد الكراس (الحاسبة) بالقطعة -->
+    <div id="tab-koras" class="tab-content">
+        <div class="controls-section no-print" style="background: #f8f9fa; border-top: 3px solid var(--secondary-color);">
+            <h3 style="margin-top: 0; color: var(--secondary-color);"><i class="fas fa-book-open"></i> إدخال جرد الكراس والحاسبة</h3>
+            <p style="font-size: 14px; color: #555; margin-bottom: 15px;">أدخل الإجمالي بالقطعة والعدد الداخلي. سيتم حساب البالتات تقريبياً وسيظل الإجمالي الفعلي ثابتاً لا يتغير بالتقريب.</p>
+            <div class="input-group">
+                <input type="text" id="korasItemName" list="itemNamesList" placeholder="أدخل اسم الصنف">
+                <input type="number" id="korasTotalPieces" placeholder="الإجمالي بالقطعة (العدد الفعلي)" min="0" oninput="calcKorasPallets()">
+                <input type="number" id="korasPerCarton" placeholder="العدد الداخلي للبالتة" min="0" oninput="calcKorasPallets()">
+                <input type="number" id="korasPallets" placeholder="عدد البالتات (تقريبي)" readonly style="background:#e9ecef; cursor: not-allowed;" step="any">
+                <input type="color" id="korasItemColor" value="#ffffff" title="لون السطر">
+                <button class="add-btn" id="korasActionBtn" onclick="handleKorasAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الجزء المشترك الذي يظهر في تبويب (اليومي) وتبويب (الكراس) -->
+    <div id="shared-inventory-section" style="display: block;">
+        <div class="controls-section no-print" style="padding: 15px; margin-bottom: 15px;">
+            <div style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
                 <div><strong>تاريخ اليوم:</strong> <input type="date" id="inventoryDate"></div>
                 <div style="display:flex; gap: 10px;">
                     <button id="btnUndo" class="btn-undo" onclick="undoAction()" disabled><i class="fas fa-undo"></i> تراجع ↩️</button>
@@ -346,36 +379,6 @@
                     <button class="copy-btn-names" onclick="copyFromYesterday(false)"><i class="fas fa-list"></i> نسخ أسماء أمس</button>
                     <button class="copy-btn-full" onclick="copyFromYesterday(true)"><i class="fas fa-copy"></i> نسخ جرد أمس بالكامل</button>
                 </div>
-            </div>
-            
-            <div class="pallet-calc-box" style="background: #f8f9fa; border: 2px dashed #27ae60; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <label style="font-weight: bold; color: var(--primary-color); display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 15px;">
-                    <input type="checkbox" id="enablePalletCalc" onchange="togglePalletCalc()" style="width: 18px; height: 18px; cursor: pointer;"> 
-                    <i class="fas fa-calculator" style="color: var(--secondary-color);"></i>
-                    حاسبة البالتات التلقائية (مساعد إدخال)
-                </label>
-                
-                <div id="palletCalcInputs" style="display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: center; margin-top: 10px; background: #ffffff; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">إجمالي عدد القطع:</label>
-                        <input type="number" id="calcTotalPieces" placeholder="مثال: 1200" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px; font-weight: 600; display:block; margin-bottom:5px; color: #555;">العدد الداخلي (للبالتة):</label>
-                        <input type="number" id="calcUnitsPerPallet" placeholder="مثال: 600" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" oninput="runPalletCalculation()">
-                    </div>
-                    <div style="grid-column: span 2; background: #f1f5f9; padding: 10px; border-radius: 4px; border-left: 4px solid #27ae60; font-size: 14px; color: #2c3e50; font-weight: bold;" id="calcPalletOutput">
-                        💡 أدخل القطع والعدد الداخلي لحساب البالتات وتعبئة الخانات...
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
-                <input type="number" id="cartons" placeholder="الكراتين/البالتات" min="0" step="any">
-                <input type="number" id="perCarton" placeholder="العدد الداخلي" min="0">
-                <input type="color" id="itemColor" value="#ffffff" title="لون السطر">
-                <button class="add-btn" id="mainActionBtn" onclick="handleMainAction()">إضافة للجرد <i class="fas fa-plus-circle"></i></button>
             </div>
         </div>
 
@@ -401,6 +404,7 @@
         </div>
     </div>
 
+    <!-- تبويب سجل الحركات والصرف -->
     <div id="tab-transactions" class="tab-content">
         <div class="transaction-section no-print">
             <h3><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سلة الأصناف المجمعة)</h3>
@@ -443,6 +447,7 @@
         <div id="transactionsCardsContainer"></div>
     </div>
 
+    <!-- تبويب الخريطة -->
     <div id="tab-map" class="tab-content">
         <div class="controls-section no-print" style="display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 10px;">
             <p style="margin: 0;"><i class="fas fa-info-circle"></i> اضغط على أي خانة لإضافة، ترتيب، تلوين أو تعديل الأصناف بداخلها.</p>
@@ -496,6 +501,7 @@
 </div>
 
 <script>
+    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDgwdBexMXQepqc7HVGL5tUDXU2JHOcuFg",
       authDomain: "kmskoras.firebaseapp.com",
@@ -676,6 +682,7 @@
         }[tag]));
     }
 
+    // تعديل دالة تبديل التبويبات لتشغيل الجزء المشترك حسب الحاجة
     function switchTab(tabId, event) {
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -685,6 +692,14 @@
             if (btn) btn.classList.add('active');
         }
         document.getElementById('tab-' + tabId).classList.add('active');
+
+        // إظهار جدول الجرد الأساسي لتبويب الجرد اليومي وتبويب الكراس
+        const sharedSection = document.getElementById('shared-inventory-section');
+        if (tabId === 'daily' || tabId === 'koras') {
+            sharedSection.style.display = 'block';
+        } else {
+            sharedSection.style.display = 'none';
+        }
     }
 
     function initializeEmptyMap() {
@@ -827,51 +842,105 @@
     }
 
     // ==========================================
-    // حاسبة البالتات المساعدة في الجرد اليومي
+    // حساب البالتات تقريبياً في جرد الكراس
     // ==========================================
-    function togglePalletCalc() {
-        const isChecked = document.getElementById('enablePalletCalc').checked;
-        const calcInputs = document.getElementById('palletCalcInputs');
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
+    function calcKorasPallets() {
+        const totalPieces = parseFloat(document.getElementById('korasTotalPieces').value) || 0;
+        const perCarton = parseFloat(document.getElementById('korasPerCarton').value) || 0;
+        const output = document.getElementById('korasPallets');
         
-        if (isChecked) {
-            calcInputs.style.display = 'grid';
-            cartonsInput.readOnly = true;
-            cartonsInput.style.backgroundColor = '#e9ecef';
-            perCartonInput.readOnly = true;
-            perCartonInput.style.backgroundColor = '#e9ecef';
+        if (perCarton > 0) {
+            output.value = (totalPieces / perCarton).toFixed(2);
         } else {
-            calcInputs.style.display = 'none';
-            cartonsInput.readOnly = false;
-            cartonsInput.style.backgroundColor = '';
-            perCartonInput.readOnly = false;
-            perCartonInput.style.backgroundColor = '';
+            output.value = '';
         }
     }
 
-    function runPalletCalculation() {
-        const totalPieces = parseFloat(document.getElementById('calcTotalPieces').value) || 0;
-        const unitsPerPallet = parseFloat(document.getElementById('calcUnitsPerPallet').value) || 0;
-        
-        const cartonsInput = document.getElementById('cartons');
-        const perCartonInput = document.getElementById('perCarton');
-        const outputDiv = document.getElementById('calcPalletOutput');
-        
-        if (unitsPerPallet <= 0) {
-            outputDiv.innerHTML = "<span style='color:#c0392b;'>⚠️ يرجى إدخال العدد الداخلي بشكل صحيح للتمكن من الحساب.</span>";
-            cartonsInput.value = '';
-            perCartonInput.value = '';
-            return;
+    function handleKorasAction() {
+        const name = sanitizeInput(document.getElementById('korasItemName').value);
+        const totalPieces = parseFloat(document.getElementById('korasTotalPieces').value);
+        const perCarton = parseInt(document.getElementById('korasPerCarton').value);
+        const color = sanitizeInput(document.getElementById('korasItemColor').value);
+        const selectedDate = dateInput.value;
+
+        if(!name) return alert("أدخل اسم الصنف على الأقل");
+        if(isNaN(totalPieces) || isNaN(perCarton) || perCarton <= 0) return alert("يرجى إدخال إجمالي القطع والعدد الداخلي بشكل صحيح");
+
+        let cartons = totalPieces / perCarton;
+
+        if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
+
+        saveState(); 
+
+        if(editIndex === null) {
+            inventoryData[selectedDate].push({ 
+                name, 
+                cartons: parseFloat(cartons.toFixed(2)), 
+                perCarton, 
+                exactPieces: totalPieces, 
+                color, 
+                isReviewed: false 
+            });
+        } else {
+            inventoryData[selectedDate][editIndex] = { 
+                ...inventoryData[selectedDate][editIndex], 
+                name, 
+                cartons: parseFloat(cartons.toFixed(2)), 
+                perCarton, 
+                exactPieces: totalPieces, 
+                color 
+            };
+            editIndex = null;
+            const korasBtn = document.getElementById('korasActionBtn');
+            korasBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
+            korasBtn.classList.remove('edit-mode-btn');
         }
         
-        const exactPallets = totalPieces / unitsPerPallet;
+        document.getElementById('korasItemName').value = '';
+        document.getElementById('korasTotalPieces').value = '';
+        document.getElementById('korasPerCarton').value = '';
+        document.getElementById('korasPallets').value = '';
         
-        cartonsInput.value = exactPallets.toFixed(2);
-        perCartonInput.value = unitsPerPallet;
-        
-        outputDiv.innerHTML = `⚙️ <b>العملية:</b> ${totalPieces} ÷ ${unitsPerPallet} = <span style='color:#27ae60;'>${exactPallets.toFixed(2)} بالتة تقريباً</span>. (تم التعبئة بالأسفل)`;
+        saveInventoryToFirebase();
     }
+
+    // ==========================================
+    // إضافة الجرد الأساسي بالكرتونة
+    // ==========================================
+    function handleMainAction() {
+        const name = sanitizeInput(document.getElementById('itemName').value);
+        const cartons = parseFloat(document.getElementById('cartons').value);
+        const perCarton = parseInt(document.getElementById('perCarton').value);
+        const color = sanitizeInput(document.getElementById('itemColor').value);
+        const selectedDate = dateInput.value;
+
+        if(!name) return alert("أدخل اسم الصنف على الأقل");
+        if(isNaN(cartons) && document.getElementById('cartons').value !== '') return alert("عدد الكراتين يجب أن يكون أرقام فقط");
+
+        if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
+
+        saveState(); 
+
+        if(editIndex === null) {
+            // مسح الـ exactPieces في الجرد الأساسي علشان يحسب ديناميكي
+            inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
+        } else {
+            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons: cartons || 0, perCarton: perCarton || 0, color };
+            // لو كان معمول بحاسبة الكراس قبل كده ورجع اتعدل من التبويب الأساسي، بنحذف الاجمالي الفعلي
+            delete inventoryData[selectedDate][editIndex].exactPieces;
+            
+            editIndex = null;
+            mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
+            mainBtn.classList.remove('edit-mode-btn');
+        }
+        
+        document.getElementById('itemName').value = '';
+        document.getElementById('cartons').value = '';
+        document.getElementById('perCarton').value = '';
+        
+        saveInventoryToFirebase();
+    }
+
 
     function addToTransactionCart() {
         const name = sanitizeInput(document.getElementById('transItemName').value);
@@ -978,8 +1047,11 @@
             let invItem = items.find(x => x.name === cItem.name);
             if (!invItem) return alert(`الصنف "${cItem.name}" غير موجود بالجرد لتنفيذ الخصم!`);
             
-            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            if (invItem.cartons < deductCartons) {
+            // تحقق من الرصيد المتاح بناءً على القطع أو الكراتين
+            let availableDeduct = invItem.exactPieces !== undefined ? invItem.exactPieces : (invItem.cartons * invItem.perCarton);
+            let neededPieces = cItem.unit === 'قطعة' ? cItem.qty : (cItem.qty * invItem.perCarton);
+
+            if (availableDeduct < neededPieces) {
                 return alert(`الرصيد المتاح لا يكفي للصنف: "${cItem.name}"`);
             }
         }
@@ -988,8 +1060,16 @@
 
         for (let cItem of transactionCart) {
             let invItem = items.find(x => x.name === cItem.name);
-            let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-            invItem.cartons = parseFloat((invItem.cartons - deductCartons).toFixed(2));
+            
+            if (invItem.exactPieces !== undefined) {
+                let deductPieces = cItem.unit === 'قطعة' ? cItem.qty : (cItem.qty * invItem.perCarton);
+                invItem.exactPieces -= deductPieces;
+                invItem.cartons = parseFloat((invItem.exactPieces / invItem.perCarton).toFixed(2));
+            } else {
+                let deductCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+                invItem.cartons = parseFloat((invItem.cartons - deductCartons).toFixed(2));
+            }
+            
             logDetails.push(`${cItem.qty} ${cItem.unit} (${cItem.name})`);
         }
         
@@ -1025,9 +1105,6 @@
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
-    // ==========================================
-    // طباعة إذن الصرف المجمع من السجل
-    // ==========================================
     function printOldTransaction(index) {
         const selectedDate = dateInput.value;
         let rawData = transactionsData[selectedDate] || [];
@@ -1081,9 +1158,6 @@
         window.print();
     }
 
-    // ==========================================
-    // طباعة الجرد اليومي 
-    // ==========================================
     function printDailyInventory() {
         const selectedDate = dateInput.value;
         const items = inventoryData[selectedDate] || [];
@@ -1116,7 +1190,8 @@
         filteredItems.forEach((item, i) => {
             let c = parseFloat(item.cartons) || 0;
             let p = parseInt(item.perCarton) || 0;
-            let total = Math.round(c * p);
+            // يعتمد على exactPieces إن وجد، وإلا يضرب
+            let total = item.exactPieces !== undefined ? item.exactPieces : Math.round(c * p);
             
             totalPiecesAll += total;
             totalCartonsAll += c;
@@ -1252,8 +1327,14 @@
             trans.rawItems.forEach(cItem => {
                 let invItem = items.find(x => x.name === cItem.name);
                 if (invItem) {
-                    let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
-                    invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+                    if (invItem.exactPieces !== undefined) {
+                        let restorePieces = cItem.unit === 'قطعة' ? cItem.qty : (cItem.qty * invItem.perCarton);
+                        invItem.exactPieces += restorePieces;
+                        invItem.cartons = parseFloat((invItem.exactPieces / invItem.perCarton).toFixed(2));
+                    } else {
+                        let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / invItem.perCarton) : cItem.qty;
+                        invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+                    }
                 }
             });
             alert("تم حذف الإذن واسترجاع الكميات للمخزن بنجاح!");
@@ -1291,7 +1372,8 @@
                 const c = parseFloat(item.cartons) || 0;
                 const p = parseInt(item.perCarton) || 0;
                 totalCartons += c;
-                totalItems += (c * p);
+                // يعتمد على exactPieces عشان الدقة لو متوفر
+                totalItems += item.exactPieces !== undefined ? item.exactPieces : (c * p);
             }
         });
 
@@ -1319,6 +1401,9 @@
             
             if (item.isReviewed) row.classList.add('reviewed');
 
+            // حساب الإجمالي مع الحفاظ على الدقة
+            let piecesTotal = item.exactPieces !== undefined ? item.exactPieces : Math.round((item.cartons || 0) * (item.perCarton || 0));
+
             row.innerHTML = `
                 <td class="no-print"><input type="checkbox" class="row-checkbox" value="${index}" onchange="calculateSelectedTotals()"></td>
                 <td>
@@ -1329,7 +1414,7 @@
                 </td>
                 <td>${item.cartons || 0}</td>
                 <td>${item.perCarton || 0}</td>
-                <td>${Math.round((item.cartons || 0) * (item.perCarton || 0))}</td>
+                <td>${piecesTotal}</td>
                 <td class="action-btns no-print">
                     <button class="check-btn" onclick="toggleReview(${index})" title="تمت المراجعة"><i class="fas fa-check-double"></i></button>
                     <button class="duplicate-btn" onclick="duplicateItem(${index})" title="تكرار السطر (نسخ)"><i class="fas fa-copy"></i></button>
@@ -1347,42 +1432,6 @@
         if(document.getElementById("searchInput").value) {
             filterTable();
         }
-    }
-
-    function handleMainAction() {
-        const name = sanitizeInput(document.getElementById('itemName').value);
-        const cartons = parseFloat(document.getElementById('cartons').value);
-        const perCarton = parseInt(document.getElementById('perCarton').value);
-        const color = sanitizeInput(document.getElementById('itemColor').value);
-        const selectedDate = dateInput.value;
-
-        if(!name) return alert("أدخل اسم الصنف على الأقل");
-        if(isNaN(cartons) && document.getElementById('cartons').value !== '') return alert("عدد الكراتين يجب أن يكون أرقام فقط");
-
-        if(!inventoryData[selectedDate]) inventoryData[selectedDate] = [];
-
-        saveState(); 
-
-        if(editIndex === null) {
-            inventoryData[selectedDate].push({ name, cartons: cartons || 0, perCarton: perCarton || 0, color, isReviewed: false });
-        } else {
-            inventoryData[selectedDate][editIndex] = { ...inventoryData[selectedDate][editIndex], name, cartons: cartons || 0, perCarton: perCarton || 0, color };
-            editIndex = null;
-            mainBtn.innerHTML = 'إضافة للجرد <i class="fas fa-plus-circle"></i>';
-            mainBtn.classList.remove('edit-mode-btn');
-        }
-        
-        // تفريغ كل الخانات ومساعد الإدخال
-        document.getElementById('itemName').value = '';
-        document.getElementById('cartons').value = '';
-        document.getElementById('perCarton').value = '';
-        
-        if(document.getElementById('enablePalletCalc') && document.getElementById('enablePalletCalc').checked) {
-            document.getElementById('calcTotalPieces').value = '';
-            document.getElementById('calcPalletOutput').innerHTML = '💡 أدخل القطع والعدد الداخلي لحساب البالتات وتعبئة الخانات...';
-        }
-        
-        saveInventoryToFirebase();
     }
 
     function toggleReview(index) {
@@ -1405,6 +1454,10 @@
             isReviewed: false 
         };
         
+        if (originalItem.exactPieces !== undefined) {
+            duplicatedItem.exactPieces = originalItem.exactPieces;
+        }
+
         items.splice(index + 1, 0, duplicatedItem);
         saveInventoryToFirebase();
     }
@@ -1423,13 +1476,30 @@
 
     function prepareEdit(index) {
         const item = inventoryData[dateInput.value][index];
-        document.getElementById('itemName').value = item.name;
-        document.getElementById('cartons').value = item.cartons;
-        document.getElementById('perCarton').value = item.perCarton;
-        document.getElementById('itemColor').value = item.color || "#ffffff";
-        editIndex = index;
-        mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
-        mainBtn.classList.add('edit-mode-btn');
+        
+        // لو الصنف مسجل بطريقة الكراس (بالقطعة)، نفتحه في تبويب الكراس
+        if(item.exactPieces !== undefined) {
+            switchTab('koras');
+            document.getElementById('korasItemName').value = item.name;
+            document.getElementById('korasTotalPieces').value = item.exactPieces;
+            document.getElementById('korasPerCarton').value = item.perCarton;
+            document.getElementById('korasItemColor').value = item.color || "#ffffff";
+            calcKorasPallets(); // لملئ خانة البالتات
+            editIndex = index;
+            const korasBtn = document.getElementById('korasActionBtn');
+            korasBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
+            korasBtn.classList.add('edit-mode-btn');
+        } else {
+            // لو كان بالكرتونة نفتحه في تبويب الجرد الأساسي
+            switchTab('daily');
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('cartons').value = item.cartons;
+            document.getElementById('perCarton').value = item.perCarton;
+            document.getElementById('itemColor').value = item.color || "#ffffff";
+            editIndex = index;
+            mainBtn.innerHTML = 'حفظ التعديلات <i class="fas fa-check-double"></i>';
+            mainBtn.classList.add('edit-mode-btn');
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1454,9 +1524,15 @@
             const yesterdayItems = snapshot.val();
             if(yesterdayItems && yesterdayItems.length > 0) {
                 saveState(); 
-                inventoryData[dateInput.value] = yesterdayItems.map(item => ({
-                    name: item.name, cartons: includeNumbers ? item.cartons : "", perCarton: includeNumbers ? item.perCarton : "", color: item.color || "#ffffff", isReviewed: false 
-                }));
+                inventoryData[dateInput.value] = yesterdayItems.map(item => {
+                    let copiedItem = {
+                        name: item.name, cartons: includeNumbers ? item.cartons : "", perCarton: includeNumbers ? item.perCarton : "", color: item.color || "#ffffff", isReviewed: false 
+                    };
+                    if (includeNumbers && item.exactPieces !== undefined) {
+                        copiedItem.exactPieces = item.exactPieces;
+                    }
+                    return copiedItem;
+                });
                 saveInventoryToFirebase();
                 alert(includeNumbers ? "تم نسخ جرد أمس بنجاح." : "تم نسخ الأسماء بنجاح.");
             } else { alert("لا توجد بيانات لتاريخ أمس!"); }
