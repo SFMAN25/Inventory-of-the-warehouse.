@@ -1499,7 +1499,7 @@
     }
 
     // ==========================================
-    // تصدير PDF وإرسال تليجرام (الجديد) - بتنسيق الطباعة
+    // تصدير PDF وإرسال تليجرام (الجديد)
     // ==========================================
     function openExportModal() {
         document.getElementById('exportModal').style.display = 'flex';
@@ -1513,86 +1513,43 @@
         const reportType = document.querySelector('input[name="reportType"]:checked').value;
         const d = dateInput.value;
         const items = inventoryData[d] || [];
-        const searchInput = document.getElementById("searchInput").value.toUpperCase();
         
-        let filteredItems = items;
-        if(searchInput) {
-            filteredItems = items.filter(item => item.name.toUpperCase().includes(searchInput));
-        }
-        
-        if(filteredItems.length === 0) return alert("الجدول فارغ لا يوجد بيانات للتصدير!");
+        if(items.length === 0) return alert("الجدول فارغ لا يوجد بيانات للتصدير!");
 
-        const destinationLabel = searchInput ? `نتيجة البحث عن: ${searchInput}` : "الجرد الشامل للمخزن";
-        const titleLabel = reportType === 'full' ? 'تقرير الجرد الشامل' : 'تقرير أسماء الأصناف والتعبئة';
-
-        // بناء الـ HTML الخاص بالـ PDF باستخدام كلاسات الطباعة (الأبيض والأسود والتنسيق الرسمي)
+        // بناء الـ HTML الخاص بالـ PDF
         let html = `
-            <div style="background: #fff; color: #000; padding: 20px;">
-                <div class="print-header">
-                    <h2>مخازن شركة كمال سعد للورق - فرع المنشية</h2>
-                    <h3>${titleLabel}</h3>
-                    <p>التاريخ: <span>${d}</span> | <strong>${destinationLabel}</strong></p>
-                </div>
-                <table class="print-table">
-                    <thead>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0 0 5px 0;">مخازن شركة كمال سعد - فرع المنشية</h2>
+                <h3 style="margin: 0 0 10px 0;">${reportType === 'full' ? 'تقرير الجرد الشامل' : 'تقرير أسماء الأصناف والتعبئة'}</h3>
+                <p style="margin: 0; font-weight: bold;">التاريخ: ${d}</p>
+            </div>
+            <table class="pdf-table">
+                <thead>
         `;
 
         if(reportType === 'full') {
-            html += `<tr><th>م</th><th>اسم الصنف</th><th>عدد الكراتين</th><th>العدد الداخلي</th><th>جرد بالقطعة (فرط)</th><th>الإجمالي بالقطع</th></tr></thead><tbody>`;
-            let totalCartonsAll = 0, totalPiecesAll = 0;
-            
-            filteredItems.forEach((it, i) => {
-                let c = parseFloat(it.cartons)||0; 
-                let p = parseInt(it.perCarton)||0; 
-                let l = parseInt(it.loosePieces)||0; 
-                let tot = Math.round(c*p)+l;
-                
-                totalCartonsAll += c; 
-                totalPiecesAll += tot;
-                
-                html += `<tr>
-                    <td>${i+1}</td>
-                    <td>${it.name}</td>
-                    <td>${formatNum(c)}</td>
-                    <td>${p}</td>
-                    <td>${l}</td>
-                    <td>${tot}</td>
-                </tr>`;
+            html += `<tr><th>م</th><th>اسم الصنف</th><th>الكراتين</th><th>العدد الداخلي</th><th>فرط</th><th>الإجمالي</th></tr></thead><tbody>`;
+            let tC = 0, tP = 0;
+            items.forEach((it, i) => {
+                let c = parseFloat(it.cartons)||0; let p = parseInt(it.perCarton)||0; let l = parseInt(it.loosePieces)||0; let tot = Math.round(c*p)+l;
+                tC += c; tP += tot;
+                html += `<tr><td>${i+1}</td><td>${it.name}</td><td>${formatNum(c)}</td><td>${p}</td><td>${l}</td><td>${tot}</td></tr>`;
             });
-            
-            html += `
-                <tr style="background-color: #f2f2f2; font-weight: bold; border-top: 2px solid #000;">
-                    <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">الإجمالي الكلي:</td>
-                    <td style="padding: 15px; font-size:16px;">${formatNum(totalCartonsAll)} كرتونة</td>
-                    <td colspan="2" style="padding: 15px; font-size:14px; text-align: left;">إجمالي جميع القطع:</td>
-                    <td style="padding: 15px; font-size:18px;">${totalPiecesAll} قطعة</td>
-                </tr>
-            `;
             html += `</tbody></table>`;
-            
-            // إضافة التوقيعات مثل الطباعة العادية
             html += `
-                <div class="print-signatures">
-                    <div>أمين المخزن: ........................</div>
-                    <div>المستلم: ........................</div>
+                <div style="margin-top: 20px; padding: 15px; border: 2px dashed #000; text-align: right; font-weight: bold; font-size: 16px;">
+                    <p style="margin: 5px 0;">إجمالي الكراتين: ${formatNum(tC)} كرتونة</p>
+                    <p style="margin: 5px 0;">إجمالي جميع القطع: ${tP} قطعة</p>
                 </div>
             `;
         } else {
             // التقرير الجزئي (بدون أرصدة)
             html += `<tr><th>م</th><th>اسم الصنف</th><th>العدد الداخلي (التعبئة)</th></tr></thead><tbody>`;
-            filteredItems.forEach((it, i) => {
+            items.forEach((it, i) => {
                 html += `<tr><td>${i+1}</td><td>${it.name}</td><td>${it.perCarton||0}</td></tr>`;
             });
             html += `</tbody></table>`;
-            html += `
-                <div class="print-signatures">
-                    <div>أمين المخزن: ........................</div>
-                    <div>المستلم: ........................</div>
-                </div>
-            `;
         }
-
-        html += `</div>`; // إغلاق الحاوية الأساسية
 
         const container = document.getElementById('pdfExportContainer');
         container.innerHTML = html;
