@@ -164,7 +164,7 @@
         .trans-input-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
 
         /* ==========================================
-           تنسيق الطباعة (أبيض وأسود إجباري)
+           تنسيق الطباعة العادية بالمتصفح
            ========================================== */
         #invoicePrintArea { 
             display: none; 
@@ -172,115 +172,75 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             direction: rtl;
         }
-        .print-header { 
-            text-align: center; 
-            border-bottom: 3px double #000; 
-            padding-bottom: 15px; 
-            margin-bottom: 25px;
-        }
+        .print-header { text-align: center; border-bottom: 3px double #000; padding-bottom: 15px; margin-bottom: 25px; }
         .print-header h2 { margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #000; }
         .print-header h3 { margin: 0 0 10px 0; font-size: 18px; font-weight: bold; color: #000; }
         .print-header p { margin: 5px 0; font-size: 14px; font-weight: 600; color: #000; }
-        .print-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 30px;
-        }
-        .print-table th { 
-            background-color: #f2f2f2 !important; 
-            color: #000 !important; 
-            border: 2px solid #000; 
-            padding: 12px; 
-            font-size: 16px; 
-            font-weight: bold;
-        }
-        .print-table td { 
-            border: 1px solid #000; 
-            padding: 12px; 
-            text-align: center; 
-            font-size: 15px; 
-            font-weight: bold; 
-            color: #000 !important;
-        }
-        .print-signatures { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-top: 60px; 
-            padding: 0 40px; 
-            font-size: 16px; 
-            font-weight: bold;
-            color: #000 !important;
-        }
+        .print-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .print-table th { background-color: #f2f2f2 !important; color: #000 !important; border: 2px solid #000; padding: 12px; font-size: 16px; font-weight: bold; }
+        .print-table td { border: 1px solid #000; padding: 12px; text-align: center; font-size: 15px; font-weight: bold; color: #000 !important; }
+        .print-signatures { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 40px; font-size: 16px; font-weight: bold; color: #000 !important; }
 
         @media print {
-            body { 
-                background: #fff !important; 
-                color: #000 !important; 
-                filter: grayscale(100%) !important; 
-                -webkit-filter: grayscale(100%) !important;
-            }
-            #mainContainer, #loginScreen, .modal-overlay, #syncStatus { 
-                display: none !important; 
-            }
-            #invoicePrintArea { 
-                display: block !important; 
-                position: relative; 
-            }
+            body { background: #fff !important; color: #000 !important; filter: grayscale(100%) !important; -webkit-filter: grayscale(100%) !important; }
+            #mainContainer, #loginScreen, .modal-overlay, #syncStatus { display: none !important; }
+            #invoicePrintArea { display: block !important; position: relative; }
+        }
+
+        /* ==========================================
+           تنسيقات التصدير للـ PDF والتليجرام
+           ========================================== */
+        #pdfExportContainer {
+            position: absolute;
+            left: -9999px; /* إخفاء عن العين ولكن موجود في المتصفح ليتم تصويره */
+            top: 0;
+            width: 794px; /* عرض ورقة A4 بالبكسل تقريباً للحفاظ على الأبعاد */
+            background: #ffffff !important;
+            color: #000000 !important;
+            direction: rtl;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 30px;
+            filter: grayscale(100%) !important; /* تحويل أبيض وأسود إجباري */
+        }
+        #pdfExportContainer table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            page-break-inside: auto;
+        }
+        #pdfExportContainer tr {
+            page-break-inside: avoid !important; /* منع انقطاع الصف بين صفحتين */
+            page-break-after: auto;
+        }
+        #pdfExportContainer thead {
+            display: table-header-group; /* تكرار رأس الجدول في كل صفحة */
+        }
+        #pdfExportContainer th, #pdfExportContainer td {
+            border: 1px solid #000 !important;
+            padding: 10px;
+            font-size: 14px;
+            color: #000 !important;
+            background-color: transparent !important;
+        }
+        #pdfExportContainer th {
+            background-color: #f2f2f2 !important;
+            font-weight: bold;
         }
 
         /* --------------------------------------------------- */
-        .log-card {
-            background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease;
-        }
-        .log-card-header {
-            padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-        }
+        .log-card { background: #ffffff; border: 1px solid #dcdde1; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; transition: all 0.3s ease; }
+        .log-card-header { padding: 15px; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .log-card-header:hover { background: #eef2f5; }
         .log-card-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px; }
         .log-card-time { font-size: 13px; color: #7f8c8d; }
-        .log-card-body {
-            max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px;
-        }
-        .log-card-body.active {
-            max-height: 1000px; padding: 15px; border-top: 1px solid #eee;
-        }
+        .log-card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.4s ease-out; background: #ffffff; padding: 0 15px; }
+        .log-card-body.active { max-height: 1000px; padding: 15px; border-top: 1px solid #eee; }
         .log-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 15px; color: #2c3e50; }
         .log-item:last-child { border-bottom: none; }
         .log-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #f1f2f6; padding-top: 15px; }
         .log-actions button { flex: 1; padding: 10px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; color: white; display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: bold; }
         .btn-del-log { background: #e74c3c; }
         .btn-edit-log { background: #f39c12; }
-
-        /* حاوية הـ PDF الخفية المخصصة للاخراج */
-        #pdfExportContainer {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            width: 800px; /* عرض ثابت لضمان شكل الـ A4 */
-            background: #ffffff;
-            color: #000000;
-            direction: rtl;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 30px;
-        }
-        
-        .pdf-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .pdf-table th, .pdf-table td {
-            border: 1px solid #000;
-            padding: 10px;
-            font-size: 14px;
-        }
-        .pdf-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -313,7 +273,7 @@
     </div>
     <table class="print-table">
         <thead id="printTableHead">
-            <tr><th>م</th><th>اسم الصنف</th><th>عدد الكراتين</th><th>العدد الداخلي</th><th>جرد بالقطعة (فرط)</th><th>الإجمالي بالقطع</th></tr>
+            <tr><th>م</th><th>اسم الصنف</th><th>الكمية المنصرفة</th></tr>
         </thead>
         <tbody id="printTableBody"></tbody>
     </table>
@@ -757,7 +717,6 @@
         if(isViewerMode) {
             document.querySelectorAll('.viewer-hide').forEach(el => el.style.display = 'none');
             document.querySelectorAll('input, select').forEach(el => {
-                // Allow radio buttons in export modal to be clicked
                 if(el.type !== 'date' && el.id !== 'searchInput' && el.name !== 'reportType') {
                     el.disabled = true;
                 }
@@ -1081,9 +1040,59 @@
         alert("تم خصم الأصناف وتسجيل الإذن بنجاح! يمكنك طباعة الفاتورة من سجل الحركات بالأسفل.");
     }
 
-    // ==========================================
-    // طباعة الجرد اليومي العادية (لزرار الطباعة القديم)
-    // ==========================================
+    function printOldTransaction(index) {
+        const selectedDate = dateInput.value;
+        let rawData = transactionsData[selectedDate] || [];
+        let tArray = Array.isArray(rawData) ? rawData : Object.values(rawData);
+        const trans = tArray[index];
+
+        if (!trans.rawItems || trans.rawItems.length === 0) {
+            alert("لا توجد تفاصيل لطباعة هذه الفاتورة (نسخة قديمة).");
+            return;
+        }
+
+        document.getElementById('printTitle').innerText = "إذن صرف بضاعة (أمر مجمع)";
+        document.getElementById('printDate').innerText = trans.time + " | " + selectedDate;
+        document.getElementById('printDestinationLabel').innerText = `تحويل إلى: ${trans.destination}`;
+        document.getElementById('printSignaturesArea').style.display = "flex";
+        
+        const thead = document.getElementById('printTableHead');
+        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>الكمية المنصرفة</th></tr>`;
+        
+        const ptBody = document.getElementById('printTableBody');
+        ptBody.innerHTML = '';
+        let grandTotalCartons = 0;
+        let grandTotalPieces = 0;
+
+        trans.rawItems.forEach((item, i) => {
+            grandTotalCartons += item.exactCartons;
+            grandTotalPieces += item.exactPieces;
+            
+            let displayDetails = `<strong>${formatNum(item.qty)} ${item.unit}</strong>`;
+            
+            ptBody.innerHTML += `<tr>
+                <td>${i + 1}</td>
+                <td>${item.name}</td>
+                <td>
+                    ${displayDetails}<br>
+                    <span style="font-size: 12px; color: #000;">(العدد الداخلي: ${item.perCarton}) [الإجمالي: ${formatNum(item.exactPieces)} قطعة]</span>
+                </td>
+            </tr>`;
+        });
+        
+        ptBody.innerHTML += `
+            <tr style="background-color: #f2f2f2; font-weight: bold; border-top: 2px solid #000;">
+                <td colspan="2" style="text-align: left; padding: 15px; font-size:16px;">إجمالي المنصرف:</td>
+                <td style="padding: 15px; font-size:16px;">
+                    ${formatNum(grandTotalCartons)} كرتونة <br>
+                    (${formatNum(grandTotalPieces)} قطعة)
+                </td>
+            </tr>
+        `;
+        
+        window.print();
+    }
+
     function printDailyInventory() {
         const selectedDate = dateInput.value;
         const items = inventoryData[selectedDate] || [];
@@ -1499,7 +1508,7 @@
     }
 
     // ==========================================
-    // تصدير PDF وإرسال تليجرام (الجديد)
+    // تصدير PDF وإرسال تليجرام (معدل لحل مشكلة الشاشة البيضاء والصفحات)
     // ==========================================
     function openExportModal() {
         document.getElementById('exportModal').style.display = 'flex';
@@ -1516,7 +1525,7 @@
         
         if(items.length === 0) return alert("الجدول فارغ لا يوجد بيانات للتصدير!");
 
-        // بناء الـ HTML الخاص بالـ PDF
+        // بناء الـ HTML الخاص بالـ PDF داخل الحاوية المخفية
         let html = `
             <div style="text-align: center; margin-bottom: 20px;">
                 <h2 style="margin: 0 0 5px 0;">مخازن شركة كمال سعد - فرع المنشية</h2>
@@ -1554,13 +1563,19 @@
         const container = document.getElementById('pdfExportContainer');
         container.innerHTML = html;
 
-        // إعدادات الـ PDF
+        // إعدادات الـ PDF لضمان التقسيم وعدم ظهور شاشة بيضاء
         let opt = {
-            margin:       0.3,
+            margin:       0.4,
             filename:     reportType === 'full' ? `Inventory_Full_${d}.pdf` : `Inventory_Items_${d}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true,
+                scrollY: 0, // هذا السطر يمنع مشكلة الشاشة البيضاء عند النزول بالصفحة
+                windowWidth: 800 // تثبيت العرض لضمان التقاط صحيح
+            },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['css', 'legacy'] } // هذا السطر يضمن تقسيم الصفحات بانتظام
         };
 
         if(action === 'download') {
