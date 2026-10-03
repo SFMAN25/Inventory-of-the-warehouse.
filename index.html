@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة ومخزن الكراس الشامل - النسخة المطبورة</title>
+    <title>نظام إدارة ومخزن الكراس الشامل - النسخة الاحترافية المطبورة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Firebase SDKs (v8) -->
@@ -307,6 +307,7 @@
     </div>
 </div>
 
+<!-- Datalists للاقتراحات الفورية بجميع شاشات السكربت -->
 <datalist id="itemNamesList">
     <option value="كراس 28 مسطر (___)">
     <option value="كراس 28 صماء">
@@ -331,6 +332,7 @@
     <option value="محل الكروت">
 </datalist>
 
+<datalist id="inventorySuggestions"></datalist>
 <datalist id="suppliersDatalist"></datalist>
 
 <div class="container" id="mainContainer">
@@ -376,7 +378,7 @@
             </div>
 
             <div class="input-group viewer-hide">
-                <input type="text" id="itemName" list="itemNamesList" placeholder="أدخل اسم الصنف للإضافة">
+                <input type="text" id="itemName" list="inventorySuggestions" placeholder="أدخل أو ابحث عن اسم الصنف...">
                 <input type="number" id="cartons" placeholder="الكراتين" min="0" step="any">
                 <input type="number" id="perCarton" placeholder="العدد الداخلي" min="0">
                 <input type="number" id="loosePieces" placeholder="جرد بالقطعة (فرط)" min="0">
@@ -386,7 +388,7 @@
         </div>
 
         <div class="search-container no-print" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث عن صنف في الجرد الحالي..." onkeyup="filterTable()" style="flex: 1; min-width: 250px;">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ابحث فورياً عن صنف في الجرد الحالي..." onkeyup="filterTable()" style="flex: 1; min-width: 250px;">
             <button class="add-btn" onclick="printDailyInventory('a4')" style="background: #34495e; padding: 10px 18px;"><i class="fas fa-print"></i> طباعة A4</button>
             <button class="add-btn" onclick="printDailyInventory('thermal')" style="background: #e67e22; padding: 10px 18px;"><i class="fas fa-receipt"></i> طباعة كاشير حراري</button>
         </div>
@@ -423,7 +425,7 @@
             <div class="grid-3" style="margin-bottom: 15px;">
                 <div>
                     <label>اسم العميل / المورد:</label>
-                    <input type="text" id="salesCustomerName" list="suppliersDatalist" placeholder="اختر أو اكتب اسم العميل">
+                    <input type="text" id="salesCustomerName" list="suppliersDatalist" placeholder="اختر أو ابحث عن العميل...">
                 </div>
                 <div>
                     <label>رقم الريسيت / الفاتورة (تلقائي بكود):</label>
@@ -439,7 +441,7 @@
             </div>
 
             <div class="grid-4" style="background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px;">
-                <input type="text" id="salesItemName" list="inventorySuggestions" placeholder="اختر الصنف من المخزن">
+                <input type="text" id="salesItemName" list="inventorySuggestions" placeholder="اختر أو ابحث عن الصنف...">
                 <input type="number" id="salesQty" placeholder="الكمية" min="1" step="any">
                 <select id="salesUnit">
                     <option value="كرتونة">كرتونة</option>
@@ -474,14 +476,14 @@
         <div id="salesCardsContainer"></div>
     </div>
 
-    <!-- 3. استلام بضاعة (مشتريات من مورد) -->
+    <!-- 3. استلام بضاعة (مشتريات) -->
     <div id="tab-purchases" class="tab-content">
         <div class="section-box no-print viewer-hide" style="border-right: 5px solid var(--secondary-color);">
             <h3><i class="fas fa-dolly"></i> إذن استلام بضاعة جديدة (تلقائي بالتخزين بكود PUR)</h3>
             <div class="grid-3" style="margin-bottom: 12px;">
                 <div>
                     <label>اسم المورد:</label>
-                    <input type="text" id="purchSupplierName" list="suppliersDatalist" placeholder="اختر اسم المورد أو اكتب مورد جديد">
+                    <input type="text" id="purchSupplierName" list="suppliersDatalist" placeholder="ابحث أو اختر اسم المورد...">
                 </div>
                 <div>
                     <label>رقم فاتورة / إذن المورد (تلقائي بكود):</label>
@@ -494,7 +496,7 @@
             </div>
 
             <div class="grid-4" style="background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px;">
-                <input type="text" id="purchItemName" list="itemNamesList" placeholder="اسم الصنف المستلم">
+                <input type="text" id="purchItemName" list="inventorySuggestions" placeholder="ابحث عن اسم الصنف المستلم...">
                 <input type="number" id="purchCartons" placeholder="عدد الكراتين المستلمة" min="0" step="any">
                 <input type="number" id="purchPerCarton" placeholder="العدد الداخلي للكرتونة" min="1">
                 <input type="number" id="purchLoosePieces" placeholder="فرط إضافي (قطعة)" min="0">
@@ -551,12 +553,12 @@
         </table>
     </div>
 
-    <!-- 5. قسم فواتير الموردين والعملاء (البحث، المرتجعات، والطباعة) -->
+    <!-- 5. قسم فواتير الموردين والعملاء (البحث السريع والطباعة) -->
     <div id="tab-supplier-invoices" class="tab-content">
         <div class="section-box no-print">
-            <h3><i class="fas fa-search-dollar"></i> البحث الشامل وطباعة كشف حساب المورد / العميل</h3>
+            <h3><i class="fas fa-search-dollar"></i> البحث الشامل والذكير في فواتير المورد أو العميل</h3>
             <div class="grid-3">
-                <input type="text" id="searchSupplierInvoiceInput" list="suppliersDatalist" placeholder="اكتب اسم المورد أو العميل للبحث عن فواتيره..." onkeyup="searchSupplierInvoices()">
+                <input type="text" id="searchSupplierInvoiceInput" list="suppliersDatalist" placeholder="اكتب أول حرف من اسم المورد أو العميل..." onkeyup="searchSupplierInvoices()">
                 <select id="supplierInvoiceTypeFilter" onchange="searchSupplierInvoices()">
                     <option value="all">كل الفواتير (استلام، مبيعات، ومرتجعات)</option>
                     <option value="purchases">فواتير استلام بضاعة (مشتريات)</option>
@@ -580,13 +582,13 @@
         <div id="supplierInvoicesResults"></div>
     </div>
 
-    <!-- 6. قسم حركة الصنف (كارت الصنف) -->
+    <!-- 6. قسم حركة الصنف المطور (كارت الحركة الشامل) -->
     <div id="tab-item-ledger" class="tab-content">
         <div class="section-box no-print">
-            <h3><i class="fas fa-chart-line"></i> تتبع حركة الصنف (كارت حركة الصنف)</h3>
+            <h3><i class="fas fa-chart-line"></i> تتبع حركة الصنف التفصيلية بالكامل (كارت حركة الصنف)</h3>
             <div class="grid-2">
-                <input type="text" id="ledgerItemSearch" list="inventorySuggestions" placeholder="اختر أو ابحث عن الصنف..." onchange="generateItemLedger()">
-                <button class="add-btn" onclick="generateItemLedger()"><i class="fas fa-sync"></i> عرض كارت الحركة</button>
+                <input type="text" id="ledgerItemSearch" list="inventorySuggestions" placeholder="اكتب اسم الصنف للتتبع الفوري..." onchange="generateItemLedger()" onkeyup="generateItemLedger()">
+                <button class="add-btn" onclick="generateItemLedger()"><i class="fas fa-sync"></i> عرض كارت الحركة الشامل</button>
             </div>
         </div>
 
@@ -602,7 +604,7 @@
         <div class="map-wrapper" id="warehouseMapUI"></div>
     </div>
 
-    <!-- 8. سجل الصرف والتحويل -->
+    <!-- 8. سجل الصرف والتحويل (المطور مع التعديل والمرتجع والطباعة) -->
     <div id="tab-transactions" class="tab-content">
         <div class="transaction-section no-print viewer-hide" style="background: #e8f8f5; padding: 18px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #a3e4d7;">
             <h3 style="margin-top:0; color:#117864;"><i class="fas fa-truck-loading"></i> إضافة أمر صرف (سلة الأصناف المجمعة)</h3>
@@ -613,7 +615,7 @@
             </div>
 
             <div class="trans-input-group" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 10px; margin-top: 12px;">
-                <input type="text" id="transItemName" list="inventorySuggestions" placeholder="اختر اسم الصنف">
+                <input type="text" id="transItemName" list="inventorySuggestions" placeholder="ابحث أو اختر الصنف...">
                 <input type="number" id="transQty" placeholder="الكمية" min="1" step="any">
                 <select id="transUnit">
                     <option value="كرتونة">كرتونة</option>
@@ -650,7 +652,7 @@
             <div class="section-box no-print">
                 <h3><i class="fas fa-barcode"></i> توليد باركود لصنف</h3>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    <input type="text" id="barcodeItemName" list="inventorySuggestions" placeholder="اسم الصنف">
+                    <input type="text" id="barcodeItemName" list="inventorySuggestions" placeholder="اسم الصنف...">
                     <input type="text" id="barcodeValueInput" placeholder="كود الباركود (مثال: 6221002001)">
                     <input type="text" id="barcodePriceInput" placeholder="السعر (اختياري)">
                     <button class="add-btn" onclick="generateBarcodePreview()"><i class="fas fa-cogs"></i> توليد الباركود</button>
@@ -709,7 +711,7 @@
         
         <div class="modal-form-group viewer-hide">
             <label>إضافة / تعديل صنف في الخانة:</label>
-            <input type="text" id="slotItemName" list="itemNamesList" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
+            <input type="text" id="slotItemName" list="inventorySuggestions" placeholder="اسم الصنف (مثال: كراس 24 مسطر)">
             <div style="display: flex; gap: 8px; align-items: center;">
                 <input type="number" id="slotItemQty" placeholder="العدد" style="flex: 1;" min="0" step="any">
                 <select id="slotItemUnit" style="flex: 1;">
@@ -1238,7 +1240,7 @@
     }
 
     // ==========================================
-    // 2. وظائف قسم المبيعات والفواتير المربوطة بالأكواد
+    // 2. المبيعات والفواتير
     // ==========================================
     function addToSalesCart() {
         if(isViewerMode) return;
@@ -1378,7 +1380,7 @@
         let list = salesData[selectedDate] || [];
         let sale = list[index];
 
-        if(!confirm(`هل أنت متأكد من عمل مرتجع للفاتورة رقم (${sale.invoiceNum})؟ سيتم إرجاع البضاعة للتخزين وحساب المورد.`)) return;
+        if(!confirm(`هل أنت متأكد من عمل مرتجع للفاتورة رقم (${sale.invoiceNum})؟`)) return;
 
         saveState();
         let items = inventoryData[selectedDate] || [];
@@ -1412,11 +1414,11 @@
             type: 'مرتجع مبيعات', invoiceNum: returnCode, date: selectedDate, amount: -sale.totalAmount, items: sale.items
         });
 
-        alert("تم تسجيل المرتجع وإعادة البضاعة للمخزن وتحديث كشف الحساب بنجاح!");
+        alert("تم تسجيل المرتجع وتعديل المخزن الحسابات بنجاح!");
     }
 
     // ==========================================
-    // 3. قسم استلام البضاعة (المشتريات والمرتجعات)
+    // 3. استلام بضاعة (المشتريات والمرتجعات)
     // ==========================================
     function addToPurchaseCart() {
         if(isViewerMode) return;
@@ -1503,7 +1505,7 @@
         purchaseCart = [];
         renderPurchaseCart();
         document.getElementById('purchBillNum').value = '';
-        alert(`تم إضافة البضائع المستلمة للتخزين بنجاح! رقم الإذن: ${billNum}`);
+        alert(`تم إضافة البضائع المستلمة بنجاح! رقم الإذن: ${billNum}`);
     }
 
     function renderPurchasesTable() {
@@ -1548,7 +1550,7 @@
         let list = purchasesData[selectedDate] || [];
         let purch = list[index];
 
-        if(!confirm(`هل أنت متأكد من عمل مرتجع للمورد (${purch.supplier}) للإذن رقم (${purch.billNum})؟ سيتم خصم الكميات من التخزين.`)) return;
+        if(!confirm(`هل أنت متأكد من عمل مرتجع للمورد (${purch.supplier})؟`)) return;
 
         saveState();
         let items = inventoryData[selectedDate] || [];
@@ -1578,7 +1580,7 @@
             type: 'مرتجع مشتريات', billNum: returnCode, date: selectedDate, notes: 'مرتجع للمورد', items: purch.items
         });
 
-        alert("تم تسجيل مرتجع المشتريات وخصم البضاعة من المخزن بنجاح!");
+        alert("تم تسجيل المرتجع وخصم البضاعة من المخزن بنجاح!");
     }
 
     function printPurchaseReceipt(index) {
@@ -1637,7 +1639,7 @@
             purchasesData[selectedDate] = list;
             db.ref('purchases/' + selectedDate).set(list);
 
-            alert("تم تعديل بيانات الإذن بنجاح!");
+            alert("تم تعديل البيانات بنجاح!");
             renderPurchasesTable();
         }
     }
@@ -1703,7 +1705,7 @@
     }
 
     // ==========================================
-    // 5. قسم البحث والطباعة في فواتير الموردين والعملاء
+    // 5. فواتير الموردين والعملاء
     // ==========================================
     function searchSupplierInvoices() {
         const supplierName = document.getElementById('searchSupplierInvoiceInput').value.trim();
@@ -1774,7 +1776,7 @@
             summaryBox.style.display = 'block';
             document.getElementById('summarySupplierTitle').innerText = `كشف حساب المورد / العميل: ${supplierName}`;
             document.getElementById('summarySupplierTotalsDetails').innerHTML = `
-                إجمالي الاستلام (المشتريات): <b style="color:#27ae60;">${totalPurchases} ج.م</b> | 
+                إجمالي المشتريات: <b style="color:#27ae60;">${totalPurchases} ج.م</b> | 
                 إجمالي المبيعات: <b style="color:#2980b9;">${totalSales} ج.م</b> | 
                 إجمالي المرتجعات: <b style="color:#e74c3c;">${totalReturns} ج.م</b>
             `;
@@ -1834,45 +1836,94 @@
     }
 
     // ==========================================
-    // 6. قسم حركة الصنف (كارت الصنف)
+    // 6. قسم حركة الصنف المطور (تتبع تاريخي شامل باليوم والوقت)
     // ==========================================
     function generateItemLedger() {
         const itemName = document.getElementById('ledgerItemSearch').value.trim();
         const container = document.getElementById('itemLedgerContainer');
         container.innerHTML = '';
 
-        if (!itemName) return alert("اختر اسم الصنف أولاً!");
+        if (!itemName) return;
 
-        db.ref('inventory').once('value').then((invSnap) => {
-            let invAll = invSnap.val() || {};
-            let history = [];
+        let ledgerEvents = [];
 
+        // 1. جلب الجرد والوارد المبدئي
+        const pInv = db.ref('inventory').once('value').then(snap => {
+            let invAll = snap.val() || {};
             Object.keys(invAll).forEach(date => {
-                let dayList = invAll[date];
-                let item = dayList.find(x => x.name === itemName);
+                let item = (invAll[date] || []).find(x => x.name === itemName);
                 if (item) {
-                    history.push({ date, action: 'جرد يومي / رصيد', cartons: item.cartons, loose: item.loosePieces });
+                    ledgerEvents.push({ date, time: 'بداية اليوم', action: 'رصيد الجرد اليومي', details: `${item.cartons} كرتونة | ${item.loosePieces} فرط`, type: 'info' });
                 }
             });
+        });
+
+        // 2. جلب حركات استلام المشتريات
+        const pPurch = db.ref('purchases').once('value').then(snap => {
+            let purchAll = snap.val() || {};
+            Object.keys(purchAll).forEach(date => {
+                (purchAll[date] || []).forEach(p => {
+                    let item = (p.items || []).find(x => x.name === itemName);
+                    if (item) {
+                        ledgerEvents.push({ date, time: p.time, action: p.isReturn ? 'مرتجع مشتريات' : 'استلام بضاعة (وارد)', details: `المورد: ${p.supplier} (${item.cartons} كرتونة | ${item.loosePieces} فرط)`, type: p.isReturn ? 'out' : 'in' });
+                    }
+                });
+            });
+        });
+
+        // 3. جلب حركات المبيعات
+        const pSales = db.ref('sales').once('value').then(snap => {
+            let salesAll = snap.val() || {};
+            Object.keys(salesAll).forEach(date => {
+                (salesAll[date] || []).forEach(s => {
+                    let item = (s.items || []).find(x => x.name === itemName);
+                    if (item) {
+                        ledgerEvents.push({ date, time: s.time, action: s.isReturn ? 'مرتجع مبيعات' : 'مبيعات فاتورة', details: `العميل: ${s.customer} (${item.qty} ${item.unit})`, type: s.isReturn ? 'in' : 'out' });
+                    }
+                });
+            });
+        });
+
+        // 4. جلب حركات التحويل والصرف
+        const pTrans = db.ref('transactions').once('value').then(snap => {
+            let transAll = snap.val() || {};
+            Object.keys(transAll).forEach(date => {
+                (transAll[date] || []).forEach(t => {
+                    let item = (t.rawItems || []).find(x => x.name === itemName);
+                    if (item) {
+                        ledgerEvents.push({ date, time: t.time, action: t.isReturn ? 'مرتجع تحويل وصرف' : 'تحويل وصرف فرعي', details: `إلى: ${t.destination} (${item.qty} ${item.unit})`, type: t.isReturn ? 'in' : 'out' });
+                    }
+                });
+            });
+        });
+
+        Promise.all([pInv, pPurch, pSales, pTrans]).then(() => {
+            if(ledgerEvents.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">لا توجد حركات مسجلة للصنف: ${itemName}</div>`;
+                return;
+            }
+
+            ledgerEvents.sort((a,b) => b.date.localeCompare(a.date));
 
             let html = `
-                <h4>كارت الحركة الخاص بالصنف: <span style="color:var(--secondary-color);">${itemName}</span></h4>
+                <h4>كارت الحركة الشامل للصنف: <span style="color:var(--secondary-color);">${itemName}</span></h4>
                 <table style="width:100%; border-collapse:collapse; margin-top:10px;">
                     <thead>
                         <tr style="background:var(--primary-color); color:white;">
-                            <th>التاريخ</th><th>نوع الحركة</th><th>الكراتين</th><th>القطع الفرط</th>
+                            <th>التاريخ</th><th>الوقت</th><th>نوع الحركة</th><th>التفاصيل ومسار البضاعة</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
 
-            history.forEach(h => {
+            ledgerEvents.forEach(e => {
+                let badgeStyle = e.type === 'in' ? 'color:#27ae60;' : (e.type === 'out' ? 'color:#e74c3c;' : 'color:#2980b9;');
                 html += `
                     <tr>
-                        <td>${h.date}</td>
-                        <td>${h.action}</td>
-                        <td><b>${h.cartons}</b></td>
-                        <td>${h.loose}</td>
+                        <td><b>${e.date}</b></td>
+                        <td>${e.time}</td>
+                        <td style="${badgeStyle}"><b>${e.action}</b></td>
+                        <td>${e.details}</td>
                     </tr>
                 `;
             });
@@ -1893,12 +1944,7 @@
         document.getElementById('barcodeItemTitle').innerText = name;
         document.getElementById('barcodePriceTitle').innerText = price ? `السعر: ${price} ج.م` : '';
 
-        JsBarcode("#barcodeCanvas", val, {
-            format: "CODE128",
-            width: 2,
-            height: 60,
-            displayValue: true
-        });
+        JsBarcode("#barcodeCanvas", val, { format: "CODE128", width: 2, height: 60, displayValue: true });
     }
 
     function printBarcodeSticker() {
@@ -2019,7 +2065,7 @@
     }
 
     // ==========================================
-    // خريطة المخزن والسجل
+    // خريطة المخزن
     // ==========================================
     function renderMapUI() {
         const wrapper = document.getElementById('warehouseMapUI');
@@ -2130,7 +2176,9 @@
         });
     }
 
-    // أذونات الصرف والتحويل
+    // ==========================================
+    // 8. سجل الصرف والتحويل (مع التعديل والمرتجع والطباعة)
+    // ==========================================
     function addToTransactionCart() {
         if(isViewerMode) return;
         const name = sanitizeInput(document.getElementById('transItemName').value);
@@ -2185,7 +2233,7 @@
         let tArray = transactionsData[selectedDate];
         tArray.push({
             time: new Date().toLocaleTimeString('ar-EG'),
-            destination,
+            destination, isReturn: false,
             rawItems: JSON.parse(JSON.stringify(transactionCart))
         });
 
@@ -2207,20 +2255,106 @@
         }
 
         list.forEach((trans, i) => {
+            const badgeClass = trans.isReturn ? 'badge-return' : 'badge-trans';
+            const badgeText = trans.isReturn ? 'مرتجع صرف' : 'إذن صرف وتمرير';
+
             container.innerHTML += `
                 <div class="log-card">
                     <div class="log-card-header" onclick="toggleLogCard('trans-${i}')">
                         <div>
-                            <div class="log-card-title"><span class="badge-type badge-trans">إذن صرف</span> تحويل إلى: ${trans.destination}</div>
+                            <div class="log-card-title"><span class="badge-type ${badgeClass}">${badgeText}</span> إلى: ${trans.destination}</div>
                             <div class="log-card-time"><i class="far fa-clock"></i> ${trans.time}</div>
                         </div>
                     </div>
                     <div class="log-card-body" id="card-body-trans-${i}">
                         ${(trans.rawItems || []).map(it => `<div class="log-item"><span>${it.name}</span><b>${it.qty}${it.unit}</b></div>`).join('')}
+                        <div class="log-actions no-print">
+                            <button style="background: #34495e;" onclick="printTransactionInvoice(${i})"><i class="fas fa-print"></i> طباعة الإذن</button>
+                            <button class="btn-edit-log viewer-hide" onclick="editTransactionRecord(${i})"><i class="fas fa-pen"></i> تعديل الوجهة</button>
+                            ${!trans.isReturn ? `<button class="btn-del-log viewer-hide" onclick="returnTransactionRecord(${i})"><i class="fas fa-undo"></i> عمل مرتجع للإذن</button>` : ''}
+                        </div>
                     </div>
                 </div>
             `;
         });
+        applyViewerPermissions();
+    }
+
+    function printTransactionInvoice(index) {
+        const trans = (transactionsData[dateInput.value] || [])[index];
+        if (!trans) return;
+
+        const area = document.getElementById('invoicePrintArea');
+        area.className = 'print-format-a4';
+
+        document.getElementById('printTitle').innerText = trans.isReturn ? "إذن مرتجع صرف وتحويل" : "إذن صرف وتحويل بضاعة";
+        document.getElementById('printDate').innerText = trans.time + " | " + dateInput.value;
+        document.getElementById('printDestinationLabel').innerText = `الجهة المحول إليها: ${trans.destination}`;
+        document.getElementById('printSignaturesArea').style.display = "flex";
+
+        const thead = document.getElementById('printTableHead');
+        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>الكمية المصروفة</th></tr>`;
+
+        const tbody = document.getElementById('printTableBody');
+        tbody.innerHTML = '';
+
+        trans.rawItems.forEach((it, i) => {
+            tbody.innerHTML += `<tr>
+                <td>${i + 1}</td>
+                <td>${it.name}</td>
+                <td>${it.qty} ${it.unit}</td>
+            </tr>`;
+        });
+
+        window.print();
+    }
+
+    function editTransactionRecord(index) {
+        if(isViewerMode) return;
+        const selectedDate = dateInput.value;
+        let list = transactionsData[selectedDate] || [];
+        let trans = list[index];
+
+        const newDest = prompt("تعديل الجهة المحول إليها:", trans.destination);
+        if(newDest && newDest.trim() !== "") {
+            trans.destination = newDest.trim();
+            transactionsData[selectedDate] = list;
+            db.ref('transactions/' + selectedDate).set(list);
+            alert("تم تعديل البيانات بنجاح!");
+            renderTransactionsTable();
+        }
+    }
+
+    function returnTransactionRecord(index) {
+        if(isViewerMode) return;
+        const selectedDate = dateInput.value;
+        let list = transactionsData[selectedDate] || [];
+        let trans = list[index];
+
+        if(!confirm(`هل أنت متأكد من عمل مرتجع لإذن الصرف المحول إلى (${trans.destination})؟ سيتم إرجاع البضاعة للجرد.`)) return;
+
+        saveState();
+        let items = inventoryData[selectedDate] || [];
+
+        trans.rawItems.forEach(cItem => {
+            let invItem = items.find(x => x.name === cItem.name);
+            let restoreCartons = cItem.unit === 'قطعة' ? (cItem.qty / (cItem.perCarton || 1)) : cItem.qty;
+            if(invItem) {
+                invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+            }
+        });
+
+        saveInventoryToFirebase();
+
+        list.push({
+            time: new Date().toLocaleTimeString('ar-EG'),
+            destination: `مرتجع من (${trans.destination})`,
+            isReturn: true,
+            rawItems: JSON.parse(JSON.stringify(trans.rawItems))
+        });
+
+        db.ref('transactions/' + selectedDate).set(list);
+        alert("تم إرجاع الكمية المصروفة للمخزن وتسجيل حركة المرتجع بنجاح!");
     }
 
     function toggleLogCard(id) {
