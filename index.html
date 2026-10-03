@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة ومخزن الكراس الشامل - النسخة المؤمنة المطبورة</title>
+    <title>نظام إدارة ومخزن الكراس الشامل - النسخة المطبورة</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <!-- Firebase SDKs (v8) -->
@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     
-    <!-- JsBarcode Library for Barcode Generation -->
+    <!-- JsBarcode Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <style>
@@ -165,9 +165,6 @@
             .map-wrapper { flex-direction: column; }
         }
 
-        /* ---------------------------------------------------
-           تنسيق الطباعة التفاعلي للنماذج والمقاسات المختلفة
-           --------------------------------------------------- */
         #invoicePrintArea { 
             display: none; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -216,7 +213,6 @@
             color: #000 !important;
         }
 
-        /* مقاسات الطباعة */
         .print-format-a4 { width: 100%; padding: 20px; }
         .print-format-a5 { width: 148mm; margin: 0 auto; padding: 10px; }
         .print-format-thermal { width: 80mm; margin: 0 auto; padding: 5px; font-size: 11px; }
@@ -264,8 +260,9 @@
 
         .badge-type { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
         .badge-buy { background: #27ae60; }
-        .badge-sell { background: #e74c3c; }
-        .badge-trans { background: #2980b9; }
+        .badge-sell { background: #2980b9; }
+        .badge-return { background: #e74c3c; }
+        .badge-trans { background: #8e44ad; }
     </style>
 </head>
 <body>
@@ -290,7 +287,7 @@
 
 <div id="syncStatus"><i class="fas fa-cloud-upload-alt"></i> تم الحفظ السحابي بنجاح</div>
 
-<!-- منطقة الطباعة الموحدة لجميع الأقسام -->
+<!-- منطقة الطباعة الموحدة -->
 <div id="invoicePrintArea" class="print-format-a4">
     <div class="print-header">
         <h2>مخازن شركة كمال سعد للورق - فرع المنشية</h2>
@@ -356,7 +353,7 @@
         <button class="tab-btn" onclick="switchTab('sales', event)"><i class="fas fa-shopping-cart"></i> المبيعات والفواتير</button>
         <button class="tab-btn" onclick="switchTab('purchases', event)"><i class="fas fa-truck-loading"></i> استلام بضاعة (مشتريات)</button>
         <button class="tab-btn" onclick="switchTab('suppliers', event)"><i class="fas fa-users"></i> قسم الموردين</button>
-        <button class="tab-btn" onclick="switchTab('supplier-invoices', event)"><i class="fas fa-file-invoice-dollar"></i> فواتير الموردين</button>
+        <button class="tab-btn" onclick="switchTab('supplier-invoices', event)"><i class="fas fa-file-invoice-dollar"></i> فواتير الموردين والعملاء</button>
         <button class="tab-btn" onclick="switchTab('item-ledger', event)"><i class="fas fa-history"></i> حركة الصنف</button>
         <button class="tab-btn" onclick="switchTab('map', event)"><i class="fas fa-th"></i> خريطة المخزن</button>
         <button class="tab-btn" onclick="switchTab('transactions', event)"><i class="fas fa-exchange-alt"></i> سجل الصرف والتحويل</button>
@@ -422,15 +419,15 @@
     <!-- 2. المبيعات والفواتير -->
     <div id="tab-sales" class="tab-content">
         <div class="section-box no-print viewer-hide">
-            <h3><i class="fas fa-cash-register"></i> تسجيل عملية بيع جديدة وإصدار فاتورة</h3>
+            <h3><i class="fas fa-cash-register"></i> تسجيل عملية بيع وإصدار فاتورة برقم تلقائي</h3>
             <div class="grid-3" style="margin-bottom: 15px;">
                 <div>
                     <label>اسم العميل / المورد:</label>
                     <input type="text" id="salesCustomerName" list="suppliersDatalist" placeholder="اختر أو اكتب اسم العميل">
                 </div>
                 <div>
-                    <label>رقم الفاتورة:</label>
-                    <input type="text" id="salesInvoiceNum" placeholder="تلقائي / أدخل الرقم">
+                    <label>رقم الريسيت / الفاتورة (تلقائي بكود):</label>
+                    <input type="text" id="salesInvoiceNum" placeholder="يصدر تلقائياً بكود SAL-XXXX">
                 </div>
                 <div>
                     <label>طريقة الدفع:</label>
@@ -473,22 +470,22 @@
             </div>
         </div>
 
-        <h3><i class="fas fa-receipt"></i> سجل المبيعات والفواتير الصادرة</h3>
+        <h3><i class="fas fa-receipt"></i> سجل المبيعات والمرتجعات الصادرة</h3>
         <div id="salesCardsContainer"></div>
     </div>
 
     <!-- 3. استلام بضاعة (مشتريات من مورد) -->
     <div id="tab-purchases" class="tab-content">
         <div class="section-box no-print viewer-hide" style="border-right: 5px solid var(--secondary-color);">
-            <h3><i class="fas fa-dolly"></i> إذن استلام بضاعة جديدة (تلقائي بالتخزين)</h3>
+            <h3><i class="fas fa-dolly"></i> إذن استلام بضاعة جديدة (تلقائي بالتخزين بكود PUR)</h3>
             <div class="grid-3" style="margin-bottom: 12px;">
                 <div>
                     <label>اسم المورد:</label>
                     <input type="text" id="purchSupplierName" list="suppliersDatalist" placeholder="اختر اسم المورد أو اكتب مورد جديد">
                 </div>
                 <div>
-                    <label>رقم فاتورة / إذن المورد:</label>
-                    <input type="text" id="purchBillNum" placeholder="رقم فاتورة المورد">
+                    <label>رقم فاتورة / إذن المورد (تلقائي بكود):</label>
+                    <input type="text" id="purchBillNum" placeholder="يصدر تلقائياً بكود PUR-XXXX">
                 </div>
                 <div>
                     <label>ملاحظات الاستلام:</label>
@@ -520,7 +517,7 @@
             </div>
         </div>
 
-        <h3><i class="fas fa-history"></i> سجل اذونات استلام البضائع والمشتريات</h3>
+        <h3><i class="fas fa-history"></i> سجل إذونات استلام البضائع والمشتريات</h3>
         <div id="purchasesCardsContainer"></div>
     </div>
 
@@ -554,18 +551,29 @@
         </table>
     </div>
 
-    <!-- 5. قسم فواتير الموردين (البحث) -->
+    <!-- 5. قسم فواتير الموردين والعملاء (البحث، المرتجعات، والطباعة) -->
     <div id="tab-supplier-invoices" class="tab-content">
         <div class="section-box no-print">
-            <h3><i class="fas fa-search-dollar"></i> البحث الشامل في فواتير وحركات الموردين</h3>
+            <h3><i class="fas fa-search-dollar"></i> البحث الشامل وطباعة كشف حساب المورد / العميل</h3>
             <div class="grid-3">
-                <input type="text" id="searchSupplierInvoiceInput" list="suppliersDatalist" placeholder="اكتب اسم المورد للبحث عن فواتيره..." onkeyup="searchSupplierInvoices()">
+                <input type="text" id="searchSupplierInvoiceInput" list="suppliersDatalist" placeholder="اكتب اسم المورد أو العميل للبحث عن فواتيره..." onkeyup="searchSupplierInvoices()">
                 <select id="supplierInvoiceTypeFilter" onchange="searchSupplierInvoices()">
-                    <option value="all">كل الفواتير (استلام ومبيعات)</option>
+                    <option value="all">كل الفواتير (استلام، مبيعات، ومرتجعات)</option>
                     <option value="purchases">فواتير استلام بضاعة (مشتريات)</option>
-                    <option value="sales">فواتير مبيعات / مرتجعات</option>
+                    <option value="sales">فواتير مبيعات</option>
+                    <option value="returns">فواتير المرتجعات فقط</option>
                 </select>
                 <button class="add-btn" onclick="searchSupplierInvoices()" style="background: #34495e;"><i class="fas fa-search"></i> عرض النتائج</button>
+            </div>
+        </div>
+
+        <div id="supplierSummaryBox" style="display:none; margin-bottom:15px; background:#e8f8f5; border:2px solid #27ae60; padding:15px; border-radius:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h3 style="margin:0; color:#117864;" id="summarySupplierTitle">كشف حساب المورد</h3>
+                    <p style="margin:5px 0 0 0; font-size:15px;" id="summarySupplierTotalsDetails"></p>
+                </div>
+                <button class="add-btn" onclick="printSupplierStatement()" style="background:#2980b9; padding:10px 20px;"><i class="fas fa-print"></i> طباعة كشف حساب كلي</button>
             </div>
         </div>
 
@@ -687,7 +695,7 @@
     </footer>
 </div>
 
-<!-- مودال تعديل الخانة في خريطة المخزن -->
+<!-- مودال تعديل الخانة -->
 <div class="modal-overlay" id="slotModal">
     <div class="modal-box">
         <div class="modal-header">
@@ -758,6 +766,8 @@
     let salesData = {};
     let purchasesData = {};
     let suppliersData = [];
+    let currentSupplierSearchedInvoices = null;
+    let currentSearchedSupplierName = "";
     
     let transactionCart = []; 
     let salesCart = [];
@@ -778,6 +788,13 @@
         { id: "col_center", count: 5 },
         { id: "col_left", count: 8 }
     ];
+
+    function generateCode(prefix) {
+        const d = new Date();
+        const dateStr = d.toISOString().slice(0, 10).replace(/-/g, '');
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        return `${prefix}-${dateStr}-${randomNum}`;
+    }
 
     function saveState() {
         if(isViewerMode) return;
@@ -1221,7 +1238,7 @@
     }
 
     // ==========================================
-    // 2. وظائف قسم المبيعات والفواتير
+    // 2. وظائف قسم المبيعات والفواتير المربوطة بالأكواد
     // ==========================================
     function addToSalesCart() {
         if(isViewerMode) return;
@@ -1271,7 +1288,7 @@
     function processSaleTransaction() {
         if(isViewerMode) return;
         const customer = sanitizeInput(document.getElementById('salesCustomerName').value) || 'عميل نقدي';
-        const invoiceNum = sanitizeInput(document.getElementById('salesInvoiceNum').value) || ('INV-' + Date.now().toString().slice(-5));
+        const invoiceNum = sanitizeInput(document.getElementById('salesInvoiceNum').value) || generateCode('SAL');
         const paymentType = document.getElementById('salesPaymentType').value;
         const selectedDate = dateInput.value;
 
@@ -1279,7 +1296,6 @@
 
         let items = inventoryData[selectedDate] || [];
 
-        // التحقق من الأرصدة
         for (let sItem of salesCart) {
             let invItem = items.find(x => x.name === sItem.name);
             let deductCartons = sItem.unit === 'قطعة' ? (sItem.qty / invItem.perCarton) : sItem.qty;
@@ -1290,7 +1306,6 @@
 
         saveState();
 
-        // الخصم وتجهيز السجل
         let totalAmount = 0;
         salesCart.forEach(sItem => {
             let invItem = items.find(x => x.name === sItem.name);
@@ -1301,25 +1316,24 @@
 
         saveInventoryToFirebase();
 
-        // حفظ حركة المبيعات
         if (!salesData[selectedDate]) salesData[selectedDate] = [];
         let sArray = salesData[selectedDate];
         sArray.push({
             time: new Date().toLocaleTimeString('ar-EG'),
-            invoiceNum, customer, paymentType, totalAmount,
+            invoiceNum, customer, paymentType, totalAmount, isReturn: false,
             items: JSON.parse(JSON.stringify(salesCart))
         });
 
         db.ref('sales/' + selectedDate).set(sArray);
-        
-        // ربطها مع فواتير الموردين والعملاء
+
         db.ref(`supplierInvoices/${customer}/${selectedDate}_${invoiceNum}`).set({
             type: 'بيع', invoiceNum, date: selectedDate, amount: totalAmount, items: salesCart
         });
 
         salesCart = [];
         renderSalesCart();
-        alert("تم إتمام عملية البيع وخصم الكميات من المخزن بنجاح!");
+        document.getElementById('salesInvoiceNum').value = '';
+        alert(`تم إتمام عملية البيع وخصم الكميات بنجاح! رقم الريسيت: ${invoiceNum}`);
     }
 
     function renderSalesTable() {
@@ -1333,11 +1347,14 @@
         }
 
         list.forEach((sale, i) => {
+            const badgeClass = sale.isReturn ? 'badge-return' : 'badge-sell';
+            const badgeText = sale.isReturn ? 'مرتجع مبيعات' : 'فاتورة بيع';
+
             container.innerHTML += `
                 <div class="log-card">
                     <div class="log-card-header" onclick="toggleLogCard('sale-${i}')">
                         <div>
-                            <div class="log-card-title"><span class="badge-type badge-sell">فاتورة بيع</span> ${sale.invoiceNum} - ${sale.customer}</div>
+                            <div class="log-card-title"><span class="badge-type ${badgeClass}">${badgeText}</span> ${sale.invoiceNum} - ${sale.customer}</div>
                             <div class="log-card-time"><i class="far fa-clock"></i> ${sale.time} | طريقة الدفع: ${sale.paymentType}</div>
                         </div>
                         <strong>${sale.totalAmount} ج.م</strong>
@@ -1345,16 +1362,61 @@
                     <div class="log-card-body" id="card-body-sale-${i}">
                         ${sale.items.map(it => `<div class="log-item"><span>${it.name} (${it.qty} ${it.unit})</span><b>${it.totalLinePrice} ج.م</b></div>`).join('')}
                         <div class="log-actions no-print">
-                            <button style="background: #34495e;" onclick="printSalesInvoice('${sale.invoiceNum}', ${i})"><i class="fas fa-print"></i> طباعة الفاتورة</button>
+                            <button style="background: #34495e;" onclick="printSalesInvoice('${sale.invoiceNum}', ${i})"><i class="fas fa-print"></i> طباعة الريسيت</button>
+                            ${!sale.isReturn ? `<button class="btn-del-log viewer-hide" onclick="returnSalesInvoice(${i})"><i class="fas fa-undo"></i> عمل مرتجع للفاتورة</button>` : ''}
                         </div>
                     </div>
                 </div>
             `;
         });
+        applyViewerPermissions();
+    }
+
+    function returnSalesInvoice(index) {
+        if(isViewerMode) return;
+        const selectedDate = dateInput.value;
+        let list = salesData[selectedDate] || [];
+        let sale = list[index];
+
+        if(!confirm(`هل أنت متأكد من عمل مرتجع للفاتورة رقم (${sale.invoiceNum})؟ سيتم إرجاع البضاعة للتخزين وحساب المورد.`)) return;
+
+        saveState();
+        let items = inventoryData[selectedDate] || [];
+
+        sale.items.forEach(sItem => {
+            let invItem = items.find(x => x.name === sItem.name);
+            let restoreCartons = sItem.unit === 'قطعة' ? (sItem.qty / (sItem.perCarton || 1)) : sItem.qty;
+            if(invItem) {
+                invItem.cartons = parseFloat((invItem.cartons + restoreCartons).toFixed(2));
+            } else {
+                items.push({ name: sItem.name, cartons: restoreCartons, perCarton: sItem.perCarton || 1, loosePieces: 0, color: '#ffffff', isReviewed: false });
+            }
+        });
+
+        saveInventoryToFirebase();
+
+        const returnCode = generateCode('RET-SAL');
+        list.push({
+            time: new Date().toLocaleTimeString('ar-EG'),
+            invoiceNum: returnCode,
+            customer: sale.customer,
+            paymentType: sale.paymentType,
+            totalAmount: -sale.totalAmount,
+            isReturn: true,
+            items: JSON.parse(JSON.stringify(sale.items))
+        });
+
+        db.ref('sales/' + selectedDate).set(list);
+
+        db.ref(`supplierInvoices/${sale.customer}/${selectedDate}_${returnCode}`).set({
+            type: 'مرتجع مبيعات', invoiceNum: returnCode, date: selectedDate, amount: -sale.totalAmount, items: sale.items
+        });
+
+        alert("تم تسجيل المرتجع وإعادة البضاعة للمخزن وتحديث كشف الحساب بنجاح!");
     }
 
     // ==========================================
-    // 3. قسم استلام البضاعة (المشتريات والتخزين)
+    // 3. قسم استلام البضاعة (المشتريات والمرتجعات)
     // ==========================================
     function addToPurchaseCart() {
         if(isViewerMode) return;
@@ -1394,7 +1456,7 @@
     function processPurchaseReceipt() {
         if(isViewerMode) return;
         const supplier = sanitizeInput(document.getElementById('purchSupplierName').value);
-        const billNum = sanitizeInput(document.getElementById('purchBillNum').value) || ('REC-' + Date.now().toString().slice(-5));
+        const billNum = sanitizeInput(document.getElementById('purchBillNum').value) || generateCode('PUR');
         const notes = sanitizeInput(document.getElementById('purchNotes').value);
         const selectedDate = dateInput.value;
 
@@ -1424,25 +1486,24 @@
         inventoryData[selectedDate] = items;
         saveInventoryToFirebase();
 
-        // تسجيل إذن الاستلام
         if (!purchasesData[selectedDate]) purchasesData[selectedDate] = [];
         let pArray = purchasesData[selectedDate];
         pArray.push({
             time: new Date().toLocaleTimeString('ar-EG'),
-            supplier, billNum, notes,
+            supplier, billNum, notes, isReturn: false,
             items: JSON.parse(JSON.stringify(purchaseCart))
         });
 
         db.ref('purchases/' + selectedDate).set(pArray);
 
-        // ربطها بفواتير المورد
         db.ref(`supplierInvoices/${supplier}/${selectedDate}_${billNum}`).set({
             type: 'استلام مشتريات', billNum, date: selectedDate, notes, items: purchaseCart
         });
 
         purchaseCart = [];
         renderPurchaseCart();
-        alert("تم إضافة البضائع المستلمة للتخزين بنجاح وترحيلها لحساب المورد!");
+        document.getElementById('purchBillNum').value = '';
+        alert(`تم إضافة البضائع المستلمة للتخزين بنجاح! رقم الإذن: ${billNum}`);
     }
 
     function renderPurchasesTable() {
@@ -1456,20 +1517,129 @@
         }
 
         list.forEach((purch, i) => {
+            const badgeClass = purch.isReturn ? 'badge-return' : 'badge-buy';
+            const badgeText = purch.isReturn ? 'مرتجع للمورد' : 'إذن استلام';
+
             container.innerHTML += `
                 <div class="log-card">
                     <div class="log-card-header" onclick="toggleLogCard('purch-${i}')">
                         <div>
-                            <div class="log-card-title"><span class="badge-type badge-buy">إذن استلام</span> ${purch.billNum} - المورد: ${purch.supplier}</div>
+                            <div class="log-card-title"><span class="badge-type ${badgeClass}">${badgeText}</span> ${purch.billNum} - المورد: ${purch.supplier}</div>
                             <div class="log-card-time"><i class="far fa-clock"></i> ${purch.time} | ملاحظات: ${purch.notes || 'لا يوجد'}</div>
                         </div>
                     </div>
                     <div class="log-card-body" id="card-body-purch-${i}">
                         ${purch.items.map(it => `<div class="log-item"><span>${it.name}</span><b>${it.cartons} كرتونة | ${it.loosePieces} فرط</b></div>`).join('')}
+                        <div class="log-actions no-print">
+                            <button style="background: #34495e;" onclick="printPurchaseReceipt(${i})"><i class="fas fa-print"></i> طباعة الإذن</button>
+                            <button class="btn-edit-log viewer-hide" onclick="editPurchaseReceipt(${i})"><i class="fas fa-pen"></i> تعديل البيانات</button>
+                            ${!purch.isReturn ? `<button class="btn-del-log viewer-hide" onclick="returnPurchaseReceipt(${i})"><i class="fas fa-undo"></i> عمل مرتجع للمورد</button>` : ''}
+                        </div>
                     </div>
                 </div>
             `;
         });
+        applyViewerPermissions();
+    }
+
+    function returnPurchaseReceipt(index) {
+        if(isViewerMode) return;
+        const selectedDate = dateInput.value;
+        let list = purchasesData[selectedDate] || [];
+        let purch = list[index];
+
+        if(!confirm(`هل أنت متأكد من عمل مرتجع للمورد (${purch.supplier}) للإذن رقم (${purch.billNum})؟ سيتم خصم الكميات من التخزين.`)) return;
+
+        saveState();
+        let items = inventoryData[selectedDate] || [];
+
+        purch.items.forEach(pItem => {
+            let invItem = items.find(x => x.name === pItem.name);
+            if(invItem) {
+                invItem.cartons = parseFloat((invItem.cartons - pItem.cartons).toFixed(2));
+            }
+        });
+
+        saveInventoryToFirebase();
+
+        const returnCode = generateCode('RET-PUR');
+        list.push({
+            time: new Date().toLocaleTimeString('ar-EG'),
+            supplier: purch.supplier,
+            billNum: returnCode,
+            notes: `مرتجع للإذن الأصلي ${purch.billNum}`,
+            isReturn: true,
+            items: JSON.parse(JSON.stringify(purch.items))
+        });
+
+        db.ref('purchases/' + selectedDate).set(list);
+
+        db.ref(`supplierInvoices/${purch.supplier}/${selectedDate}_${returnCode}`).set({
+            type: 'مرتجع مشتريات', billNum: returnCode, date: selectedDate, notes: 'مرتجع للمورد', items: purch.items
+        });
+
+        alert("تم تسجيل مرتجع المشتريات وخصم البضاعة من المخزن بنجاح!");
+    }
+
+    function printPurchaseReceipt(index) {
+        const list = purchasesData[dateInput.value] || [];
+        const purch = list[index];
+        if (!purch) return;
+
+        const area = document.getElementById('invoicePrintArea');
+        area.className = 'print-format-a4';
+
+        document.getElementById('printTitle').innerText = purch.isReturn ? "إذن مرتجع مشتريات للمورد" : "إذن استلام بضاعة (مشتريات)";
+        document.getElementById('printDate').innerText = purch.time + " | " + dateInput.value;
+        document.getElementById('printDestinationLabel').innerText = `المورد: ${purch.supplier} (رقم الإذن: ${purch.billNum})`;
+        document.getElementById('printSignaturesArea').style.display = "flex";
+
+        const thead = document.getElementById('printTableHead');
+        thead.innerHTML = `<tr><th>م</th><th>اسم الصنف</th><th>عدد الكراتين</th><th>العدد الداخلي</th><th>فرط</th><th>إجمالي القطع</th></tr>`;
+
+        const tbody = document.getElementById('printTableBody');
+        tbody.innerHTML = '';
+
+        purch.items.forEach((it, i) => {
+            let totalPieces = Math.round((it.cartons || 0) * (it.perCarton || 0)) + (it.loosePieces || 0);
+            tbody.innerHTML += `<tr>
+                <td>${i + 1}</td>
+                <td>${it.name}</td>
+                <td>${it.cartons}</td>
+                <td>${it.perCarton}</td>
+                <td>${it.loosePieces}</td>
+                <td>${totalPieces}</td>
+            </tr>`;
+        });
+
+        if(purch.notes) {
+            tbody.innerHTML += `<tr><td colspan="6" style="text-align:right;"><b>ملاحظات:</b> ${purch.notes}</td></tr>`;
+        }
+
+        window.print();
+    }
+
+    function editPurchaseReceipt(index) {
+        if(isViewerMode) return;
+        const selectedDate = dateInput.value;
+        let list = purchasesData[selectedDate] || [];
+        let purch = list[index];
+
+        const newSupplier = prompt("تعديل اسم المورد:", purch.supplier);
+        const newBillNum = prompt("تعديل رقم الفاتورة / الإذن:", purch.billNum);
+        const newNotes = prompt("تعديل الملاحظات:", purch.notes || "");
+
+        if(newSupplier && newBillNum) {
+            purch.supplier = newSupplier.trim();
+            purch.billNum = newBillNum.trim();
+            purch.notes = newNotes.trim();
+
+            purchasesData[selectedDate] = list;
+            db.ref('purchases/' + selectedDate).set(list);
+
+            alert("تم تعديل بيانات الإذن بنجاح!");
+            renderPurchasesTable();
+        }
     }
 
     // ==========================================
@@ -1499,7 +1669,6 @@
             suppliersData = Object.values(data);
             renderSuppliersTable();
             
-            // تحديث القائمة المنسدلة للموردين
             const dl = document.getElementById('suppliersDatalist');
             dl.innerHTML = '';
             suppliersData.forEach(s => {
@@ -1534,38 +1703,57 @@
     }
 
     // ==========================================
-    // 5. قسم البحث في فواتير الموردين
+    // 5. قسم البحث والطباعة في فواتير الموردين والعملاء
     // ==========================================
     function searchSupplierInvoices() {
         const supplierName = document.getElementById('searchSupplierInvoiceInput').value.trim();
         const filterType = document.getElementById('supplierInvoiceTypeFilter').value;
         const container = document.getElementById('supplierInvoicesResults');
+        const summaryBox = document.getElementById('supplierSummaryBox');
         container.innerHTML = '';
 
         if (!supplierName) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">اكتب اسم المورد للبحث عن فواتيره.</div>';
+            summaryBox.style.display = 'none';
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">اكتب اسم المورد أو العميل للبحث عن فواتيره.</div>';
             return;
         }
 
+        currentSearchedSupplierName = supplierName;
+
         db.ref('supplierInvoices/' + supplierName).once('value').then((snapshot) => {
             const invoices = snapshot.val();
+            currentSupplierSearchedInvoices = invoices;
+
             if (!invoices) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">لا توجد فواتير مسجلة للمورد: ${supplierName}</div>`;
+                summaryBox.style.display = 'none';
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#e74c3c;">لا توجد فواتير مسجلة باسم: ${supplierName}</div>`;
                 return;
             }
 
+            let totalPurchases = 0;
+            let totalSales = 0;
+            let totalReturns = 0;
             let html = '';
+
             Object.keys(invoices).forEach(key => {
                 const inv = invoices[key];
+                
+                if (inv.type === 'بيع') totalSales += (inv.amount || 0);
+                else if (inv.type === 'استلام مشتريات') totalPurchases += (inv.amount || 0);
+                else if (inv.type.includes('مرتجع')) totalReturns += Math.abs(inv.amount || 0);
+
                 if (filterType === 'purchases' && inv.type !== 'استلام مشتريات') return;
                 if (filterType === 'sales' && inv.type !== 'بيع') return;
+                if (filterType === 'returns' && !inv.type.includes('مرتجع')) return;
+
+                let badgeClass = inv.type === 'بيع' ? 'badge-sell' : (inv.type.includes('مرتجع') ? 'badge-return' : 'badge-buy');
 
                 html += `
                     <div class="log-card">
                         <div class="log-card-header">
                             <div>
                                 <div class="log-card-title">
-                                    <span class="badge-type ${inv.type === 'بيع' ? 'badge-sell' : 'badge-buy'}">${inv.type}</span> 
+                                    <span class="badge-type ${badgeClass}">${inv.type}</span> 
                                     رقم الفاتورة: ${inv.invoiceNum || inv.billNum} | التاريخ: ${inv.date}
                                 </div>
                             </div>
@@ -1583,12 +1771,70 @@
                 `;
             });
 
+            summaryBox.style.display = 'block';
+            document.getElementById('summarySupplierTitle').innerText = `كشف حساب المورد / العميل: ${supplierName}`;
+            document.getElementById('summarySupplierTotalsDetails').innerHTML = `
+                إجمالي الاستلام (المشتريات): <b style="color:#27ae60;">${totalPurchases} ج.م</b> | 
+                إجمالي المبيعات: <b style="color:#2980b9;">${totalSales} ج.م</b> | 
+                إجمالي المرتجعات: <b style="color:#e74c3c;">${totalReturns} ج.م</b>
+            `;
+
             container.innerHTML = html || '<div style="text-align:center; padding:20px;">لا توجد فواتير تطابق نوع الفلتر المحدد.</div>';
         });
     }
 
+    function printSupplierStatement() {
+        if (!currentSupplierSearchedInvoices || !currentSearchedSupplierName) {
+            return alert("ابحث عن اسم مورد أو عميل أولاً لطباعة كشف حسابه!");
+        }
+
+        const area = document.getElementById('invoicePrintArea');
+        area.className = 'print-format-a4';
+
+        document.getElementById('printTitle').innerText = "كشف حساب وفواتير شامله";
+        document.getElementById('printDate').innerText = new Date().toLocaleDateString('ar-EG');
+        document.getElementById('printDestinationLabel').innerText = `الاسم: ${currentSearchedSupplierName}`;
+        document.getElementById('printSignaturesArea').style.display = "flex";
+
+        const thead = document.getElementById('printTableHead');
+        thead.innerHTML = `<tr><th>م</th><th>التاريخ / رقم الفاتورة</th><th>نوع الحركة</th><th>التفاصيل والكميات</th><th>الإجمالي (ج.م)</th></tr>`;
+
+        const tbody = document.getElementById('printTableBody');
+        tbody.innerHTML = '';
+
+        let grandPurchases = 0;
+        let grandSales = 0;
+        let count = 1;
+
+        Object.keys(currentSupplierSearchedInvoices).forEach(key => {
+            const inv = currentSupplierSearchedInvoices[key];
+            let details = inv.items.map(it => `${it.name} (${it.qty || it.cartons} ${it.unit || 'كرتونة'})`).join(' - ');
+            let amt = inv.amount ? inv.amount + ' ج.م' : '-';
+
+            if (inv.type === 'بيع') grandSales += (inv.amount || 0);
+            else if (inv.type === 'استلام مشتريات') grandPurchases += (inv.amount || 0);
+
+            tbody.innerHTML += `<tr>
+                <td>${count++}</td>
+                <td>${inv.date} (${inv.invoiceNum || inv.billNum})</td>
+                <td>${inv.type}</td>
+                <td style="font-size:12px;">${details}</td>
+                <td>${amt}</td>
+            </tr>`;
+        });
+
+        tbody.innerHTML += `
+            <tr style="background:#f2f2f2; font-weight:bold;">
+                <td colspan="3">إجمالي المشتريات: ${grandPurchases} ج.م</td>
+                <td colspan="2">إجمالي المبيعات: ${grandSales} ج.م</td>
+            </tr>
+        `;
+
+        window.print();
+    }
+
     // ==========================================
-    // 6. قسم حركة الصنف (كارت الحركة)
+    // 6. قسم حركة الصنف (كارت الصنف)
     // ==========================================
     function generateItemLedger() {
         const itemName = document.getElementById('ledgerItemSearch').value.trim();
@@ -1597,7 +1843,6 @@
 
         if (!itemName) return alert("اختر اسم الصنف أولاً!");
 
-        // جلب الحركات عبر جميع الأيام
         db.ref('inventory').once('value').then((invSnap) => {
             let invAll = invSnap.val() || {};
             let history = [];
@@ -1671,7 +1916,6 @@
 
         window.print();
         
-        // إعادة تهيئة جدول الطباعة القياسي
         document.getElementById('printMainTable').style.display = 'table';
         document.getElementById('printCustomContent').innerHTML = '';
     }
@@ -1743,9 +1987,9 @@
         const area = document.getElementById('invoicePrintArea');
         area.className = 'print-format-a4';
 
-        document.getElementById('printTitle').innerText = "فاتورة مبيعات / إذن تسليم";
+        document.getElementById('printTitle').innerText = sale.isReturn ? "إذن مرتجع مبيعات" : "فاتورة مبيعات / إذن تسليم";
         document.getElementById('printDate').innerText = sale.time + " | " + dateInput.value;
-        document.getElementById('printDestinationLabel').innerText = `العميل: ${sale.customer} (فاتورة رقم: ${sale.invoiceNum})`;
+        document.getElementById('printDestinationLabel').innerText = `العميل: ${sale.customer} (رقم الفاتورة: ${sale.invoiceNum})`;
         document.getElementById('printSignaturesArea').style.display = "flex";
 
         const thead = document.getElementById('printTableHead');
@@ -1775,7 +2019,7 @@
     }
 
     // ==========================================
-    // خريطة المخزن والسجل القديم
+    // خريطة المخزن والسجل
     // ==========================================
     function renderMapUI() {
         const wrapper = document.getElementById('warehouseMapUI');
@@ -1995,4 +2239,4 @@
     }
 </script>
 </body>
-    </html>
+</html>
